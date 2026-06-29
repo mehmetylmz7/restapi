@@ -23,7 +23,7 @@ def print_customers(customers):
         print("henuz musteri bulunmuyor")
         return
     
-    print("/n--------- Customer List --------- ")
+    print("\n--------- Customer List --------- ")
 
     for customer in customers:
         print(f"""
