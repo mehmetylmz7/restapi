@@ -1,9 +1,10 @@
 from stripe_client import get,post
+from config import BASE_URL
 
-BASE_URL = "https://api.stripe.com/v1"
 
 def get_customers():
-    return get(f"{BASE_URL}/customers")
+    url = f"{BASE_URL}/customers"
+    return get(url)
 
 
 def create_customer(name, email):

@@ -1,5 +1,6 @@
 import requests 
 from config import STRIPE_SECRET_KEY
+from logger import logger
 
 headers = {
     "Authorization": f"Bearer {STRIPE_SECRET_KEY}"
@@ -7,6 +8,8 @@ headers = {
 
 def get(endpoint):
     try: 
+        logger.info(f"GET istegi gonderiliyor: {endpoint}")
+
         response = requests.get(
             endpoint, 
             headers=headers,
@@ -15,20 +18,22 @@ def get(endpoint):
 
         # exception firlatilir
         response.raise_for_status()
+
+        logger.info(f"Basarili cevap: {response.status_code}")
         
         return response
     
     except requests.exceptions.Timeout:
-        print( "sunucu zamaninda cevap vermedi. ")
+        logger.error("sunucu zamaninda cevap vermedi. ")
 
     except requests.exceptions.ConnectionError:
-        print("sunucuya baglanilamadi. ")
+        logger.error("sunucuya baglanilamadi. ")
 
     except requests.exceptions.HTTPError as err:
-        print("Http hatasi ", err)
+        logger.error("Http hatasi ", err)
 
     except requests.exceptions.RequestException as err:
-        print("Bilinmeyen bir hata olustu: ", err)
+        logger.error("Bilinmeyen bir hata olustu: ", err)
 
     return None
 

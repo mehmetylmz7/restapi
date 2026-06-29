@@ -20,7 +20,12 @@ data = {
     "email": "mehmet.yilmaz@example.com"
 }
 
-response = requests.post(url, headers=headers, data=data)
+data2 = {
+    "name": "Zeynep Yilmaz",
+    "email": "zeynep.yilmaz@example.com"
+}
+
+response = requests.post(url, headers=headers, data=data2)
 
 response_json = response.json()
 print(json.dumps(response_json, indent=4))

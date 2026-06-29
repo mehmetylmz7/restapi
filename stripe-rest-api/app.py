@@ -1,6 +1,9 @@
-from customer_service import get_customers, create_customer
+from customer_service import get_customers
 
-response = create_customer("zeynep", "zeynep@example.com")
+response = get_customers()
 
-print(response.status_code)
-print(response.json())
+if response:
+
+    customers = response.json()
+
+    print(customers)

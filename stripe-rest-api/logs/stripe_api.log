@@ -1,0 +1,6 @@
+2026-06-29 17:12:07,640 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-06-29 17:12:08,299 - INFO - Basarili cevap: 200
+2026-06-29 17:30:40,368 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-06-29 17:30:41,024 - INFO - Basarili cevap: 200
+2026-06-29 17:31:15,199 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-06-29 17:31:15,883 - INFO - Basarili cevap: 200
