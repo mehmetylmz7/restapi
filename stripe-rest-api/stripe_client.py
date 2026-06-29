@@ -6,13 +6,14 @@ headers = {
     "Authorization": f"Bearer {STRIPE_SECRET_KEY}"
 }
 
-def get(endpoint):
+def get(endpoint,params=None):
     try: 
         logger.info(f"GET istegi gonderiliyor: {endpoint}")
 
         response = requests.get(
             endpoint, 
             headers=headers,
+            params=params,
             timeout=10
         )
 

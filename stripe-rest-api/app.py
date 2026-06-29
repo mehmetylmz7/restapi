@@ -1,9 +1,5 @@
-from customer_service import get_customers
+from customer_service import get_customers,print_customers
 
-response = get_customers()
+customers=get_customers(limit=5)
 
-if response:
-
-    customers = response.json()
-
-    print(customers)
+print_customers(customers)
