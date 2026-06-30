@@ -1,4 +1,4 @@
-from product_service import get_products ,deactivate_product, create_product
+from product_service import get_products ,deactivate_product, create_product,create_price, get_prices
 from utils import format_timestamp
 
 
@@ -13,4 +13,3 @@ Active  : {product['active']}
 Created : {format_timestamp(product['created'])}
 """)
     
-
