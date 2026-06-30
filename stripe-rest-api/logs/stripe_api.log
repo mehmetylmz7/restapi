@@ -56,3 +56,11 @@
 2026-06-30 14:20:33,381 - INFO - Basarili cevap: 200
 2026-06-30 14:22:53,357 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
 2026-06-30 14:22:54,259 - INFO - Basarili cevap: 200
+2026-06-30 15:34:56,753 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/prices
+2026-06-30 15:34:57,544 - INFO - Basarili cevap: 200
+2026-06-30 15:35:25,756 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/prices
+2026-06-30 15:35:26,519 - INFO - Basarili cevap: 200
+2026-06-30 15:58:31,952 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
+2026-06-30 15:58:32,914 - INFO - Basarili cevap: 200
+2026-06-30 16:01:56,232 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
+2026-06-30 16:01:57,229 - INFO - Basarili cevap: 200
