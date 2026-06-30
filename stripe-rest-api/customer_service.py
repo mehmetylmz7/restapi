@@ -1,4 +1,4 @@
-from stripe_client import get,post
+from stripe_client import get,post,delete
 from config import BASE_URL
 
 
@@ -52,3 +52,25 @@ def create_customer(name, email):
         return None
 
     return response.json()
+
+def get_customer(customer_id):
+
+    url = f"{BASE_URL}/customers/{customer_id}"
+    response = get(url)
+
+    if response is None:
+        return None
+
+    return response.json()
+
+def delete_customer(customer_id):
+
+    url= f"{BASE_URL}/customers/{customer_id}"
+
+    response = delete(url)
+
+    if response is None:
+        return None
+    
+    return response.json()
+

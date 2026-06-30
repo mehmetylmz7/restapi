@@ -24,3 +24,15 @@
 2026-06-30 09:37:25,507 - INFO - Basarili cevap: 200
 2026-06-30 09:37:27,597 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
 2026-06-30 09:37:28,296 - INFO - Basarili cevap: 200
+2026-06-30 09:45:35,818 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-06-30 09:45:36,444 - INFO - Basarili cevap: 200
+2026-06-30 09:49:03,348 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-06-30 09:49:04,074 - INFO - Basarili cevap: 200
+2026-06-30 09:49:37,771 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers/cus_UnGEwC7x3XJ1YF
+2026-06-30 09:49:38,420 - INFO - Basarili cevap: 200
+2026-06-30 10:33:12,518 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-06-30 10:33:13,247 - INFO - Basarili cevap: 200
+2026-06-30 10:33:36,077 - INFO - DELETE isteði gönderiliyor: https://api.stripe.com/v1/customers/cus_UnGEwC7x3XJ1YF
+2026-06-30 10:33:36,802 - INFO - Baþarýlý cevap: 200
+2026-06-30 10:33:59,782 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-06-30 10:34:00,451 - INFO - Basarili cevap: 200
