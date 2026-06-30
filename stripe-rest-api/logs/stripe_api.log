@@ -38,3 +38,17 @@
 2026-06-30 10:34:00,451 - INFO - Basarili cevap: 200
 2026-06-30 11:11:18,457 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
 2026-06-30 11:11:19,168 - INFO - Basarili cevap: 200
+2026-06-30 11:50:48,945 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-06-30 11:50:49,647 - INFO - Basarili cevap: 200
+2026-06-30 11:51:38,637 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-06-30 11:51:39,219 - INFO - Basarili cevap: 200
+2026-06-30 11:55:27,523 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-06-30 11:55:28,279 - INFO - Basarili cevap: 200
+2026-06-30 13:40:27,859 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-06-30 13:40:29,066 - INFO - Basarili cevap: 200
+2026-06-30 13:42:40,761 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-06-30 13:42:41,884 - INFO - Basarili cevap: 200
+2026-06-30 13:42:41,885 - INFO - UPDATE isteði gönderiliyor: https://api.stripe.com/v1/products/prod_UnXTr2DjxW2okJ
+2026-06-30 13:42:42,708 - INFO - Baþarýlý cevap: 200
+2026-06-30 13:43:40,125 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-06-30 13:43:40,966 - INFO - Basarili cevap: 200

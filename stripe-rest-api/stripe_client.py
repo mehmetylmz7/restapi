@@ -89,3 +89,34 @@ def delete(endpoint):
         logger.error(f"Bilinmeyen bir hata oluştu: {err}")
 
     return None
+
+def update(endpoint, data=None):
+    try:
+        logger.info(f"UPDATE isteği gönderiliyor: {endpoint}")
+
+        respone = requests.post(
+            endpoint,
+            headers=headers,
+            data=data,
+            timeout=10
+        )
+
+        respone.raise_for_status()
+
+        logger.info(f"Başarılı cevap: {respone.status_code}")
+
+        return respone
+    
+    except requests.exceptions.Timeout:
+        logger.error("Sunucu zamanında cevap vermedi.")
+
+    except requests.exceptions.ConnectionError:
+        logger.error("Sunucuya bağlanılamadı.")
+
+    except requests.exceptions.HTTPError as err:
+        logger.error(f"HTTP hatası: {err}")
+
+    except requests.exceptions.RequestException as err:
+        logger.error(f"Bilinmeyen bir hata oluştu: {err}")
+
+    return None
