@@ -42,12 +42,23 @@ def get(endpoint,params=None):
 def post(endpoint, data):
     try:
         logger.info(f"POST isteği gönderiliyor: {endpoint}")
-        response = requests.post(endpoint, headers=headers, data=data, timeout=10)
+        response = requests.post(
+            endpoint, 
+            headers=headers, 
+            data=data, 
+            timeout=10)
         response.raise_for_status()
-        logger.info(f"Başarılı cevap: {response.status_code}")
+        logger.info(f"Basarili cevap: {response.status_code}")
         return response
     except requests.exceptions.Timeout:
         logger.error("Sunucu zamanında cevap vermedi.")
+    
+    except requests.exceptions.ConnectionError:
+        logger.error("Sunucuya bağlanılamadı.")
+
     except requests.exceptions.HTTPError as err:
         logger.error(f"HTTP hatası: {err}")
+
+    except requests.exceptions.RequestException as err:
+        logger.error(f"Bilinmeyen bir hata oluştu: {err}")
     return None

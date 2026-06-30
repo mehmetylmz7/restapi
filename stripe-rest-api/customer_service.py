@@ -37,8 +37,18 @@ Email : {customer.get('email', 'Unknown')}
 
 
 def create_customer(name, email):
+
     data = {
         "name": name,
         "email": email
     }
-    return post(f"{BASE_URL}/customers", data)
+
+    response = post(
+        f"{BASE_URL}/customers",
+        data=data
+    )
+
+    if response is None:
+        return None
+
+    return response.json()
