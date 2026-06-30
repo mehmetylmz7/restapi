@@ -94,18 +94,18 @@ def update(endpoint, data=None):
     try:
         logger.info(f"UPDATE isteği gönderiliyor: {endpoint}")
 
-        respone = requests.post(
+        response = requests.post(
             endpoint,
             headers=headers,
             data=data,
             timeout=10
         )
 
-        respone.raise_for_status()
+        response.raise_for_status()
 
-        logger.info(f"Başarılı cevap: {respone.status_code}")
+        logger.info(f"Başarılı cevap: {response.status_code}")
 
-        return respone
+        return response
     
     except requests.exceptions.Timeout:
         logger.error("Sunucu zamanında cevap vermedi.")

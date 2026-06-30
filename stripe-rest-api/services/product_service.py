@@ -1,5 +1,3 @@
-from urllib import response
-
 from stripe_client import get, post,update
 from config import BASE_URL
 

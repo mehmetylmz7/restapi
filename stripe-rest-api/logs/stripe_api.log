@@ -64,3 +64,7 @@
 2026-06-30 15:58:32,914 - INFO - Basarili cevap: 200
 2026-06-30 16:01:56,232 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
 2026-06-30 16:01:57,229 - INFO - Basarili cevap: 200
+2026-06-30 16:09:06,990 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
+2026-06-30 16:09:07,669 - INFO - Basarili cevap: 200
+2026-06-30 16:49:59,892 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-06-30 16:50:00,727 - INFO - Basarili cevap: 200
