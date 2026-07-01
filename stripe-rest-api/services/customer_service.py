@@ -1,6 +1,6 @@
 from stripe_client import get,post,delete
 from config import BASE_URL
-
+from database import get_connection
 
 def get_customers(limit=10):
 
@@ -37,21 +37,37 @@ Email : {customer.get('email', 'Unknown')}
 
 
 def create_customer(name, email):
-
-    data = {
-        "name": name,
-        "email": email
-    }
-
-    response = post(
-        f"{BASE_URL}/customers",
-        data=data
-    )
+    # 1. Stripe'a istek at
+    data = {"name": name, "email": email}
+    response = post(f"{BASE_URL}/customers", data=data)
 
     if response is None:
         return None
+    
+    customer = response.json()
 
-    return response.json()
+    # 2. Veritabanına kaydet
+    try:
+        conn = get_connection()
+        if conn:  # Bağlantının varlığını kontrol ediyoruz
+            cursor = conn.cursor()
+            
+            # Sütun ismi 'stripe_id' olmalı!
+            sql = "INSERT INTO customers (stripe_id, name, email) VALUES (%s, %s, %s)"
+            values = (customer['id'], customer.get('name'), customer.get('email'))
+            
+            cursor.execute(sql, values)
+            conn.commit()
+            cursor.close()
+            conn.close()
+            print(f"✅ Customer {customer['id']} veritabanına kaydedildi.")
+        else:
+            print("❌ Veritabanı bağlantısı kurulamadı.")
+            
+    except Exception as e:
+        print(f"❌ Veritabanına kaydedilirken hata oluştu: {e}")
+    
+    return customer
 
 def get_customer(customer_id):
 

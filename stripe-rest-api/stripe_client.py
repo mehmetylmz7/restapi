@@ -91,6 +91,9 @@ def delete(endpoint):
     return None
 
 def update(endpoint, data=None):
+
+    if data is None:
+        data = {}
     try:
         logger.info(f"UPDATE isteği gönderiliyor: {endpoint}")
 

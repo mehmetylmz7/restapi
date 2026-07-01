@@ -1,5 +1,6 @@
 from stripe_client import get, post,update
 from config import BASE_URL
+from database import get_connection
 
 def get_products():
 
@@ -50,7 +51,27 @@ def create_product(name, description, active=True):
     if response is None:
         return None
     
-    return response.json()
+    product = response.json()
+
+    # Veritabanına kaydet
+    try:
+        conn=get_connection()
+        cursor=conn.cursor()
+        sql="INSERT INTO products (stripe_id, name, description, active) VALUES (%s, %s, %s, %s)"
+        values=(product['id'], product.get('name'), product.get('description'), product.get('active'))
+
+        cursor.execute(sql, values)
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print(f"✅ Ürün veritabanına kaydedildi: {product['id']}")
+
+    except Exception as e:
+        print(f"❌ Veritabanına kaydedilirken hata oluştu: {e}")
+    
+    return product
+    
+
 
 def get_prices(product_id=None):
 

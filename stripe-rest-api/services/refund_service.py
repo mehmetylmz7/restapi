@@ -1,9 +1,8 @@
 from stripe_client import get, post
 from config import BASE_URL
-
+from database import get_connection
 
 def create_refund(payment_intent_id, amount=None, reason=None):
-
     url = f"{BASE_URL}/refunds"
 
     data = {
@@ -21,8 +20,35 @@ def create_refund(payment_intent_id, amount=None, reason=None):
     if response is None:
         return None
 
-    return response.json()
+    refund = response.json()
 
+    # MySQL'e kaydet
+    try:
+        conn = get_connection()
+        if conn:
+            cursor = conn.cursor()
+            
+            # refunds tablosuna ekleme yapıyoruz
+            # Not: Tablonu oluştururken 'status' sütunu eklemiştik
+            sql = "INSERT INTO refunds (stripe_id, payment_intent_stripe_id, amount, currency, status, reason) VALUES (%s, %s, %s, %s, %s, %s)"
+            values = (
+                refund['id'], 
+                refund.get('payment_intent'), 
+                refund.get('amount'), 
+                refund.get('currency'), 
+                refund.get('status'), 
+                refund.get('reason')
+            )
+            
+            cursor.execute(sql, values)
+            conn.commit()
+            cursor.close()
+            conn.close()
+            print("✅ İade kaydı veritabanına başarıyla eklendi.")
+    except Exception as e:
+        print(f"❌ İade veritabanına kaydedilirken hata oluştu: {e}")
+
+    return refund
 
 def get_refund(refund_id):
 
