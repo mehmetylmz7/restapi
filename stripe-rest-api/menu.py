@@ -1,6 +1,7 @@
 from services.customer_service import create_customer, get_customer, get_customers,delete_customer
 from services.product_service import get_products, get_prices, create_product, deactivate_product, get_product, create_price
 from services.payment_service import create_payment_intent, get_payment_intent, get_payment_intents, cancel_payment_intent
+from services.refund_service import create_refund, get_refund, get_refunds
 
 from utils import format_timestamp
 
@@ -28,6 +29,11 @@ def show_menu():
     print("12 - Ödemeleri Listele")
     print("13 - Ödeme Detayı")
     print("14 - Ödemeyi İptal Et")
+
+    print("\n----- Refund -----")
+    print("15 - İade Oluştur")
+    print("16 - İadeleri Listele")
+    print("17 - İade Detayı")
 
     print("\n0 - Çıkış")
     
@@ -280,6 +286,77 @@ def cancel_payment_menu():
     else:
         print("\nİşlem başarısız oldu.")
 
+def create_refund_menu():
+
+    payment_intent_id = input("Payment Intent ID: ").strip()
+    amount = input("Tutar (opsiyonel, boş bırakılırsa tam tutar): ").strip()
+
+    print("\nİade Nedeni Seçin:")
+    print("1 - duplicate")
+    print("2 - fraudulent")
+    print("3 - requested_by_customer")
+    print("4 - Boş bırak")
+
+    reasons = {
+        "1": "duplicate",
+        "2": "fraudulent",
+        "3": "requested_by_customer"
+    }
+
+    choice = input("Seçim: ").strip()
+    reason = reasons.get(choice)
+
+    try:
+        refund_amount = int(float(amount) * 100) if amount else None
+    except ValueError:
+        print("\nGeçersiz tutar girişi. Tam tutar kullanılacak.")
+        refund_amount = None
+
+    refund = create_refund(payment_intent_id, refund_amount, reason)
+
+    if refund:
+        print("\n✅ İade başarıyla oluşturuldu!")
+        print(f"ID       : {refund.get('id', '-')}")
+        print(f"Status   : {refund.get('status', '-')}")
+        print(f"Amount   : {refund.get('amount', 0) / 100:.2f} {refund.get('currency', 'USD').upper()}")
+    else:
+        print("\nİşlem başarısız oldu.")
+
+def list_refunds_menu():
+
+    payment_intent_id = input("Payment Intent ID (opsiyonel, boş bırakılırsa tüm iadeler): ").strip() or None
+    refunds = get_refunds(payment_intent_id)
+
+    if not refunds:
+        print("\nİade bulunamadı.")
+        return
+
+    print("\n------ REFUND LIST ------")
+
+    for refund in refunds:
+        print(f"""
+ID       : {refund['id']}
+Payment  : {refund.get('payment_intent', '-')}
+Amount   : {refund.get('amount', 0) / 100:.2f} {refund.get('currency', 'USD').upper()}
+Status   : {refund.get('status', '-')}
+-----------------------------
+""")
+
+def show_refund_menu():
+
+    refund_id = input("Refund ID: ").strip()
+    refund = get_refund(refund_id)
+
+    if refund:
+        print("\n------ REFUND DETAIL ------")
+        print(f"ID       : {refund.get('id', '-')}")
+        print(f"Payment  : {refund.get('payment_intent', '-')}")
+        print(f"Amount   : {refund.get('amount', 0) / 100:.2f} {refund.get('currency', 'USD').upper()}")
+        print(f"Status   : {refund.get('status', '-')}")
+        print(f"Reason   : {refund.get('reason', '-')}")
+    else:
+        print("\nİade bulunamadı.")
+
 def run_menu():
 
     while True:
@@ -333,6 +410,15 @@ def run_menu():
 
         elif choice == "14":
             cancel_payment_menu()
+
+        elif choice == "15":
+            create_refund_menu()
+
+        elif choice == "16":
+            list_refunds_menu()
+
+        elif choice == "17":
+            show_refund_menu()
         
         elif choice == "0":
             print("\nÇıkış yapılıyor...")
