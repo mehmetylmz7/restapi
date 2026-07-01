@@ -48,3 +48,18 @@ def get_payment_intents():
         return None
 
     return response.json()["data"]
+
+def cancel_payment_intent(payment_intent_id,cancellation_reason=None): 
+    
+    url =f"{BASE_URL}/payment_intents/{payment_intent_id}/cancel"
+
+    data = {}
+
+    if cancellation_reason:
+        data["cancellation_reason"] = cancellation_reason
+
+    response = post(url,data=data)
+
+    return response.json()
+
+

@@ -1,6 +1,6 @@
 from services.customer_service import create_customer, get_customer, get_customers,delete_customer
 from services.product_service import get_products, get_prices, create_product, deactivate_product, get_product, create_price
-from services.payment_service import create_payment_intent, get_payment_intent, get_payment_intents
+from services.payment_service import create_payment_intent, get_payment_intent, get_payment_intents, cancel_payment_intent
 
 from utils import format_timestamp
 
@@ -27,6 +27,7 @@ def show_menu():
     print("11 - Ödeme Oluştur")
     print("12 - Ödemeleri Listele")
     print("13 - Ödeme Detayı")
+    print("14 - Ödemeyi İptal Et")
 
     print("\n0 - Çıkış")
     
@@ -262,6 +263,23 @@ def create_payment_menu():
         print(f"Status   : {payment['status']}")
         print(f"Created  : {format_timestamp(payment['created'])}")
 
+def cancel_payment_menu():
+
+    payment_id = input("İptal edilecek Payment Intent ID: ").strip()
+    reason = input("İptal nedeni (opsiyonel): ").strip() or None
+
+    payment = cancel_payment_intent(payment_id, reason)
+
+    if payment:
+
+        print("\n✅ Ödeme Intent başarıyla iptal edildi!")
+
+        print(f"ID       : {payment.get('id', '-')}")
+        print(f"Status   : {payment.get('status', '-')}")
+        print(f"Reason   : {payment.get('cancellation_reason', '-')}")
+    else:
+        print("\nİşlem başarısız oldu.")
+
 def run_menu():
 
     while True:
@@ -305,13 +323,16 @@ def run_menu():
 
         # Payment Operations
         elif choice == "11":
-            list_payments()
+            create_payment_menu()
         
         elif choice == "12":
-            show_payment()
+            list_payments()
 
         elif choice == "13":
-            create_payment_menu()
+            show_payment()
+
+        elif choice == "14":
+            cancel_payment_menu()
         
         elif choice == "0":
             print("\nÇıkış yapılıyor...")
