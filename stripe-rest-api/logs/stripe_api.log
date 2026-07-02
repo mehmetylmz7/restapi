@@ -254,3 +254,68 @@
 2026-07-02 11:35:22,889 - INFO - 127.0.0.1 - - [02/Jul/2026 11:35:22] "GET /api/refunds HTTP/1.1" 200 -
 2026-07-02 11:36:41,389 - INFO - 127.0.0.1 - - [02/Jul/2026 11:36:41] "[31m[1mPOST /api/refunds HTTP/1.1[0m" 405 -
 2026-07-02 11:36:48,723 - INFO - 127.0.0.1 - - [02/Jul/2026 11:36:48] "[31m[1mPOST /api/refunds HTTP/1.1[0m" 405 -
+2026-07-02 10:46:52,466 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 10:46:52,467 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 10:46:52,617 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:46:53,152 - WARNING -  * Debugger is active!
+2026-07-02 10:46:53,162 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:50:19,405 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 10:50:19,405 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 10:50:19,579 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:50:20,154 - WARNING -  * Debugger is active!
+2026-07-02 10:50:20,159 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:57:20,184 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 10:57:20,184 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 10:57:20,191 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:57:20,736 - WARNING -  * Debugger is active!
+2026-07-02 10:57:20,741 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:57:40,750 - INFO - 127.0.0.1 - - [02/Jul/2026 10:57:40] "GET / HTTP/1.1" 200 -
+2026-07-02 10:57:40,965 - INFO - 127.0.0.1 - - [02/Jul/2026 10:57:40] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-07-02 10:57:40,969 - INFO - 127.0.0.1 - - [02/Jul/2026 10:57:40] "GET /static/js/dashboard.js HTTP/1.1" 200 -
+2026-07-02 10:57:41,233 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-02 10:57:41,233 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-02 10:57:41,234 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-02 10:57:41,257 - INFO -  * Detected change in 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\\Lib\\netrc.py', reloading
+2026-07-02 10:57:42,197 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:57:42,740 - WARNING -  * Debugger is active!
+2026-07-02 10:57:42,745 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:57:43,706 - INFO - 127.0.0.1 - - [02/Jul/2026 10:57:43] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-07-02 10:57:47,169 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-02 10:57:47,859 - INFO - Basarili cevap: 200
+2026-07-02 10:57:47,861 - INFO - 127.0.0.1 - - [02/Jul/2026 10:57:47] "GET /api/customers HTTP/1.1" 200 -
+2026-07-02 10:57:52,068 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-02 10:57:52,659 - INFO - Basarili cevap: 200
+2026-07-02 10:57:52,660 - INFO - 127.0.0.1 - - [02/Jul/2026 10:57:52] "GET /api/products HTTP/1.1" 200 -
+2026-07-02 10:57:54,991 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-02 10:57:55,743 - INFO - Basarili cevap: 200
+2026-07-02 10:57:55,744 - INFO - 127.0.0.1 - - [02/Jul/2026 10:57:55] "GET /api/payments HTTP/1.1" 200 -
+2026-07-02 10:57:58,305 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-02 10:57:58,934 - INFO - Basarili cevap: 200
+2026-07-02 10:57:58,936 - INFO - 127.0.0.1 - - [02/Jul/2026 10:57:58] "GET /api/refunds HTTP/1.1" 200 -
+2026-07-02 10:58:00,042 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-02 10:58:00,823 - INFO - Basarili cevap: 200
+2026-07-02 10:58:00,825 - INFO - 127.0.0.1 - - [02/Jul/2026 10:58:00] "GET /api/payments HTTP/1.1" 200 -
+2026-07-02 10:58:19,867 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-02 10:58:20,588 - INFO - Basarili cevap: 200
+2026-07-02 10:58:20,589 - INFO - 127.0.0.1 - - [02/Jul/2026 10:58:20] "GET /api/payments HTTP/1.1" 200 -
+2026-07-02 10:58:20,744 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-02 10:58:21,313 - INFO - Basarili cevap: 200
+2026-07-02 10:58:21,314 - INFO - 127.0.0.1 - - [02/Jul/2026 10:58:21] "GET /api/products HTTP/1.1" 200 -
+2026-07-02 10:58:21,351 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-02 10:58:22,065 - INFO - Basarili cevap: 200
+2026-07-02 10:58:22,066 - INFO - 127.0.0.1 - - [02/Jul/2026 10:58:22] "GET /api/customers HTTP/1.1" 200 -
+2026-07-02 10:58:27,098 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-02 10:58:27,624 - INFO - Basarili cevap: 200
+2026-07-02 10:58:27,625 - INFO - 127.0.0.1 - - [02/Jul/2026 10:58:27] "GET /api/customers HTTP/1.1" 200 -
+2026-07-02 10:58:27,981 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-02 10:58:28,516 - INFO - Basarili cevap: 200
+2026-07-02 10:58:28,517 - INFO - 127.0.0.1 - - [02/Jul/2026 10:58:28] "GET /api/products HTTP/1.1" 200 -
+2026-07-02 10:58:28,770 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-02 10:58:29,517 - INFO - Basarili cevap: 200
+2026-07-02 10:58:29,518 - INFO - 127.0.0.1 - - [02/Jul/2026 10:58:29] "GET /api/payments HTTP/1.1" 200 -
+2026-07-02 10:58:30,123 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-02 10:58:30,648 - INFO - Basarili cevap: 200
+2026-07-02 10:58:30,649 - INFO - 127.0.0.1 - - [02/Jul/2026 10:58:30] "GET /api/refunds HTTP/1.1" 200 -

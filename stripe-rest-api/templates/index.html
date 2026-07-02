@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stripe REST API Manager - Mehmet Yılmaz</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <h2><i class="fab fa-stripe"></i> Dashboard</h2>
+        <ul>
+            <li><a href="#" onclick="showSection('dashboard-sec')"><i class="fas fa-chart-line"></i> Genel Bakış</a></li>
+            <li><a href="#" onclick="showSection('customers-sec'); loadCustomers();"><i class="fas fa-users"></i> Müşteriler</a></li>
+            <li><a href="#" onclick="showSection('products-sec'); loadProducts();"><i class="fas fa-box"></i> Ürünler</a></li>
+            <li><a href="#" onclick="showSection('payments-sec'); loadPayments();"><i class="fas fa-credit-card"></i> Ödemeler</a></li>
+            <li><a href="#" onclick="showSection('refunds-sec'); loadRefunds();"><i class="fas fa-undo"></i> İadeler</a></li>
+        </ul>
+        <div class="footer-credit">
+            <p>Developed by Mehmet Yılmaz</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <section id="dashboard-sec" class="content-section active">
+            <h1>Genel Bakış</h1>
+            <div class="cards">
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-users"></i></div>
+                    <div class="card-info">
+                        <h3>Toplam Müşteri</h3>
+                        <p id="stat-customers">0</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-credit-card"></i></div>
+                    <div class="card-info">
+                        <h3>Toplam Ödeme</h3>
+                        <p id="stat-payments">0</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-undo"></i></div>
+                    <div class="card-info">
+                        <h3>Toplam İade</h3>
+                        <p id="stat-refunds">0</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="customers-sec" class="content-section" style="display: none;">
+            <h1>Müşteri Yönetimi</h1>
+            <div class="form-container">
+                <h3>Yeni Müşteri Ekle</h3>
+                <form id="add-customer-form">
+                    <input type="text" id="cust-name" placeholder="Müşteri Adı" required>
+                    <input type="email" id="cust-email" placeholder="E-posta" required>
+                    <button type="submit" class="btn">Kaydet</button>
+                </form>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>İsim</th>
+                        <th>E-posta</th>
+                    </tr>
+                </thead>
+                <tbody id="customers-tbody"></tbody>
+            </table>
+        </section>
+
+        <section id="products-sec" class="content-section" style="display: none;">
+            <h1>Ürün Yönetimi</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ürün Adı</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody id="products-tbody"></tbody>
+            </table>
+        </section>
+
+        <section id="payments-sec" class="content-section" style="display: none;">
+            <h1>Ödeme Geçmişi</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tutar</th>
+                        <th>Para Birimi</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody id="payments-tbody"></tbody>
+            </table>
+        </section>
+
+        <section id="refunds-sec" class="content-section" style="display: none;">
+            <h1>İade Geçmişi</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ödeme Intent</th>
+                        <th>Tutar</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody id="refunds-tbody"></tbody>
+            </table>
+        </section>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
