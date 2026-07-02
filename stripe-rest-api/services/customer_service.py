@@ -56,7 +56,7 @@ def create_customer(name, email):
             sql = "INSERT INTO customers (stripe_id, name, email) VALUES (%s, %s, %s)"
             values = (customer['id'], customer.get('name'), customer.get('email'))
             
-            cursor.execute(sql, values)
+            cursor.execute(sql, values) # execute methodu patlar ise conn kapanmayabilir 
             conn.commit()
             cursor.close()
             conn.close()

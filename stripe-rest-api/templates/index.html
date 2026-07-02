@@ -55,11 +55,15 @@
             <div class="form-container">
                 <h3>Yeni Müşteri Ekle</h3>
                 <form id="add-customer-form">
-                    <input type="text" id="cust-name" placeholder="Müşteri Adı" required>
-                    <input type="email" id="cust-email" placeholder="E-posta" required>
-                    <button type="submit" class="btn">Kaydet</button>
+                    <div class="form-row">
+                        <input type="text" id="cust-name" placeholder="Müşteri Adı" required>
+                        <input type="email" id="cust-email" placeholder="E-posta" required>
+                        <button type="submit" class="btn"><i class="fas fa-plus"></i> Kaydet</button>
+                    </div>
                 </form>
+                <div id="customer-msg" class="form-message"></div>
             </div>
+
             <table>
                 <thead>
                     <tr>
@@ -74,11 +78,23 @@
 
         <section id="products-sec" class="content-section" style="display: none;">
             <h1>Ürün Yönetimi</h1>
+            <div class="form-container">
+                <h3>Yeni Ürün Ekle</h3>
+                <form id="add-product-form">
+                    <div class="form-row">
+                        <input type="text" id="prod-name" placeholder="Ürün Adı" required>
+                        <input type="text" id="prod-desc" placeholder="Açıklama">
+                        <button type="submit" class="btn"><i class="fas fa-plus"></i> Kaydet</button>
+                    </div>
+                </form>
+                <div id="product-msg" class="form-message"></div>
+            </div>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Ürün Adı</th>
+                        <th>Açıklama</th>
                         <th>Durum</th>
                     </tr>
                 </thead>
@@ -87,11 +103,30 @@
         </section>
 
         <section id="payments-sec" class="content-section" style="display: none;">
-            <h1>Ödeme Geçmişi</h1>
+            <h1>Ödeme Yönetimi</h1>
+            <div class="form-container">
+                <h3>Yeni Ödeme Oluştur</h3>
+                <form id="add-payment-form">
+                    <div class="form-row">
+                        <input type="text" id="pay-customer-id" placeholder="Müşteri ID (cus_...)" required>
+                        <input type="number" id="pay-amount" placeholder="Tutar (örn: 49.99)" step="0.01" min="0.01" required>
+                        <select id="pay-currency" class="form-select">
+                            <option value="usd">USD</option>
+                            <option value="eur">EUR</option>
+                            <option value="try">TRY</option>
+                            <option value="gbp">GBP</option>
+                        </select>
+                        <input type="text" id="pay-order-id" placeholder="Sipariş ID (opsiyonel)">
+                        <button type="submit" class="btn"><i class="fas fa-plus"></i> Oluştur</button>
+                    </div>
+                </form>
+                <div id="payment-msg" class="form-message"></div>
+            </div>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Müşteri</th>
                         <th>Tutar</th>
                         <th>Para Birimi</th>
                         <th>Durum</th>

@@ -201,3 +201,65 @@ input {
 }
 .status-succeeded { background-color: rgba(0, 242, 195, 0.2); color: var(--success); }
 .status-pending { background-color: rgba(255, 141, 114, 0.2); color: var(--warning); }
+.status-canceled { background-color: rgba(255, 60, 60, 0.2); color: #ff6b6b; }
+.status-requires_payment_method { background-color: rgba(255, 141, 114, 0.2); color: var(--warning); }
+
+/* Form Row */
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.form-row input,
+.form-row .form-select {
+    flex: 1;
+    min-width: 150px;
+}
+
+.form-row .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Select */
+.form-select {
+    background-color: transparent;
+    border: 1px solid var(--accent-color);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.form-select option {
+    background-color: var(--sidebar-bg);
+    color: white;
+}
+
+/* Form Mesajları */
+.form-message {
+    margin-top: 12px;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    display: none;
+}
+
+.form-message.success {
+    display: block;
+    background-color: rgba(0, 242, 195, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(0, 242, 195, 0.3);
+}
+
+.form-message.error {
+    display: block;
+    background-color: rgba(255, 107, 107, 0.15);
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
