@@ -94,3 +94,163 @@
 2026-07-01 15:41:45,356 - INFO - package: mysql.connector.plugins
 2026-07-01 15:41:45,356 - INFO - plugin_name: caching_sha2_password
 2026-07-01 15:41:45,356 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2026-07-02 09:48:52,134 - WARNING -  * Debugger is active!
+2026-07-02 09:48:52,140 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 09:48:57,640 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 09:48:57,641 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 09:48:57,648 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 09:48:58,202 - WARNING -  * Debugger is active!
+2026-07-02 09:48:58,207 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 09:49:08,356 - INFO - 127.0.0.1 - - [02/Jul/2026 09:49:08] "[33mGET /api/customers HTTP/1.1[0m" 404 -
+2026-07-02 09:49:22,539 - INFO - 127.0.0.1 - - [02/Jul/2026 09:49:22] "[33mGET /api/customers HTTP/1.1[0m" 404 -
+2026-07-02 09:49:46,423 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 09:49:46,423 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 09:49:46,431 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 09:49:47,030 - WARNING -  * Debugger is active!
+2026-07-02 09:49:47,034 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 09:49:49,315 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-02 09:49:50,044 - INFO - Basarili cevap: 200
+2026-07-02 09:49:50,047 - INFO - 127.0.0.1 - - [02/Jul/2026 09:49:50] "GET /api/customers HTTP/1.1" 200 -
+2026-07-02 09:50:55,636 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 09:50:55,637 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 09:50:56,331 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 09:50:56,881 - WARNING -  * Debugger is active!
+2026-07-02 09:50:56,886 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:25:50,976 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 10:25:50,977 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 10:25:50,986 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:25:51,633 - WARNING -  * Debugger is active!
+2026-07-02 10:25:51,639 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:26:21,738 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 10:26:21,738 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 10:26:21,745 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:26:22,316 - WARNING -  * Debugger is active!
+2026-07-02 10:26:22,321 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:28:28,725 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-02 10:28:28,730 - INFO -  * Detected change in 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\\Lib\\netrc.py', reloading
+2026-07-02 10:28:29,487 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:28:30,114 - WARNING -  * Debugger is active!
+2026-07-02 10:28:30,120 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:28:44,433 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-02 10:28:45,026 - INFO - Basarili cevap: 200
+2026-07-02 10:28:45,346 - INFO - package: mysql.connector.plugins
+2026-07-02 10:28:45,347 - INFO - plugin_name: caching_sha2_password
+2026-07-02 10:28:45,347 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2026-07-02 10:28:45,401 - INFO - 127.0.0.1 - - [02/Jul/2026 10:28:45] "[35m[1mPOST /api/customers HTTP/1.1[0m" 201 -
+2026-07-02 10:48:09,836 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\services\\payment_service.py', reloading
+2026-07-02 10:48:10,175 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:48:10,793 - WARNING -  * Debugger is active!
+2026-07-02 10:48:10,799 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:48:11,641 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\services\\product_service.py', reloading
+2026-07-02 10:48:11,883 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:48:12,447 - WARNING -  * Debugger is active!
+2026-07-02 10:48:12,453 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:49:14,218 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 10:49:14,219 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 10:49:14,228 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:49:14,928 - WARNING -  * Debugger is active!
+2026-07-02 10:49:14,932 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:49:26,154 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-02 10:49:26,856 - INFO - Basarili cevap: 200
+2026-07-02 10:49:26,858 - INFO - 127.0.0.1 - - [02/Jul/2026 10:49:26] "GET /api/products HTTP/1.1" 200 -
+2026-07-02 10:51:02,800 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 10:51:02,801 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 10:51:02,802 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 10:51:02,929 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:51:03,510 - WARNING -  * Debugger is active!
+2026-07-02 10:51:03,516 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 10:51:05,044 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 10:51:05,045 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 10:51:05,642 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 10:51:06,222 - WARNING -  * Debugger is active!
+2026-07-02 10:51:06,230 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:18:28,017 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-02 11:18:28,927 - INFO - Basarili cevap: 200
+2026-07-02 11:18:29,073 - INFO - package: mysql.connector.plugins
+2026-07-02 11:18:29,074 - INFO - plugin_name: caching_sha2_password
+2026-07-02 11:18:29,074 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2026-07-02 11:18:29,091 - INFO - 127.0.0.1 - - [02/Jul/2026 11:18:29] "[35m[1mPOST /api/products HTTP/1.1[0m" 201 -
+2026-07-02 11:24:33,573 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 11:24:33,573 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 11:24:33,581 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:24:34,150 - WARNING -  * Debugger is active!
+2026-07-02 11:24:34,155 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:24:53,298 - INFO - 127.0.0.1 - - [02/Jul/2026 11:24:53] "[33mGET /api/payments HTTP/1.1[0m" 404 -
+2026-07-02 11:25:24,499 - INFO - 127.0.0.1 - - [02/Jul/2026 11:25:24] "[33mGET /api/payment HTTP/1.1[0m" 404 -
+2026-07-02 11:25:32,801 - INFO - 127.0.0.1 - - [02/Jul/2026 11:25:32] "[33mGET /api/payments HTTP/1.1[0m" 404 -
+2026-07-02 11:25:42,969 - INFO -  * Detected change in 'C:\\Users\\zlata\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\flask\\app.py', reloading
+2026-07-02 11:25:42,970 - INFO -  * Detected change in 'C:\\Users\\zlata\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\flask_cors\\extension.py', reloading
+2026-07-02 11:25:42,993 - INFO - 127.0.0.1 - - [02/Jul/2026 11:25:42] "[35m[1mGET /api/payment_intents HTTP/1.1[0m" 500 -
+2026-07-02 11:25:43,174 - INFO - 127.0.0.1 - - [02/Jul/2026 11:25:43] "GET /api/payment_intents?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2026-07-02 11:25:43,188 - INFO - 127.0.0.1 - - [02/Jul/2026 11:25:43] "GET /api/payment_intents?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2026-07-02 11:25:43,235 - INFO - 127.0.0.1 - - [02/Jul/2026 11:25:43] "GET /api/payment_intents?__debugger__=yes&cmd=resource&f=console.png&s=1TUk0xFuBgyRuaFfXgIN HTTP/1.1" 200 -
+2026-07-02 11:25:43,246 - INFO - 127.0.0.1 - - [02/Jul/2026 11:25:43] "GET /api/payment_intents?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2026-07-02 11:25:43,692 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:25:44,250 - WARNING -  * Debugger is active!
+2026-07-02 11:25:44,254 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:27:13,196 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 11:27:13,197 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 11:27:13,204 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:27:13,736 - WARNING -  * Debugger is active!
+2026-07-02 11:27:13,740 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:27:17,005 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-02 11:27:17,787 - INFO - Basarili cevap: 200
+2026-07-02 11:27:17,789 - INFO - 127.0.0.1 - - [02/Jul/2026 11:27:17] "GET /api/payments HTTP/1.1" 200 -
+2026-07-02 11:32:03,837 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:32:03,838 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:32:03,839 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:32:04,408 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:32:04,984 - WARNING -  * Debugger is active!
+2026-07-02 11:32:04,989 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:32:05,429 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:32:05,430 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:32:06,078 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:32:06,615 - WARNING -  * Debugger is active!
+2026-07-02 11:32:06,620 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:32:10,330 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-02 11:32:10,330 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-02 11:32:10,338 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:32:10,909 - WARNING -  * Debugger is active!
+2026-07-02 11:32:10,914 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:33:17,029 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-02 11:33:17,033 - INFO -  * Detected change in 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\\Lib\\netrc.py', reloading
+2026-07-02 11:33:17,202 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:33:17,764 - WARNING -  * Debugger is active!
+2026-07-02 11:33:17,769 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:33:22,647 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-02 11:33:24,338 - INFO - Basarili cevap: 200
+2026-07-02 11:33:24,585 - INFO - package: mysql.connector.plugins
+2026-07-02 11:33:24,585 - INFO - plugin_name: caching_sha2_password
+2026-07-02 11:33:24,585 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2026-07-02 11:33:24,606 - INFO - 127.0.0.1 - - [02/Jul/2026 11:33:24] "[35m[1mPOST /api/payments HTTP/1.1[0m" 201 -
+2026-07-02 11:34:11,406 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\services\\refund_service.py', reloading
+2026-07-02 11:34:11,817 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:34:12,391 - WARNING -  * Debugger is active!
+2026-07-02 11:34:12,397 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:35:03,583 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:35:03,584 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:35:04,114 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:35:04,690 - WARNING -  * Debugger is active!
+2026-07-02 11:35:04,695 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:35:05,368 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:35:05,368 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:35:05,801 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:35:06,372 - WARNING -  * Debugger is active!
+2026-07-02 11:35:06,378 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:35:06,412 - INFO -  * Detected change in 'C:\\Users\\zlata\\OneDrive\\Masaüstü\\staj\\restapi\\stripe-rest-api\\web_api.py', reloading
+2026-07-02 11:35:07,472 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-02 11:35:08,049 - WARNING -  * Debugger is active!
+2026-07-02 11:35:08,054 - INFO -  * Debugger PIN: 937-633-253
+2026-07-02 11:35:22,149 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-02 11:35:22,888 - INFO - Basarili cevap: 200
+2026-07-02 11:35:22,889 - INFO - 127.0.0.1 - - [02/Jul/2026 11:35:22] "GET /api/refunds HTTP/1.1" 200 -
+2026-07-02 11:36:41,389 - INFO - 127.0.0.1 - - [02/Jul/2026 11:36:41] "[31m[1mPOST /api/refunds HTTP/1.1[0m" 405 -
+2026-07-02 11:36:48,723 - INFO - 127.0.0.1 - - [02/Jul/2026 11:36:48] "[31m[1mPOST /api/refunds HTTP/1.1[0m" 405 -

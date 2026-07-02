@@ -13,3 +13,5 @@ def get_connection():
     except mysql.connector.Error as err:
         print(f"Hata: {err}")
         return None
+    
+
