@@ -2,11 +2,11 @@ from stripe_client import get,post,delete
 from config import BASE_URL
 from database import get_connection
 
-def get_customers(limit=10):
+def get_customers(limit=10, starting_after=None):
 
-    params = {
-        "limit": limit
-    }
+    params = {"limit": limit}
+    if starting_after:
+        params["starting_after"] = starting_after
 
     url = f"{BASE_URL}/customers"
     response = get(url, params=params)
@@ -14,7 +14,11 @@ def get_customers(limit=10):
     if response is None:
         return None
     
-    return response.json()["data"]
+    result = response.json()
+    return {
+        "data": result["data"],
+        "has_more": result.get("has_more", False)
+    }
 
     
 def print_customers(customers):

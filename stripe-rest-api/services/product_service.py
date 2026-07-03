@@ -2,15 +2,23 @@ from stripe_client import get, post,update
 from config import BASE_URL
 from database import get_connection
 
-def get_products():
+def get_products(limit=10, starting_after=None):
+
+    params = {"limit": limit}
+    if starting_after:
+        params["starting_after"] = starting_after
 
     url = f"{BASE_URL}/products"
-    response= get(url)
+    response = get(url, params=params)
     
     if response is None:
         return None
     
-    return response.json()["data"]
+    result = response.json()
+    return {
+        "data": result["data"],
+        "has_more": result.get("has_more", False)
+    }
 
 def get_product(product_id):
 

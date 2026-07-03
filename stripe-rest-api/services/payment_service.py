@@ -62,16 +62,24 @@ def get_payment_intent(payment_intent_id):
     
     return response.json()
 
-def get_payment_intents():
+def get_payment_intents(limit=10, starting_after=None):
+
+    params = {"limit": limit}
+    if starting_after:
+        params["starting_after"] = starting_after
 
     url = f"{BASE_URL}/payment_intents"
 
-    response = get(url)
+    response = get(url, params=params)
 
     if response is None:
         return None
 
-    return response.json()["data"]
+    result = response.json()
+    return {
+        "data": result["data"],
+        "has_more": result.get("has_more", False)
+    }
 
 def cancel_payment_intent(payment_intent_id,cancellation_reason=None): 
     

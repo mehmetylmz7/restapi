@@ -15,8 +15,10 @@ def home():
 
 @app.route("/api/customers", methods=["GET"])
 def api_customers():
-    customers = get_customers()
-    return jsonify(customers)
+    limit = int(request.args.get("limit", 10))
+    starting_after = request.args.get("starting_after", None)
+    result = get_customers(limit=limit, starting_after=starting_after)
+    return jsonify(result)
 
 @app.route("/api/customers", methods=["POST"])
 def api_create_customer():
@@ -29,8 +31,10 @@ def api_create_customer():
 
 @app.route("/api/products", methods=["GET"])
 def api_products():
-    products = get_products()
-    return jsonify(products)
+    limit = int(request.args.get("limit", 10))
+    starting_after = request.args.get("starting_after", None)
+    result = get_products(limit=limit, starting_after=starting_after)
+    return jsonify(result)
 
 @app.route("/api/products", methods=["POST"])
 def api_create_product():
@@ -43,8 +47,10 @@ def api_create_product():
 
 @app.route("/api/payments", methods=["GET"])
 def api_payments():
-    payments = get_payment_intents()
-    return jsonify(payments)
+    limit = int(request.args.get("limit", 10))
+    starting_after = request.args.get("starting_after", None)
+    result = get_payment_intents(limit=limit, starting_after=starting_after)
+    return jsonify(result)
 
 @app.route("/api/payments", methods=["POST"])
 def api_create_payment():
@@ -59,8 +65,10 @@ def api_create_payment():
 
 @app.route("/api/refunds", methods=["GET"])
 def api_refunds():
-    refunds = get_refunds()
-    return jsonify(refunds)
+    limit = int(request.args.get("limit", 10))
+    starting_after = request.args.get("starting_after", None)
+    result = get_refunds(limit=limit, starting_after=starting_after)
+    return jsonify(result)
 
 @app.route("/api/refunds", methods=["POST"])
 def api_create_refund():

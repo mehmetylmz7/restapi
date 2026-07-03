@@ -28,6 +28,28 @@ function showSection(sectionId) {
     document.getElementById(sectionId).style.display = 'block';
 }
 
+// =====================
+// PAGINATİON STATE
+// Her kaynak için cursor geçmişi tutulur (geri gidebilmek için)
+// =====================
+const paginationState = {
+    customers: { cursorHistory: [null], currentPage: 0, limit: 10 },
+    products:  { cursorHistory: [null], currentPage: 0, limit: 10 },
+    payments:  { cursorHistory: [null], currentPage: 0, limit: 10 },
+    refunds:   { cursorHistory: [null], currentPage: 0, limit: 10 }
+};
+
+function updatePaginationUI(resource, hasMore) {
+    const state = paginationState[resource];
+    const prevBtn = document.getElementById(`${resource}-prev-btn`);
+    const nextBtn = document.getElementById(`${resource}-next-btn`);
+    const pageInfo = document.getElementById(`${resource}-page-info`);
+
+    if (prevBtn) prevBtn.disabled = state.currentPage === 0;
+    if (nextBtn) nextBtn.disabled = !hasMore;
+    if (pageInfo) pageInfo.textContent = `Sayfa ${state.currentPage + 1}`;
+}
+
 // Uygulama başladığında dashboard istatistiklerini yükle
 document.addEventListener("DOMContentLoaded", () => {
     loadDashboardStats();
@@ -35,13 +57,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function loadDashboardStats() {
     fetch(`${API_BASE_URL}/customers`).then(res => res.json()).then(data => {
-        document.getElementById('stat-customers').innerText = data ? data.length : 0;
+        document.getElementById('stat-customers').innerText = data && data.data ? data.data.length : 0;
     });
     fetch(`${API_BASE_URL}/payments`).then(res => res.json()).then(data => {
-        document.getElementById('stat-payments').innerText = data ? data.length : 0;
+        document.getElementById('stat-payments').innerText = data && data.data ? data.data.length : 0;
     });
     fetch(`${API_BASE_URL}/refunds`).then(res => res.json()).then(data => {
-        document.getElementById('stat-refunds').innerText = data ? data.length : 0;
+        document.getElementById('stat-refunds').innerText = data && data.data ? data.data.length : 0;
     });
 }
 
@@ -49,13 +71,19 @@ function loadDashboardStats() {
 // MÜŞTERİLER
 // =====================
 function loadCustomers() {
-    fetch(`${API_BASE_URL}/customers`)
+    const state = paginationState.customers;
+    const cursor = state.cursorHistory[state.currentPage];
+    let url = `${API_BASE_URL}/customers?limit=${state.limit}`;
+    if (cursor) url += `&starting_after=${cursor}`;
+
+    fetch(url)
         .then(response => response.json())
-        .then(data => {
+        .then(result => {
             const tbody = document.getElementById('customers-tbody');
             tbody.innerHTML = '';
-            if (data) {
-                data.forEach(customer => {
+
+            if (result && result.data) {
+                result.data.forEach(customer => {
                     tbody.innerHTML += `
                         <tr>
                             <td>${customer.id}</td>
@@ -64,8 +92,39 @@ function loadCustomers() {
                         </tr>
                     `;
                 });
+
+                // Bir sonraki sayfa için cursor'ı geçmişe ekle
+                if (result.has_more && result.data.length > 0) {
+                    const lastId = result.data[result.data.length - 1].id;
+                    // Sadece yeni sayfa yükleniyorsa cursor geçmişini güncelle
+                    if (state.cursorHistory.length === state.currentPage + 1) {
+                        state.cursorHistory.push(lastId);
+                    }
+                }
             }
+            updatePaginationUI('customers', result ? result.has_more : false);
         });
+}
+
+function nextPage(resource) {
+    const state = paginationState[resource];
+    state.currentPage++;
+    loadByResource(resource);
+}
+
+function prevPage(resource) {
+    const state = paginationState[resource];
+    if (state.currentPage > 0) {
+        state.currentPage--;
+        loadByResource(resource);
+    }
+}
+
+function loadByResource(resource) {
+    if (resource === 'customers') loadCustomers();
+    else if (resource === 'products') loadProducts();
+    else if (resource === 'payments') loadPayments();
+    else if (resource === 'refunds') loadRefunds();
 }
 
 document.getElementById('add-customer-form').addEventListener('submit', function(e) {
@@ -85,6 +144,8 @@ document.getElementById('add-customer-form').addEventListener('submit', function
     .then(data => {
         showMessage('customer-msg', `✅ Müşteri eklendi: ${data.id}`);
         document.getElementById('add-customer-form').reset();
+        // Sıfırdan yükle (ilk sayfaya dön)
+        paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
         loadCustomers();
         loadDashboardStats();
     })
@@ -95,13 +156,19 @@ document.getElementById('add-customer-form').addEventListener('submit', function
 // ÜRÜNLER
 // =====================
 function loadProducts() {
-    fetch(`${API_BASE_URL}/products`)
+    const state = paginationState.products;
+    const cursor = state.cursorHistory[state.currentPage];
+    let url = `${API_BASE_URL}/products?limit=${state.limit}`;
+    if (cursor) url += `&starting_after=${cursor}`;
+
+    fetch(url)
         .then(response => response.json())
-        .then(data => {
+        .then(result => {
             const tbody = document.getElementById('products-tbody');
             tbody.innerHTML = '';
-            if (data) {
-                data.forEach(product => {
+
+            if (result && result.data) {
+                result.data.forEach(product => {
                     const sc = product.active ? 'status-succeeded' : 'status-canceled';
                     const st = product.active ? 'Aktif' : 'Pasif';
                     tbody.innerHTML += `
@@ -113,7 +180,15 @@ function loadProducts() {
                         </tr>
                     `;
                 });
+
+                if (result.has_more && result.data.length > 0) {
+                    const lastId = result.data[result.data.length - 1].id;
+                    if (state.cursorHistory.length === state.currentPage + 1) {
+                        state.cursorHistory.push(lastId);
+                    }
+                }
             }
+            updatePaginationUI('products', result ? result.has_more : false);
         });
 }
 
@@ -134,6 +209,7 @@ document.getElementById('add-product-form').addEventListener('submit', function(
     .then(data => {
         showMessage('product-msg', `✅ Ürün eklendi: ${data.id}`);
         document.getElementById('add-product-form').reset();
+        paginationState.products = { cursorHistory: [null], currentPage: 0, limit: 10 };
         loadProducts();
     })
     .catch(() => showMessage('product-msg', '❌ Ürün eklenirken hata oluştu.', 'error'));
@@ -143,13 +219,19 @@ document.getElementById('add-product-form').addEventListener('submit', function(
 // ÖDEMELER
 // =====================
 function loadPayments() {
-    fetch(`${API_BASE_URL}/payments`)
+    const state = paginationState.payments;
+    const cursor = state.cursorHistory[state.currentPage];
+    let url = `${API_BASE_URL}/payments?limit=${state.limit}`;
+    if (cursor) url += `&starting_after=${cursor}`;
+
+    fetch(url)
         .then(response => response.json())
-        .then(data => {
+        .then(result => {
             const tbody = document.getElementById('payments-tbody');
             tbody.innerHTML = '';
-            if (data) {
-                data.forEach(payment => {
+
+            if (result && result.data) {
+                result.data.forEach(payment => {
                     const amount = (payment.amount / 100).toFixed(2);
                     const sc = statusClass(payment.status);
                     tbody.innerHTML += `
@@ -162,7 +244,15 @@ function loadPayments() {
                         </tr>
                     `;
                 });
+
+                if (result.has_more && result.data.length > 0) {
+                    const lastId = result.data[result.data.length - 1].id;
+                    if (state.cursorHistory.length === state.currentPage + 1) {
+                        state.cursorHistory.push(lastId);
+                    }
+                }
             }
+            updatePaginationUI('payments', result ? result.has_more : false);
         });
 }
 
@@ -185,6 +275,7 @@ document.getElementById('add-payment-form').addEventListener('submit', function(
     .then(data => {
         showMessage('payment-msg', `✅ Ödeme oluşturuldu: ${data.id} — Durum: ${data.status}`);
         document.getElementById('add-payment-form').reset();
+        paginationState.payments = { cursorHistory: [null], currentPage: 0, limit: 10 };
         loadPayments();
         loadDashboardStats();
     })
@@ -195,13 +286,19 @@ document.getElementById('add-payment-form').addEventListener('submit', function(
 // İADELER
 // =====================
 function loadRefunds() {
-    fetch(`${API_BASE_URL}/refunds`)
+    const state = paginationState.refunds;
+    const cursor = state.cursorHistory[state.currentPage];
+    let url = `${API_BASE_URL}/refunds?limit=${state.limit}`;
+    if (cursor) url += `&starting_after=${cursor}`;
+
+    fetch(url)
         .then(response => response.json())
-        .then(data => {
+        .then(result => {
             const tbody = document.getElementById('refunds-tbody');
             tbody.innerHTML = '';
-            if (data) {
-                data.forEach(refund => {
+
+            if (result && result.data) {
+                result.data.forEach(refund => {
                     const amount = (refund.amount / 100).toFixed(2);
                     const sc = statusClass(refund.status);
                     tbody.innerHTML += `
@@ -213,6 +310,14 @@ function loadRefunds() {
                         </tr>
                     `;
                 });
+
+                if (result.has_more && result.data.length > 0) {
+                    const lastId = result.data[result.data.length - 1].id;
+                    if (state.cursorHistory.length === state.currentPage + 1) {
+                        state.cursorHistory.push(lastId);
+                    }
+                }
             }
+            updatePaginationUI('refunds', result ? result.has_more : false);
         });
 }

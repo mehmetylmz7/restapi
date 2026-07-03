@@ -62,11 +62,13 @@ def get_refund(refund_id):
     return response.json()
 
 
-def get_refunds(payment_intent_id=None):
+def get_refunds(payment_intent_id=None, limit=10, starting_after=None):
 
     url = f"{BASE_URL}/refunds"
 
-    params = {}
+    params = {"limit": limit}
+    if starting_after:
+        params["starting_after"] = starting_after
 
     if payment_intent_id:
         params["payment_intent"] = payment_intent_id
@@ -76,4 +78,8 @@ def get_refunds(payment_intent_id=None):
     if response is None:
         return None
 
-    return response.json()["data"]
+    result = response.json()
+    return {
+        "data": result["data"],
+        "has_more": result.get("has_more", False)
+    }
