@@ -1,6 +1,6 @@
 from stripe_client import post, get
 from config import BASE_URL
-from database import get_connection
+from database import get_db
 
 def create_payment_intent(customer_id, amount, currency="usd",order_id=None ):
     
@@ -31,21 +31,12 @@ def create_payment_intent(customer_id, amount, currency="usd",order_id=None ):
 
     # 2. Veritabanına kaydet
     try:
-        conn = get_connection()
-        if conn:
-            cursor = conn.cursor()
-            
-            # Tablondaki sütun isimlerine göre güncellendi:
-            sql = "INSERT INTO payment_intents (stripe_id, customer_stripe_id, amount, currency, status) VALUES (%s, %s, %s, %s, %s)"
-            values = (payment['id'], customer_id, payment['amount'], payment['currency'], payment['status'])
-            
+        sql = "INSERT INTO payment_intents (stripe_id, customer_stripe_id, amount, currency, status) VALUES (%s, %s, %s, %s, %s)"
+        values = (payment['id'], customer_id, payment['amount'], payment['currency'], payment['status'])
+
+        with get_db() as cursor:
             cursor.execute(sql, values)
-            conn.commit()
-            cursor.close()
-            conn.close()
-            print("✅ Payment intent veritabanına kaydedildi.")
-        else:
-            print("❌ Veritabanı bağlantısı kurulamadı.")
+        print("✅ Payment intent veritabanına kaydedildi.")
 
     except Exception as e:
         print(f"❌ Veritabanına kaydedilirken hata oluştu: {e}")

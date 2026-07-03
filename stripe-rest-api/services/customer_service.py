@@ -1,6 +1,6 @@
-from stripe_client import get,post,delete
+from stripe_client import get, post, delete
 from config import BASE_URL
-from database import get_connection
+from database import get_db
 
 def get_customers(limit=10, starting_after=None):
 
@@ -52,22 +52,14 @@ def create_customer(name, email):
 
     # 2. Veritabanına kaydet
     try:
-        conn = get_connection()
-        if conn:  # Bağlantının varlığını kontrol ediyoruz
-            cursor = conn.cursor()
-            
-            # Sütun ismi 'stripe_id' olmalı!
-            sql = "INSERT INTO customers (stripe_id, name, email) VALUES (%s, %s, %s)"
-            values = (customer['id'], customer.get('name'), customer.get('email'))
-            
-            cursor.execute(sql, values) # execute methodu patlar ise conn kapanmayabilir 
-            conn.commit()
-            cursor.close()
-            conn.close()
-            print(f"✅ Customer {customer['id']} veritabanına kaydedildi.")
-        else:
-            print("❌ Veritabanı bağlantısı kurulamadı.")
-            
+        sql = "INSERT INTO customers (stripe_id, name, email) VALUES (%s, %s, %s)"
+        values = (customer['id'], customer.get('name'), customer.get('email'))
+
+        with get_db() as cursor:
+            cursor.execute(sql, values)
+        # with bloğu kapanınca commit() ve conn.close() otomatik çalışır
+        print(f"✅ Customer {customer['id']} veritabanına kaydedildi.")
+
     except Exception as e:
         print(f"❌ Veritabanına kaydedilirken hata oluştu: {e}")
     

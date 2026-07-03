@@ -1,6 +1,6 @@
-from stripe_client import get, post,update
+from stripe_client import get, post, update
 from config import BASE_URL
-from database import get_connection
+from database import get_db
 
 def get_products(limit=10, starting_after=None):
 
@@ -63,15 +63,11 @@ def create_product(name, description, active=True):
 
     # Veritabanına kaydet
     try:
-        conn=get_connection()
-        cursor=conn.cursor()
-        sql="INSERT INTO products (stripe_id, name, description, active) VALUES (%s, %s, %s, %s)"
-        values=(product['id'], product.get('name'), product.get('description'), product.get('active'))
+        sql = "INSERT INTO products (stripe_id, name, description, active) VALUES (%s, %s, %s, %s)"
+        values = (product['id'], product.get('name'), product.get('description'), product.get('active'))
 
-        cursor.execute(sql, values)
-        conn.commit()
-        cursor.close()
-        conn.close()
+        with get_db() as cursor:
+            cursor.execute(sql, values)
         print(f"✅ Ürün veritabanına kaydedildi: {product['id']}")
 
     except Exception as e:
