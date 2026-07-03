@@ -761,3 +761,47 @@
 2026-07-03 12:05:01,524 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
 2026-07-03 12:05:02,173 - INFO - Basarili cevap: 200
 2026-07-03 12:05:02,175 - INFO - 127.0.0.1 - - [03/Jul/2026 12:05:02] "GET /api/customers?limit=10&starting_after=cus_UnWAObN7nxUDky HTTP/1.1" 200 -
+2026-07-03 15:18:31,434 - INFO - package: mysql.connector.plugins
+2026-07-03 15:18:31,435 - INFO - plugin_name: caching_sha2_password
+2026-07-03 15:18:31,436 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2026-07-03 15:18:31,604 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-03 15:18:31,604 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-03 15:18:31,612 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-03 15:18:32,274 - INFO - package: mysql.connector.plugins
+2026-07-03 15:18:32,274 - INFO - plugin_name: caching_sha2_password
+2026-07-03 15:18:32,274 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2026-07-03 15:18:32,421 - WARNING -  * Debugger is active!
+2026-07-03 15:18:32,428 - INFO -  * Debugger PIN: 937-633-253
+2026-07-03 15:18:40,107 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-03 15:18:40,116 - INFO -  * Detected change in 'C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\\Lib\\netrc.py', reloading
+2026-07-03 15:18:40,620 - INFO -  * Restarting with watchdog (windowsapi)
+2026-07-03 15:18:41,214 - INFO - package: mysql.connector.plugins
+2026-07-03 15:18:41,214 - INFO - plugin_name: caching_sha2_password
+2026-07-03 15:18:41,214 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2026-07-03 15:18:41,363 - WARNING -  * Debugger is active!
+2026-07-03 15:18:41,368 - INFO -  * Debugger PIN: 937-633-253
+2026-07-03 15:18:41,391 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-03 15:18:41,861 - INFO - Basarili cevap: 200
+2026-07-03 15:18:41,863 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:41] "GET /api/customers?limit=10&starting_after=cus_UnWAObN7nxUDky HTTP/1.1" 200 -
+2026-07-03 15:18:44,703 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-03 15:18:45,318 - INFO - Basarili cevap: 200
+2026-07-03 15:18:45,320 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:45] "GET /api/customers?limit=10 HTTP/1.1" 200 -
+2026-07-03 15:18:48,461 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:48] "GET / HTTP/1.1" 200 -
+2026-07-03 15:18:48,640 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:48] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-03 15:18:48,643 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:48] "[36mGET /static/js/dashboard.js HTTP/1.1[0m" 304 -
+2026-07-03 15:18:48,651 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-03 15:18:48,652 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-03 15:18:48,653 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-03 15:18:49,188 - INFO - Basarili cevap: 200
+2026-07-03 15:18:49,189 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:49] "GET /api/refunds HTTP/1.1" 200 -
+2026-07-03 15:18:49,208 - INFO - Basarili cevap: 200
+2026-07-03 15:18:49,209 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:49] "GET /api/customers HTTP/1.1" 200 -
+2026-07-03 15:18:49,272 - INFO - Basarili cevap: 200
+2026-07-03 15:18:49,274 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:49] "GET /api/payments HTTP/1.1" 200 -
+2026-07-03 15:18:51,571 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-03 15:18:52,072 - INFO - Basarili cevap: 200
+2026-07-03 15:18:52,074 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:52] "GET /api/customers?limit=10 HTTP/1.1" 200 -
+2026-07-03 15:18:55,070 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-03 15:18:55,520 - INFO - Basarili cevap: 200
+2026-07-03 15:18:55,522 - INFO - 127.0.0.1 - - [03/Jul/2026 15:18:55] "GET /api/customers?limit=10&starting_after=cus_UnWAObN7nxUDky HTTP/1.1" 200 -

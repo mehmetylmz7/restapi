@@ -4,6 +4,10 @@ from services.customer_service import get_customers, create_customer
 from services.product_service import get_products, create_product
 from services.payment_service import create_payment_intent, get_payment_intents
 from services.refund_service import create_refund, get_refunds
+from database import init_pool
+
+# Uygulama başlarken bağlantı havuzunu oluştur (bir kez çalışır)
+init_pool(pool_size=5)
 
 app = Flask(__name__)
 CORS(app)
