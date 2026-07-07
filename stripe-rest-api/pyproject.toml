@@ -1,0 +1,34 @@
+[tool.poetry]
+package-mode = false
+
+[project]
+name = "stripe-rest-api"
+
+version = "0.1.0"
+description = "Stripe REST API with Flask and MySQL"
+authors = [
+    {name = "Didim",email = "yilmazmehmet7711@gmail.com"}
+]
+readme = "README.md"
+requires-python = "^3.11"
+dependencies = [
+    "requests (==2.32.3)",
+    "python-dotenv (==1.0.1)",
+    "mysql-connector-python (>=9.7.0,<10.0.0)",
+    "flask (>=3.1.3,<4.0.0)",
+    "flask-cors (>=6.0.5,<7.0.0)",
+    "stripe (>=15.3.0,<16.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)",
+    "pytest-cov (>=7.1.0,<8.0.0)",
+    "black (>=26.5.1,<27.0.0)",
+    "flake8 (>=7.3.0,<8.0.0)"
+]
