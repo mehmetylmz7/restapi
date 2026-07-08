@@ -1,9 +1,10 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, Response
 from flask_cors import CORS
 from services.customer_service import get_customers, create_customer
 from services.product_service import get_products, create_product
-from services.payment_service import create_payment_intent, get_payment_intents
+from services.payment_service import create_payment_intent, get_payment_intents, create_payment_pdf, get_payment_pdf
 from services.refund_service import create_refund, get_refunds
+from services.file_service import upload_dispute_evidence, list_uploaded_files
 from database import init_pool
 
 # Uygulama başlarken bağlantı havuzunu oluştur (bir kez çalışır)
@@ -86,5 +87,68 @@ def api_create_refund():
     return jsonify(refund), 201
 
 # 2. APP.RUN BLOĞU KESİNLİKLE EN ALTTA OLMALI
+
+# ── PDF Endpoint'leri ──────────────────────────────────────────────────────
+@app.route("/api/payments/<payment_id>/pdf", methods=["POST"])
+def api_create_payment_pdf(payment_id):
+    """Ödeme için PDF üretir (bellekte), LONGBLOB'a kaydeder, tarayıcıya döner."""
+    pdf_bytes = create_payment_pdf(payment_id)
+    if pdf_bytes is None:
+        return jsonify({"error": "PDF oluşturulamadı. Ödeme ID'yi kontrol edin."}), 404
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"inline; filename=odeme_{payment_id}.pdf"}
+    )
+
+
+@app.route("/api/payments/<payment_id>/pdf", methods=["GET"])
+def api_get_payment_pdf(payment_id):
+    """Daha önce oluşturulmuş PDF'i DB'den okuyup döner."""
+    pdf_bytes = get_payment_pdf(payment_id)
+    if pdf_bytes is None:
+        return jsonify({"error": "PDF bulunamadı. Önce PDF Oluştur'u kullanın."}), 404
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"inline; filename=odeme_{payment_id}.pdf"}
+    )
+
+
+# ── Stripe Files Endpoint'leri ─────────────────────────────────────────────
+@app.route("/api/files/upload", methods=["POST"])
+def api_upload_file():
+    """PDF'i multipart/form-data olarak alır, Stripe Files API'ye yükler."""
+    payment_intent_id = request.form.get("payment_intent_id", "").strip()
+    if "file" not in request.files:
+        return jsonify({"error": "Dosya bulunamadı. 'file' alanı eksik."}), 400
+
+    f = request.files["file"]
+    if not f.filename.lower().endswith(".pdf"):
+        return jsonify({"error": "Sadece PDF dosyaları kabul edilmektedir."}), 400
+
+    file_obj = upload_dispute_evidence(
+        payment_intent_id=payment_intent_id,
+        file_bytes=f.read(),
+        filename=f.filename
+    )
+    if file_obj is None:
+        return jsonify({"error": "Stripe'a yükleme başarısız."}), 500
+
+    return jsonify(file_obj), 201
+
+
+@app.route("/api/files", methods=["GET"])
+def api_list_files():
+    """DB'deki yüklü dosyaları listeler."""
+    payment_id = request.args.get("payment_intent_id")
+    files = list_uploaded_files(payment_id)
+    # datetime nesnelerini string'e çevir
+    for f in files:
+        if "olusturma_tarihi" in f and f["olusturma_tarihi"]:
+            f["olusturma_tarihi"] = str(f["olusturma_tarihi"])
+    return jsonify({"data": files})
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

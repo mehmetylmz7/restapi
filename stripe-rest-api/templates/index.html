@@ -16,6 +16,7 @@
             <li><a href="#" onclick="showSection('products-sec'); loadProducts();"><i class="fas fa-box"></i> Ürünler</a></li>
             <li><a href="#" onclick="showSection('payments-sec'); loadPayments();"><i class="fas fa-credit-card"></i> Ödemeler</a></li>
             <li><a href="#" onclick="showSection('refunds-sec'); loadRefunds();"><i class="fas fa-undo"></i> İadeler</a></li>
+            <li><a href="#" onclick="showSection('dispute-sec'); loadUploadedFiles();"><i class="fas fa-shield-alt"></i> İtiraz Belgesi</a></li>
         </ul>
         <div class="footer-credit">
             <p>Developed by Mehmet Yılmaz</p>
@@ -140,6 +141,7 @@
                         <th>Tutar</th>
                         <th>Para Birimi</th>
                         <th>Durum</th>
+                        <th>PDF İşlemleri</th>
                     </tr>
                 </thead>
                 <tbody id="payments-tbody"></tbody>
@@ -169,6 +171,49 @@
                 <span id="refunds-page-info" class="pagination-info">Sayfa 1</span>
                 <button id="refunds-next-btn" class="pagination-btn" onclick="nextPage('refunds')" disabled>Sonraki &#8594;</button>
             </div>
+        </section>
+
+        <section id="dispute-sec" class="content-section" style="display: none;">
+            <h1><i class="fas fa-shield-alt"></i> İtiraz Belgesi Yükle</h1>
+            <p class="section-desc">
+                Bir ödemeye ait itiraz belgesini (PDF) Stripe'a yükleyin.
+                Yüklenen dosya Stripe'ta <code>dispute_evidence</code> amacıyla saklanır.
+            </p>
+
+            <div class="form-container">
+                <h3><i class="fas fa-upload"></i> PDF Yükle</h3>
+                <form id="upload-dispute-form">
+                    <div class="form-row">
+                        <input type="text" id="dispute-payment-id"
+                               placeholder="Ödeme ID (pi_...)" required>
+                        <label class="file-label">
+                            <i class="fas fa-file-pdf"></i> PDF Seç
+                            <input type="file" id="dispute-file" accept=".pdf" required>
+                        </label>
+                        <span id="dispute-filename" class="file-name-display">Dosya seçilmedi</span>
+                        <button type="submit" class="btn btn-dispute">
+                            <i class="fas fa-cloud-upload-alt"></i> Stripe'a Yükle
+                        </button>
+                    </div>
+                </form>
+                <div id="dispute-msg" class="form-message"></div>
+            </div>
+
+            <h3 style="margin-top: 2rem;"><i class="fas fa-list"></i> Yüklenmiş Belgeler</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stripe File ID</th>
+                        <th>Dosya Adı</th>
+                        <th>Amaç</th>
+                        <th>Boyut</th>
+                        <th>İlgili Ödeme</th>
+                        <th>Tarih</th>
+                    </tr>
+                </thead>
+                <tbody id="files-tbody"></tbody>
+            </table>
+            <p id="files-empty-msg" class="empty-msg" style="display:none;">ℹ️ Henüz yüklenen belge yok.</p>
         </section>
     </div>
 

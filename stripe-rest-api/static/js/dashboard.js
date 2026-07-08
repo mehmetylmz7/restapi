@@ -241,6 +241,14 @@ function loadPayments() {
                             <td>${amount}</td>
                             <td>${payment.currency.toUpperCase()}</td>
                             <td><span class="status-badge ${sc}">${payment.status}</span></td>
+                            <td class="action-cell">
+                                <button class="btn btn-sm btn-pdf" onclick="createPdf('${payment.id}')" title="PDF Oluştur">
+                                    <i class="fas fa-file-pdf"></i> PDF Oluştur
+                                </button>
+                                <button class="btn btn-sm btn-view" onclick="viewPdf('${payment.id}')" title="PDF Görüntüle">
+                                    <i class="fas fa-eye"></i> Görüntüle
+                                </button>
+                            </td>
                         </tr>
                     `;
                 });
@@ -319,5 +327,144 @@ function loadRefunds() {
                 }
             }
             updatePaginationUI('refunds', result ? result.has_more : false);
+        });
+}
+
+// =====================
+// PDF İşLEMLERİ
+// =====================
+
+/**
+ * PDF Oluştur: POST /api/payments/<id>/pdf
+ * PDF bellekte üretilir, LONGBLOB'a kaydedilir ve yeni sekmede açılır.
+ */
+async function createPdf(paymentId) {
+    const btn = event.currentTarget;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Oluşturuluyor...';
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/payments/${paymentId}/pdf`, {
+            method: 'POST'
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert(`PDF oluşturulamadı: ${err.error || res.status}`);
+            return;
+        }
+        const blob = await res.blob();
+        const url  = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    } catch (e) {
+        alert('❌ Sunucu hatası: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF Oluştur';
+    }
+}
+
+/**
+ * PDF Görüntüle: GET /api/payments/<id>/pdf
+ * DB'deki mevcut PDF yeni sekmede açılır.
+ */
+function viewPdf(paymentId) {
+    window.open(`${API_BASE_URL}/payments/${paymentId}/pdf`, '_blank');
+}
+
+// =====================
+// İTİRAZ BELGESİ (DİSPUTE)
+// =====================
+
+// Dosya seçince adını göster
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('dispute-file');
+    if (fileInput) {
+        fileInput.addEventListener('change', () => {
+            const nameEl = document.getElementById('dispute-filename');
+            nameEl.textContent = fileInput.files[0]?.name || 'Dosya seçilmedi';
+        });
+    }
+});
+
+// Dispute form submit
+document.getElementById('upload-dispute-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const paymentId = document.getElementById('dispute-payment-id').value.trim();
+    const fileInput = document.getElementById('dispute-file');
+
+    if (!fileInput.files[0]) {
+        showMessage('dispute-msg', '❌ Lütfen bir PDF dosyası seçin.', 'error');
+        return;
+    }
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yükleniyor...';
+
+    const formData = new FormData();
+    formData.append('payment_intent_id', paymentId);
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/files/upload`, {
+            method: 'POST',
+            body: formData
+            // NOT: Content-Type header'i set ETMEYİN — FormData otomatik ayarlar
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showMessage('dispute-msg',
+                `✅ Stripe'a yüklendi! File ID: ${data.id}`, 'success');
+            document.getElementById('upload-dispute-form').reset();
+            document.getElementById('dispute-filename').textContent = 'Dosya seçilmedi';
+            loadUploadedFiles();
+        } else {
+            showMessage('dispute-msg', `❌ Hata: ${data.error || 'Bilinmeyen hata'}`, 'error');
+        }
+    } catch (err) {
+        showMessage('dispute-msg', `❌ Sunucu hatası: ${err.message}`, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Stripe\'a Yükle';
+    }
+});
+
+/**
+ * Yüklenen dosyaları DB'den çekip tabloya yazar.
+ */
+function loadUploadedFiles() {
+    fetch(`${API_BASE_URL}/files`)
+        .then(r => r.json())
+        .then(result => {
+            const tbody  = document.getElementById('files-tbody');
+            const emptyP = document.getElementById('files-empty-msg');
+            tbody.innerHTML = '';
+
+            const files = result.data || [];
+            if (files.length === 0) {
+                emptyP.style.display = 'block';
+                return;
+            }
+            emptyP.style.display = 'none';
+
+            files.forEach(f => {
+                const sizeKb = f.file_size ? (f.file_size / 1024).toFixed(1) + ' KB' : '-';
+                const date   = f.olusturma_tarihi
+                    ? new Date(f.olusturma_tarihi).toLocaleString('tr-TR')
+                    : '-';
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-size:0.8rem;">${f.stripe_file_id}</td>
+                        <td>${f.filename || '-'}</td>
+                        <td><span class="status-badge status-pending">dispute_evidence</span></td>
+                        <td>${sizeKb}</td>
+                        <td style="font-size:0.8rem;">${f.payment_intent_stripe_id || '-'}</td>
+                        <td style="font-size:0.8rem;">${date}</td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(() => {
+            console.error('Dosyalar yüklenemedi.');
         });
 }

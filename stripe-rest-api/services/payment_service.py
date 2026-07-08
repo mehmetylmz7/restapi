@@ -1,6 +1,7 @@
 from stripe_client import post, get
 from config import BASE_URL
 from database import get_db
+from services.pdf_service import generate_payment_pdf
 
 def create_payment_intent(customer_id, amount, currency="usd",order_id=None ):
     
@@ -84,5 +85,48 @@ def cancel_payment_intent(payment_intent_id,cancellation_reason=None):
     response = post(url,data=data)
 
     return response.json()
+
+
+def create_payment_pdf(payment_intent_id: str) -> bytes | None:
+    """
+    Stripe'tan ödeme detayını çeker, tek sayfalık PDF üretir ve
+    MySQL payment_pdfs tablosuna LONGBLOB olarak kaydeder.
+    Üretilen PDF bytes'ı döner (endpoint doğrudan serve eder).
+    """
+    payment = get_payment_intent(payment_intent_id)
+    if payment is None:
+        return None
+
+    pdf_bytes = generate_payment_pdf(payment)
+
+    try:
+        sql = """
+            INSERT INTO payment_pdfs (payment_intent_stripe_id, pdf_data)
+            VALUES (%s, %s)
+            ON DUPLICATE KEY UPDATE pdf_data = VALUES(pdf_data)
+        """
+        with get_db() as cursor:
+            cursor.execute(sql, (payment_intent_id, pdf_bytes))
+        print(f"✅ PDF veritabanına kaydedildi: {payment_intent_id}")
+    except Exception as e:
+        print(f"❌ PDF DB kayıt hatası: {e}")
+
+    return pdf_bytes
+
+
+def get_payment_pdf(payment_intent_id: str) -> bytes | None:
+    """
+    Daha önce oluşturulmuş PDF'i payment_pdfs tablosundan okur.
+    Kayıt yoksa None döner.
+    """
+    try:
+        sql = "SELECT pdf_data FROM payment_pdfs WHERE payment_intent_stripe_id = %s"
+        with get_db() as cursor:
+            cursor.execute(sql, (payment_intent_id,))
+            row = cursor.fetchone()
+        return row[0] if row else None
+    except Exception as e:
+        print(f"❌ PDF DB okuma hatası: {e}")
+        return None
 
 

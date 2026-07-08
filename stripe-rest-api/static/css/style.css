@@ -309,3 +309,127 @@ input {
     min-width: 70px;
     text-align: center;
 }
+
+/* ── PDF & Action Butonları ─────────────────────────────────── */
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin: 2px;
+}
+
+.btn-pdf {
+    background: linear-gradient(135deg, #df1b41, #b3093c);
+    color: #fff;
+}
+.btn-pdf:hover:not(:disabled) {
+    background: linear-gradient(135deg, #b3093c, #890d37);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(223,27,65,0.4);
+}
+
+.btn-view {
+    background: linear-gradient(135deg, #635bff, #4f46e5);
+    color: #fff;
+}
+.btn-view:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5, #3730a3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99,91,255,0.4);
+}
+
+.btn-sm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.action-cell {
+    white-space: nowrap;
+    min-width: 180px;
+}
+
+/* ── Dispute Section ────────────────────────────────────────── */
+.section-desc {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 14px;
+    line-height: 1.6;
+}
+.section-desc code {
+    background: rgba(99,91,255,0.15);
+    color: #a5b4fc;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* Gizli file input + styled label */
+.file-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #374151, #4b5563);
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+.file-label:hover {
+    background: linear-gradient(135deg, #4b5563, #6b7280);
+}
+.file-label input[type="file"] {
+    display: none;
+}
+
+.file-name-display {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-style: italic;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-dispute {
+    background: linear-gradient(135deg, #059669, #047857);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.btn-dispute:hover:not(:disabled) {
+    background: linear-gradient(135deg, #047857, #065f46);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(5,150,105,0.4);
+}
+.btn-dispute:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.empty-msg {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem;
+    font-size: 14px;
+}
