@@ -198,11 +198,20 @@ function loadProducts() {
                 result.data.forEach(product => {
                     const sc = product.active ? 'status-succeeded' : 'status-canceled';
                     const st = product.active ? 'Aktif' : 'Pasif';
+                    
+                    let priceText = '-';
+                    if (product.default_price) {
+                        const amount = (product.default_price.unit_amount / 100).toFixed(2);
+                        const currency = product.default_price.currency.toUpperCase();
+                        priceText = `${amount} ${currency}`;
+                    }
+
                     tbody.innerHTML += `
                         <tr>
                             <td>${product.id}</td>
                             <td>${product.name}</td>
                             <td>${product.description || '-'}</td>
+                            <td>${priceText}</td>
                             <td><span class="status-badge ${sc}">${st}</span></td>
                         </tr>
                     `;
@@ -223,11 +232,12 @@ document.getElementById('add-product-form').addEventListener('submit', function(
     e.preventDefault();
     const name = document.getElementById('prod-name').value;
     const description = document.getElementById('prod-desc').value;
+    const price = document.getElementById('prod-price').value;
 
     fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description })
+        body: JSON.stringify({ name, description, price })
     })
     .then(response => {
         if (!response.ok) throw new Error('Sunucu hatası');
@@ -574,7 +584,7 @@ async function runExport() {
     }
 }
 
-// Export sayfasındaki radio/checkbox kartlarına seçili görünüm efekti
+// Export ve Import sayfasındaki radio/checkbox kartlarına seçili görünüm efekti
 document.addEventListener('DOMContentLoaded', () => {
     // Radio kartlar için
     document.querySelectorAll('.radio-card input[type="radio"]').forEach(radio => {
@@ -588,4 +598,77 @@ document.addEventListener('DOMContentLoaded', () => {
         if (radio.checked) radio.closest('.radio-card').classList.add('selected');
     });
 
+    // Import dosya ismi gösterimi
+    const importFileInput = document.getElementById('import-file');
+    if (importFileInput) {
+        importFileInput.addEventListener('change', () => {
+            const nameEl = document.getElementById('import-filename');
+            nameEl.textContent = importFileInput.files[0]?.name || 'Dosya seçilmedi';
+        });
+    }
+
+    // Import formu gönderme
+    const importForm = document.getElementById('import-form');
+    if (importForm) {
+        importForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formatEl = document.querySelector('input[name="import-format"]:checked');
+            const fileInput = document.getElementById('import-file');
+            const msgEl = 'import-msg';
+
+            if (!fileInput.files[0]) {
+                showMessage(msgEl, '❌ Lütfen aktarılacak dosyayı seçin.', 'error');
+                return;
+            }
+
+            const format = formatEl.value;
+            const file = fileInput.files[0];
+            const filename = file.name.toLowerCase();
+
+            // Client-side uzantı doğrulaması
+            if (format === 'json' && !filename.endsWith('.json')) {
+                showMessage(msgEl, '❌ Hata: JSON formatı seçildi ancak dosya .json uzantılı değil.', 'error');
+                return;
+            }
+            if (format === 'csv' && !filename.endsWith('.csv')) {
+                showMessage(msgEl, '❌ Hata: CSV formatı seçildi ancak dosya .csv uzantılı değil.', 'error');
+                return;
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İçe Aktarılıyor...';
+
+            const formData = new FormData();
+            formData.append('format', format);
+            formData.append('file', file);
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/import`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    const stats = data.stats;
+                    showMessage(msgEl, `✅ İçe aktarım tamamlandı! Başarılı: ${stats.success}, Başarısız: ${stats.failed}, Atlanan: ${stats.skipped}`, 'success');
+                    importForm.reset();
+                    document.getElementById('import-filename').textContent = 'Dosya seçilmedi';
+                    loadDashboardStats();
+                    if (document.getElementById('customers-sec').style.display === 'block') {
+                        paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
+                        loadCustomers();
+                    }
+                } else {
+                    showMessage(msgEl, `❌ Hata: ${data.error || 'Bilinmeyen hata'}`, 'error');
+                }
+            } catch (err) {
+                showMessage(msgEl, `❌ Sunucu hatası: ${err.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-upload"></i> İçe Aktar (Import)';
+            }
+        });
+    }
 });

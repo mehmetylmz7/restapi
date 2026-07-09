@@ -1,5 +1,8 @@
 from flask import Flask, jsonify, request, render_template, Response
 from flask_cors import CORS
+import json
+import csv
+import time
 from services.customer_service import get_customers, create_customer
 from services.product_service import get_products, create_product
 from services.payment_service import create_payment_intent, get_payment_intents, create_payment_pdf, get_payment_pdf
@@ -68,7 +71,8 @@ def api_create_product():
     data = request.get_json()
     product = create_product(
         data["name"],
-        data["description"]
+        data.get("description"),
+        price=data.get("price")
     )
     return jsonify(product), 201
 
@@ -213,6 +217,110 @@ def api_export():
         mimetype=mimetype,
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+@app.route("/api/import", methods=["POST"])
+def api_import():
+    """Müşteri verilerini JSON veya CSV olarak alır ve toplu içe aktarır."""
+    fmt = request.form.get("format", "json")
+    if "file" not in request.files:
+        return jsonify({"error": "Dosya yüklenmedi."}), 400
+
+    file = request.files["file"]
+    filename = file.filename.lower()
+
+    # 1. Dosya Uzantısı Kontrolü
+    if fmt == "json":
+        if not filename.endswith(".json"):
+            return jsonify({"error": "JSON formatı seçildi ancak yüklenen dosya .json uzantılı değil."}), 400
+    elif fmt == "csv":
+        if not filename.endswith(".csv"):
+            return jsonify({"error": "CSV formatı seçildi ancak yüklenen dosya .csv uzantılı değil."}), 400
+    else:
+        return jsonify({"error": "Geçersiz format seçimi."}), 400
+
+    file_bytes = file.read()
+    records = []
+
+    # 2. Veri Ayrıştırma ve Şema/Format Kontrolü
+    if fmt == "json":
+        try:
+            content = file_bytes.decode("utf-8")
+            data = json.loads(content)
+
+            if not isinstance(data, list):
+                return jsonify({"error": "JSON dosyası bir liste (array) olmalıdır."}), 400
+
+            for idx, item in enumerate(data):
+                if not isinstance(item, dict):
+                    return jsonify({"error": f"JSON listesinin {idx+1}. elemanı bir obje olmalıdır."}), 400
+                if "name" not in item or "email" not in item:
+                    return jsonify({"error": f"JSON objesi 'name' ve 'email' alanlarını içermelidir. (Hata konumu: {idx+1}. eleman)"}), 400
+                records.append({
+                    "name": str(item["name"]).strip(),
+                    "email": str(item["email"]).strip()
+                })
+        except json.JSONDecodeError:
+            return jsonify({"error": "JSON dosyası geçerli bir JSON formatında değil."}), 400
+        except Exception as e:
+            return jsonify({"error": f"JSON okuma hatası: {str(e)}"}), 400
+
+    elif fmt == "csv":
+        try:
+            import io
+            content = file_bytes.decode("utf-8-sig")
+            csv_file = io.StringIO(content)
+            reader = csv.DictReader(csv_file)
+
+            if not reader.fieldnames:
+                return jsonify({"error": "CSV dosyasının başlık satırı bulunamadı."}), 400
+
+            headers = [h.strip() for h in reader.fieldnames]
+            if "name" not in headers or "email" not in headers:
+                return jsonify({"error": "CSV dosyasında 'name' ve 'email' başlıkları bulunmalıdır."}), 400
+
+            for idx, row in enumerate(reader):
+                row_clean = {k.strip(): v for k, v in row.items() if k is not None}
+                name = row_clean.get("name")
+                email = row_clean.get("email")
+
+                if name is None or email is None:
+                    return jsonify({"error": f"CSV dosyasının {idx+2}. satırında 'name' veya 'email' alanı eksik."}), 400
+
+                records.append({
+                    "name": str(name).strip(),
+                    "email": str(email).strip()
+                })
+        except Exception as e:
+            return jsonify({"error": f"CSV okuma hatası: {str(e)}"}), 400
+
+    # 3. Stripe'a Aktarım İşlemi
+    results = {"success": 0, "skipped": 0, "failed": 0, "failed_list": []}
+
+    for record in records:
+        name = record["name"]
+        email = record["email"]
+
+        if not name or not email:
+            results["skipped"] += 1
+            continue
+
+        try:
+            time.sleep(0.05)  # Rate limit koruması için kısa bekleme
+            customer = create_customer(name=name, email=email)
+            if customer and customer.get("id"):
+                results["success"] += 1
+            else:
+                results["failed"] += 1
+                results["failed_list"].append({"name": name, "email": email, "reason": "Stripe did not return customer ID"})
+        except Exception as e:
+            results["failed"] += 1
+            results["failed_list"].append({"name": name, "email": email, "reason": str(e)})
+
+    return jsonify({
+        "message": "İçe aktarım tamamlandı.",
+        "stats": results
+    }), 200
 
 
 if __name__ == "__main__":

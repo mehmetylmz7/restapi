@@ -78,11 +78,11 @@
                 <div class="form-row">
                     <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
                         <span style="font-size: 0.9rem; color: #555;">Başlangıç:</span>
-                        <input type="date" id="cust-filter-start" style="flex: 1;">
+                        <input type="date" id="cust-filter-start" style="flex: 1;" onclick="this.showPicker()">
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
                         <span style="font-size: 0.9rem; color: #555;">Bitiş:</span>
-                        <input type="date" id="cust-filter-end" style="flex: 1;">
+                        <input type="date" id="cust-filter-end" style="flex: 1;" onclick="this.showPicker()">
                     </div>
                     <button type="button" class="btn btn-filter" onclick="filterCustomers()"><i class="fas fa-filter"></i> Filtrele</button>
                     <button type="button" class="btn btn-clear" onclick="clearCustomerFilter()" style="background: #e0e0e0; color: #333;"><i class="fas fa-times"></i> Temizle</button>
@@ -115,6 +115,7 @@
                     <div class="form-row">
                         <input type="text" id="prod-name" placeholder="Ürün Adı" required>
                         <input type="text" id="prod-desc" placeholder="Açıklama">
+                        <input type="number" id="prod-price" placeholder="Fiyat (örn: 49.90)" step="0.01" min="0.01" required>
                         <button type="submit" class="btn"><i class="fas fa-plus"></i> Kaydet</button>
                     </div>
                 </form>
@@ -126,6 +127,7 @@
                         <th>ID</th>
                         <th>Ürün Adı</th>
                         <th>Açıklama</th>
+                        <th>Fiyat</th>
                         <th>Durum</th>
                     </tr>
                 </thead>
@@ -291,6 +293,42 @@
                     <i class="fas fa-download"></i> Dışa Aktar
                 </button>
                 <div id="export-msg" class="form-message"></div>
+            </div>
+
+            <!-- Import İşlemleri -->
+            <div class="form-container" style="margin-top: 2rem;">
+                <h3><i class="fas fa-file-import"></i> Import İşlemleri</h3>
+                
+                <!-- Format seçimi -->
+                <p class="section-desc">Dosya formatını seçin:</p>
+                <div class="export-format-group" id="import-format-group">
+                    <label class="radio-card" id="label-import-json">
+                        <input type="radio" name="import-format" value="json" checked>
+                        <i class="fas fa-code"></i>
+                        <span>JSON</span>
+                    </label>
+                    <label class="radio-card" id="label-import-csv">
+                        <input type="radio" name="import-format" value="csv">
+                        <i class="fas fa-table"></i>
+                        <span>CSV</span>
+                    </label>
+                </div>
+
+                <!-- Dosya yükleme -->
+                <p class="section-desc" style="margin-top: 1.5rem;">Yüklenecek dosyayı seçin (Sadece Müşteri aktarımı desteklenmektedir):</p>
+                <form id="import-form">
+                    <div class="form-row">
+                        <label class="file-label">
+                            <i class="fas fa-file-alt"></i> Dosya Seç
+                            <input type="file" id="import-file" accept=".json,.csv" required>
+                        </label>
+                        <span id="import-filename" class="file-name-display" style="color: var(--text-muted); margin-right: 1rem;">Dosya seçilmedi</span>
+                        <button type="submit" class="btn btn-import">
+                            <i class="fas fa-upload"></i> İçe Aktar (Import)
+                        </button>
+                    </div>
+                </form>
+                <div id="import-msg" class="form-message"></div>
             </div>
         </section>
     </div>

@@ -178,6 +178,12 @@ input {
     outline: none;
 }
 
+/* Date picker calendar icon coloring for dark background */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
 .btn {
     background-color: var(--accent-color);
     color: white;

@@ -4,7 +4,10 @@ from database import get_db
 
 def get_products(limit=10, starting_after=None):
 
-    params = {"limit": limit}
+    params = {
+        "limit": limit,
+        "expand[]": "data.default_price"
+    }
     if starting_after:
         params["starting_after"] = starting_after
 
@@ -43,7 +46,7 @@ def deactivate_product(product_id):
     
     return response.json()
 
-def create_product(name, description, active=True):
+def create_product(name, description, active=True, price=None):
 
     data = {
         "name": name,
@@ -60,6 +63,17 @@ def create_product(name, description, active=True):
         return None
     
     product = response.json()
+
+    # Fiyat tanımlanmışsa Stripe üzerinde fiyat oluşturup ürüne ata
+    if price:
+        try:
+            amount_cents = int(float(price) * 100)
+            price_obj = create_price(product['id'], amount=amount_cents)
+            if price_obj:
+                update(f"{BASE_URL}/products/{product['id']}", data={"default_price": price_obj["id"]})
+                product["default_price"] = price_obj
+        except Exception as e:
+            print(f"❌ Fiyat oluşturma veya atama hatası: {e}")
 
     # Veritabanına kaydet
     try:
