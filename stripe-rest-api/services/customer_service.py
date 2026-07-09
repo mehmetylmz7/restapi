@@ -2,11 +2,15 @@ from stripe_client import get, post, delete
 from config import BASE_URL
 from database import get_db
 
-def get_customers(limit=10, starting_after=None):
+def get_customers(limit=10, starting_after=None, created_gte=None, created_lte=None):
 
     params = {"limit": limit}
     if starting_after:
         params["starting_after"] = starting_after
+    if created_gte:
+        params["created[gte]"] = created_gte
+    if created_lte:
+        params["created[lte]"] = created_lte
 
     url = f"{BASE_URL}/customers"
     response = get(url, params=params)

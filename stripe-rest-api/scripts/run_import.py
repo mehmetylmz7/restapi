@@ -5,7 +5,7 @@ Kullanım:
     poetry run python scripts/run_import.py
 
 Kaynak dosyalar:
-    data/json/customers.json  — ~1000 kayıt
+    data/json/customers.json  — ~100 kayıt
     data/csv/customers.csv    — ~100  kayıt
 
 Aktarılan alanlar:

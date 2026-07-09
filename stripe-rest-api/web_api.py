@@ -37,7 +37,14 @@ def home():
 def api_customers():
     limit = int(request.args.get("limit", 10))
     starting_after = request.args.get("starting_after", None)
-    result = get_customers(limit=limit, starting_after=starting_after)
+    created_gte = request.args.get("created_gte", None)
+    created_lte = request.args.get("created_lte", None)
+    result = get_customers(
+        limit=limit,
+        starting_after=starting_after,
+        created_gte=created_gte,
+        created_lte=created_lte
+    )
     return jsonify(result)
 
 @app.route("/api/customers", methods=["POST"])

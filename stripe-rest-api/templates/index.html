@@ -73,12 +73,29 @@
                 <div id="customer-msg" class="form-message"></div>
             </div>
 
+            <div class="form-container" style="margin-top: 1rem;">
+                <h3>Kayıt Tarihine Göre Filtrele</h3>
+                <div class="form-row">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                        <span style="font-size: 0.9rem; color: #555;">Başlangıç:</span>
+                        <input type="date" id="cust-filter-start" style="flex: 1;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                        <span style="font-size: 0.9rem; color: #555;">Bitiş:</span>
+                        <input type="date" id="cust-filter-end" style="flex: 1;">
+                    </div>
+                    <button type="button" class="btn btn-filter" onclick="filterCustomers()"><i class="fas fa-filter"></i> Filtrele</button>
+                    <button type="button" class="btn btn-clear" onclick="clearCustomerFilter()" style="background: #e0e0e0; color: #333;"><i class="fas fa-times"></i> Temizle</button>
+                </div>
+            </div>
+
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>İsim</th>
                         <th>E-posta</th>
+                        <th>Kayıt Tarihi</th>
                     </tr>
                 </thead>
                 <tbody id="customers-tbody"></tbody>

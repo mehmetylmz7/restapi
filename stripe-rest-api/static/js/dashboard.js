@@ -76,6 +76,18 @@ function loadCustomers() {
     let url = `${API_BASE_URL}/customers?limit=${state.limit}`;
     if (cursor) url += `&starting_after=${cursor}`;
 
+    const startDate = document.getElementById('cust-filter-start').value;
+    const endDate = document.getElementById('cust-filter-end').value;
+
+    if (startDate) {
+        const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
+        url += `&created_gte=${startTimestamp}`;
+    }
+    if (endDate) {
+        const endTimestamp = Math.floor(new Date(endDate + 'T23:59:59').getTime() / 1000);
+        url += `&created_lte=${endTimestamp}`;
+    }
+
     fetch(url)
         .then(response => response.json())
         .then(result => {
@@ -84,11 +96,13 @@ function loadCustomers() {
 
             if (result && result.data) {
                 result.data.forEach(customer => {
+                    const date = customer.created ? new Date(customer.created * 1000).toLocaleString('tr-TR') : '-';
                     tbody.innerHTML += `
                         <tr>
                             <td>${customer.id}</td>
                             <td>${customer.name || 'Bilinmiyor'}</td>
                             <td>${customer.email || '-'}</td>
+                            <td>${date}</td>
                         </tr>
                     `;
                 });
@@ -104,6 +118,19 @@ function loadCustomers() {
             }
             updatePaginationUI('customers', result ? result.has_more : false);
         });
+}
+
+function filterCustomers() {
+    // Filtre değişince sayfalamayı sıfırlıyoruz
+    paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
+    loadCustomers();
+}
+
+function clearCustomerFilter() {
+    document.getElementById('cust-filter-start').value = '';
+    document.getElementById('cust-filter-end').value = '';
+    paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
+    loadCustomers();
 }
 
 function nextPage(resource) {
