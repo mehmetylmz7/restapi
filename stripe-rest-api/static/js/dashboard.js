@@ -56,15 +56,15 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadDashboardStats() {
-    fetch(`${API_BASE_URL}/customers`).then(res => res.json()).then(data => {
-        document.getElementById('stat-customers').innerText = data && data.data ? data.data.length : 0;
-    });
-    fetch(`${API_BASE_URL}/payments`).then(res => res.json()).then(data => {
-        document.getElementById('stat-payments').innerText = data && data.data ? data.data.length : 0;
-    });
-    fetch(`${API_BASE_URL}/refunds`).then(res => res.json()).then(data => {
-        document.getElementById('stat-refunds').innerText = data && data.data ? data.data.length : 0;
-    });
+    fetch(`${API_BASE_URL}/stats`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('stat-customers').innerText = data.customers || 0;
+            document.getElementById('stat-payments').innerText = data.payments || 0;
+            document.getElementById('stat-products').innerText = data.products || 0;
+            document.getElementById('stat-refunds').innerText = data.refunds || 0;
+        })
+        .catch(err => console.error("Stats fetch error:", err));
 }
 
 // =====================
@@ -468,3 +468,97 @@ function loadUploadedFiles() {
             console.error('Dosyalar yüklenemedi.');
         });
 }
+
+// =====================
+// DOSYA İŞLEMLERİ — EXPORT
+// =====================
+
+/**
+ * Seçilen kaynak(lar)ı, seçilen format ve limit ile Stripe'tan çekip
+ * tarayıcıya dosya olarak indirir.
+ * Her kategori için ayrı POST /api/export isteği gönderilir.
+ */
+async function runExport() {
+    const formatEl = document.querySelector('input[name="export-format"]:checked');
+    const limitEl  = document.querySelector('input[name="export-limit"]:checked');
+    const selectEl = document.getElementById('export-select');
+
+    if (!formatEl || !limitEl || !selectEl) return;
+
+    const format    = formatEl.value;            // 'json' veya 'csv'
+    const limitVal  = limitEl.value;             // '100' veya 'all'
+    const resources = Array.from(selectEl.selectedOptions).map(opt => opt.value).filter(val => val !== "");
+
+    if (resources.length === 0) {
+        showMessage('export-msg', '⚠️ En az bir veri kategorisi seçin.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('export-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İndiriliyor...';
+
+    let successCount = 0;
+
+    for (const resource of resources) {
+        try {
+            const res = await fetch(`${API_BASE_URL}/export`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resource, format, limit: limitVal })
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                showMessage('export-msg', `❌ ${resource} export başarısız: ${err.error || res.status}`, 'error');
+                continue;
+            }
+
+            // Dosyayı blob olarak al ve tarayıcıya indir
+            const blob     = await res.blob();
+            const url      = URL.createObjectURL(blob);
+            const a        = document.createElement('a');
+            a.href         = url;
+            a.download     = `${resource}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            successCount++;
+
+            // Tarayıcının birden fazla indirmeyi bloklaması olasılığına karşı kısa bekleme
+            if (resources.length > 1) {
+                await new Promise(r => setTimeout(r, 600));
+            }
+        } catch (err) {
+            showMessage('export-msg', `❌ Sunucu hatası: ${err.message}`, 'error');
+        }
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-download"></i> Dışa Aktar';
+
+    if (successCount > 0) {
+        showMessage('export-msg',
+            `✅ ${successCount} dosya indirildi (${format.toUpperCase()}, ${limitVal === 'all' ? 'Tüm kayıtlar' : 'Son 100'}).`,
+            'success'
+        );
+    }
+}
+
+// Export sayfasındaki radio/checkbox kartlarına seçili görünüm efekti
+document.addEventListener('DOMContentLoaded', () => {
+    // Radio kartlar için
+    document.querySelectorAll('.radio-card input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            const group = radio.closest('.export-format-group');
+            if (!group) return;
+            group.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+            radio.closest('.radio-card').classList.add('selected');
+        });
+        // Sayfa yüklendiğinde başlangıç durumu
+        if (radio.checked) radio.closest('.radio-card').classList.add('selected');
+    });
+
+});

@@ -5,13 +5,28 @@ from services.product_service import get_products, create_product
 from services.payment_service import create_payment_intent, get_payment_intents, create_payment_pdf, get_payment_pdf
 from services.refund_service import create_refund, get_refunds
 from services.file_service import upload_dispute_evidence, list_uploaded_files
-from database import init_pool
+from services.export_service import export_to_json, export_to_csv, _fetch_all
+from database import init_pool, get_db
 
 # Uygulama başlarken bağlantı havuzunu oluştur (bir kez çalışır)
 init_pool(pool_size=5)
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route("/api/stats", methods=["GET"])
+def api_stats():
+    stats = {"customers": 0, "payments": 0, "refunds": 0, "products": 0}
+    try:
+        # Fetch counts from Stripe API (sayfa sayfa dolaşılarak)
+        stats["customers"] = len(_fetch_all("customers"))
+        stats["payments"] = len(_fetch_all("payments"))
+        stats["refunds"] = len(_fetch_all("refunds"))
+        stats["products"] = len(_fetch_all("products"))
+    except Exception as e:
+        print(f"Stats fetch error: {e}")
+    return jsonify(stats)
+
 
 # 1. ESKİ JSON DÖNDÜREN ROTAYI SİLDİK VE YENİSİNİ BURAYA ALDIK
 @app.route("/")
@@ -148,6 +163,49 @@ def api_list_files():
         if "olusturma_tarihi" in f and f["olusturma_tarihi"]:
             f["olusturma_tarihi"] = str(f["olusturma_tarihi"])
     return jsonify({"data": files})
+
+
+# ── Export Endpoint'i ──────────────────────────────────────────────────────
+@app.route("/api/export", methods=["POST"])
+def api_export():
+    """
+    Stripe'tan veri çekip JSON veya CSV olarak tarayıcıya indirir.
+    body: { "resource": "customers", "format": "json", "limit": "100" }
+    limit: '100' = son 100 kayıt (hızlı), 'all' = tüm kayıtlar (yavaş)
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "JSON body bekleniyor."}), 400
+
+    resource  = data.get("resource", "")
+    fmt       = data.get("format", "json")
+    limit_val = data.get("limit", "100")  # '100' veya 'all'
+
+    valid_resources = ("customers", "products", "payments", "refunds")
+    if resource not in valid_resources:
+        return jsonify({"error": f"Geçersiz kaynak. Geçerli: {valid_resources}"}), 400
+    if fmt not in ("json", "csv"):
+        return jsonify({"error": "Geçersiz format. 'json' veya 'csv' kullanın."}), 400
+
+    fetch_all = (limit_val == "all")
+
+    try:
+        if fmt == "json":
+            content  = export_to_json(resource, fetch_all=fetch_all)
+            mimetype = "application/json"
+            filename = f"{resource}.json"
+        else:
+            content  = export_to_csv(resource, fetch_all=fetch_all)
+            mimetype = "text/csv; charset=utf-8"
+            filename = f"{resource}.csv"
+    except Exception as e:
+        return jsonify({"error": f"Export hatası: {str(e)}"}), 500
+
+    return Response(
+        content,
+        mimetype=mimetype,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 if __name__ == "__main__":

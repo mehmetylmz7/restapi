@@ -17,6 +17,7 @@
             <li><a href="#" onclick="showSection('payments-sec'); loadPayments();"><i class="fas fa-credit-card"></i> Ödemeler</a></li>
             <li><a href="#" onclick="showSection('refunds-sec'); loadRefunds();"><i class="fas fa-undo"></i> İadeler</a></li>
             <li><a href="#" onclick="showSection('dispute-sec'); loadUploadedFiles();"><i class="fas fa-shield-alt"></i> İtiraz Belgesi</a></li>
+            <li><a href="#" onclick="showSection('fileops-sec');"><i class="fas fa-folder-open"></i> Dosya İşlemleri</a></li>
         </ul>
         <div class="footer-credit">
             <p>Developed by Mehmet Yılmaz</p>
@@ -39,6 +40,13 @@
                     <div class="card-info">
                         <h3>Toplam Ödeme</h3>
                         <p id="stat-payments">0</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon"><i class="fas fa-box"></i></div>
+                    <div class="card-info">
+                        <h3>Toplam Ürün</h3>
+                        <p id="stat-products">0</p>
                     </div>
                 </div>
                 <div class="card">
@@ -214,6 +222,59 @@
                 <tbody id="files-tbody"></tbody>
             </table>
             <p id="files-empty-msg" class="empty-msg" style="display:none;">ℹ️ Henüz yüklenen belge yok.</p>
+        </section>
+
+        <section id="fileops-sec" class="content-section" style="display: none;">
+            <h1><i class="fas fa-folder-open"></i> Dosya İşlemleri</h1>
+
+            <div class="form-container">
+                <h3><i class="fas fa-file-export"></i> Export İşlemleri</h3>
+
+                <!-- Format seçimi -->
+                <p class="section-desc">Dosya formatını seçin:</p>
+                <div class="export-format-group" id="export-format-group">
+                    <label class="radio-card" id="label-json">
+                        <input type="radio" name="export-format" value="json" checked>
+                        <i class="fas fa-code"></i>
+                        <span>JSON</span>
+                    </label>
+                    <label class="radio-card" id="label-csv">
+                        <input type="radio" name="export-format" value="csv">
+                        <i class="fas fa-table"></i>
+                        <span>CSV</span>
+                    </label>
+                </div>
+
+                <!-- Kayıt sayısı seçimi -->
+                <p class="section-desc" style="margin-top: 1.5rem;">Kaç kayıt alınsın?</p>
+                <div class="export-format-group" id="export-limit-group">
+                    <label class="radio-card" id="label-limit-100">
+                        <input type="radio" name="export-limit" value="100" checked>
+                        <i class="fas fa-bolt"></i>
+                        <span>Son 100 Kayıt <small>(Hızlı)</small></span>
+                    </label>
+                    <label class="radio-card" id="label-limit-all">
+                        <input type="radio" name="export-limit" value="all">
+                        <i class="fas fa-database"></i>
+                        <span>Tüm Kayıtlar <small>(Yavaş olabilir)</small></span>
+                    </label>
+                </div>
+
+                <!-- Veri kategorisi seçimi -->
+                <p class="section-desc" style="margin-top: 1.5rem;">Dışa aktarılacak verileri seçin:</p>
+                <select id="export-select" class="form-select" style="width: 100%; max-width: 300px; margin-bottom: 1rem; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="" disabled selected>Lütfen veri türü seçin</option>
+                    <option value="customers">Müşteriler</option>
+                    <option value="products">Ürünler</option>
+                    <option value="payments">Ödemeler</option>
+                    <option value="refunds">İadeler</option>
+                </select>
+
+                <button id="export-btn" class="btn btn-export" onclick="runExport()">
+                    <i class="fas fa-download"></i> Dışa Aktar
+                </button>
+                <div id="export-msg" class="form-message"></div>
+            </div>
         </section>
     </div>
 
