@@ -653,81 +653,431 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sayfa yüklendiğinde başlangıç durumu
         if (radio.checked) radio.closest('.radio-card').classList.add('selected');
     });
-
-    // Import dosya ismi gösterimi
-    const importFileInput = document.getElementById('import-file');
-    if (importFileInput) {
-        importFileInput.addEventListener('change', () => {
-            const nameEl = document.getElementById('import-filename');
-            nameEl.textContent = importFileInput.files[0]?.name || 'Dosya seçilmedi';
-        });
-    }
-
-    // Import formu gönderme
-    const importForm = document.getElementById('import-form');
-    if (importForm) {
-        importForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formatEl = document.querySelector('input[name="import-format"]:checked');
-            const fileInput = document.getElementById('import-file');
-            const msgEl = 'import-msg';
-
-            if (!fileInput.files[0]) {
-                showMessage(msgEl, '❌ Lütfen aktarılacak dosyayı seçin.', 'error');
-                return;
-            }
-
-            const format = formatEl.value;
-            const file = fileInput.files[0];
-            const filename = file.name.toLowerCase();
-
-            // Client-side uzantı doğrulaması
-            if (format === 'json' && !filename.endsWith('.json')) {
-                showMessage(msgEl, '❌ Hata: JSON formatı seçildi ancak dosya .json uzantılı değil.', 'error');
-                return;
-            }
-            if (format === 'csv' && !filename.endsWith('.csv')) {
-                showMessage(msgEl, '❌ Hata: CSV formatı seçildi ancak dosya .csv uzantılı değil.', 'error');
-                return;
-            }
-
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İçe Aktarılıyor...';
-
-            const formData = new FormData();
-            formData.append('format', format);
-            formData.append('file', file);
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/import`, {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                
-                if (res.ok) {
-                    const stats = data.stats;
-                    showMessage(msgEl, `✅ İçe aktarım tamamlandı! Başarılı: ${stats.success}, Başarısız: ${stats.failed}, Atlanan: ${stats.skipped}`, 'success');
-                    importForm.reset();
-                    document.getElementById('import-filename').textContent = 'Dosya seçilmedi';
-                    loadDashboardStats();
-                    if (document.getElementById('customers-sec').style.display === 'block') {
-                        paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
-                        loadCustomers();
-                    }
-                } else {
-                    showMessage(msgEl, `❌ Hata: ${data.error || 'Bilinmeyen hata'}`, 'error');
-                }
-            } catch (err) {
-                showMessage(msgEl, `❌ Sunucu hatası: ${err.message}`, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-upload"></i> İçe Aktar (Import)';
-            }
-        });
-    }
 });
+
+// =====================
+// İÇE AKTARMA SİHİRBAZI (IMPORT WIZARD) JS MANTIĞI
+// =====================
+let wizardFile = null;
+let wizardColumns = [];
+let wizardInferredTypes = {};
+let wizardPreviewData = [];
+let activeImportResource = null; // 'customers', 'products', 'payments', 'prices' veya null
+
+const wizardModelFields = {
+    customers: [
+        { key: "name", label: "Müşteri Adı (name)", required: true, desc: "Müşterinin tam adı" },
+        { key: "email", label: "E-posta (email)", required: true, desc: "Müşteri e-posta adresi" }
+    ],
+    products: [
+        { key: "name", label: "Ürün Adı (name)", required: true, desc: "Ürünün adı" },
+        { key: "price", label: "Fiyat (price)", required: false, desc: "Ürün birim fiyatı (Sayısal)" },
+        { key: "description", label: "Açıklama (description)", required: false, desc: "Ürün açıklaması" }
+    ],
+    payments: [
+        { key: "customer_id", label: "Müşteri ID (customer_id)", required: true, desc: "Stripe Müşteri ID'si (cus_...)" },
+        { key: "amount", label: "Tutar (amount)", required: true, desc: "Ödeme tutarı (Sayısal)" },
+        { key: "currency", label: "Para Birimi (currency)", required: false, desc: "Varsayılan 'usd' (usd, eur, try vb.)" },
+        { key: "order_id", label: "Sipariş ID (order_id)", required: false, desc: "İlgili Sipariş ID" }
+    ],
+    prices: [
+        { key: "product_id", label: "Ürün ID (product_id)", required: true, desc: "Stripe Ürün ID'si (prod_...)" },
+        { key: "amount", label: "Tutar (amount)", required: true, desc: "Fiyat tutarı (Sayısal)" },
+        { key: "currency", label: "Para Birimi (currency)", required: false, desc: "Varsayılan 'usd' (usd, eur, try vb.)" }
+    ]
+};
+
+function openImportModal(resource) {
+    activeImportResource = resource;
+    resetWizard();
+
+    // Modalı aç
+    document.getElementById("custom-import-modal").style.display = "flex";
+
+    const titleEl = document.getElementById("import-modal-title");
+    const modelGroup = document.getElementById("wizard-target-model-group");
+    const modelSelect = document.getElementById("wizard-target-model");
+
+    if (resource === "customers") {
+        titleEl.innerHTML = `<i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Müşteri İçe Aktarma Sihirbazı`;
+        modelSelect.value = "customers";
+        modelGroup.style.display = "none"; // Hedef model seçimini gizle
+    } else if (resource === "products") {
+        titleEl.innerHTML = `<i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Ürün İçe Aktarma Sihirbazı`;
+        modelSelect.value = "products";
+        modelGroup.style.display = "none";
+    } else if (resource === "payments") {
+        titleEl.innerHTML = `<i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Ödeme İçe Aktarma Sihirbazı`;
+        modelSelect.value = "payments";
+        modelGroup.style.display = "none";
+    } else {
+        titleEl.innerHTML = `<i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> İçe Aktarma Sihirbazı`;
+        modelSelect.value = "customers";
+        modelGroup.style.display = "block"; // Seçimi göster
+    }
+}
+
+function closeImportModal() {
+    document.getElementById("custom-import-modal").style.display = "none";
+}
+
+function onWizardFileSelected() {
+    const fileInput = document.getElementById("wizard-file");
+    const nameEl = document.getElementById("wizard-filename");
+    wizardFile = fileInput.files[0] || null;
+    nameEl.textContent = wizardFile ? wizardFile.name : "Dosya seçilmedi";
+}
+
+function changeWizardStep(step) {
+    // Tüm adımları gizle
+    document.getElementById("import-wizard-step-1").style.display = "none";
+    document.getElementById("import-wizard-step-2").style.display = "none";
+    document.getElementById("import-wizard-step-3").style.display = "none";
+    document.getElementById("import-wizard-step-4").style.display = "none";
+
+    // Badgeleri sıfırla
+    for (let i = 1; i <= 4; i++) {
+        const badge = document.getElementById(`wizard-badge-${i}`);
+        if (i === step) {
+            badge.style.color = "var(--accent-color)";
+            badge.style.borderBottom = "3px solid var(--accent-color)";
+            badge.querySelector("span").style.background = "var(--accent-color)";
+            badge.querySelector("span").style.color = "#fff";
+        } else {
+            badge.style.color = "var(--text-muted)";
+            badge.style.borderBottom = "3px solid transparent";
+            badge.querySelector("span").style.background = "var(--border-color)";
+            badge.querySelector("span").style.color = "var(--text-muted)";
+        }
+    }
+
+    // Seçilen adımı göster
+    document.getElementById(`import-wizard-step-${step}`).style.display = "block";
+}
+
+async function wizardAnalyzeFile() {
+    const msgEl = document.getElementById("wizard-step1-msg");
+    msgEl.textContent = "";
+
+    if (!wizardFile) {
+        msgEl.textContent = "❌ Lütfen bir dosya seçin.";
+        msgEl.className = "form-message error";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", wizardFile);
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/import/analyze`, {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            msgEl.textContent = `❌ Hata: ${data.error || "Dosya analiz edilemedi."}`;
+            msgEl.className = "form-message error";
+            return;
+        }
+
+        wizardColumns = data.columns || [];
+        wizardInferredTypes = data.inferred_types || {};
+        wizardPreviewData = data.preview || [];
+
+        // Adım 2'ye geç ve mapping formunu oluştur
+        onWizardModelChanged();
+        changeWizardStep(2);
+    } catch (err) {
+        msgEl.textContent = `❌ Sunucu hatası: ${err.message}`;
+        msgEl.className = "form-message error";
+    }
+}
+
+function onWizardModelChanged() {
+    const model = document.getElementById("wizard-target-model").value;
+    const fields = wizardModelFields[model] || [];
+    const container = document.getElementById("wizard-mapping-container");
+    container.innerHTML = "";
+
+    fields.forEach(field => {
+        // En iyi eşleşen sütunu bulmaya çalışalım (isim benzerliğine göre)
+        let bestMatch = "";
+        const fKey = field.key.toLowerCase();
+        
+        wizardColumns.forEach(col => {
+            const cLower = col.toLowerCase();
+            if (cLower === fKey || cLower.includes(fKey) || fKey.includes(cLower)) {
+                bestMatch = col;
+            }
+        });
+
+        // Dropdown seçeneklerini oluştur
+        let options = `<option value="">-- Alanı Eşleştirme (Boş Bırak) --</option>`;
+        wizardColumns.forEach(col => {
+            const isSelected = col === bestMatch ? "selected" : "";
+            const inferred = wizardInferredTypes[col] ? ` (${wizardInferredTypes[col]})` : "";
+            
+            // Örnek veri gösterimi
+            let sampleText = "";
+            if (wizardPreviewData.length > 0 && wizardPreviewData[0][col] !== undefined) {
+                const rawVal = wizardPreviewData[0][col];
+                sampleText = ` (Örn: "${rawVal}")`;
+            }
+
+            options += `<option value="${col}" ${isSelected}>${col}${inferred}${sampleText}</option>`;
+        });
+
+        const reqBadge = field.required ? `<span style="color:var(--warning);">* Zorunlu</span>` : `<span style="color:var(--text-muted); font-size:0.8rem;">İsteğe Bağlı</span>`;
+
+        container.innerHTML += `
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="flex: 1; min-width: 200px;">
+                    <strong style="display: block; font-size: 0.95rem; color: #fff;">${field.label}</strong>
+                    <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 2px;">${field.desc} ${reqBadge}</small>
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <select class="form-select wizard-field-select" data-field="${field.key}" style="width: 100%;">
+                        ${options}
+                    </select>
+                </div>
+            </div>
+        `;
+    });
+}
+
+async function wizardPreviewMapping() {
+    const msgEl = document.getElementById("wizard-step2-msg");
+    msgEl.textContent = "";
+
+    const model = document.getElementById("wizard-target-model").value;
+    const mapping = {};
+    let hasError = false;
+
+    // Eşleştirmeleri oku
+    document.querySelectorAll(".wizard-field-select").forEach(select => {
+        const fieldKey = select.getAttribute("data-field");
+        const mappedCol = select.value;
+        mapping[fieldKey] = mappedCol;
+
+        // Zorunlu alan kontrolü
+        const fieldSpec = wizardModelFields[model].find(f => f.key === fieldKey);
+        if (fieldSpec && fieldSpec.required && !mappedCol) {
+            hasError = true;
+        }
+    });
+
+    if (hasError) {
+        msgEl.textContent = "❌ Lütfen tüm zorunlu (*) alanları dosyanızdaki sütunlarla eşleştirin.";
+        msgEl.className = "form-message error";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", wizardFile);
+    formData.append("model", model);
+    formData.append("mapping", JSON.stringify(mapping));
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/import/preview`, {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            msgEl.textContent = `❌ Hata: ${data.error || "Önizleme oluşturulamadı."}`;
+            msgEl.className = "form-message error";
+            return;
+        }
+
+        // Önizleme ekranını güncelle
+        document.getElementById("wizard-preview-valid-count").textContent = data.valid_count;
+        document.getElementById("wizard-preview-invalid-count").textContent = data.invalid_count;
+
+        // Geçerli tabloyu çiz
+        renderWizardPreviewValid(model, data.valid);
+        
+        // Geçersiz tabloyu çiz
+        renderWizardPreviewInvalid(data.invalid);
+
+        // İçe Aktar butonunu durumu
+        const execBtn = document.getElementById("wizard-execute-btn");
+        execBtn.disabled = data.valid_count === 0;
+
+        toggleWizardPreviewTab(true);
+        changeWizardStep(3);
+    } catch (err) {
+        msgEl.textContent = `❌ Sunucu hatası: ${err.message}`;
+        msgEl.className = "form-message error";
+    }
+}
+
+function renderWizardPreviewValid(model, validRecords) {
+    const thead = document.getElementById("wizard-preview-valid-thead");
+    const tbody = document.getElementById("wizard-preview-valid-tbody");
+    
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    if (!validRecords || validRecords.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="100%" style="text-align: center; color: var(--text-muted);">Hiç geçerli kayıt bulunamadı.</td></tr>`;
+        return;
+    }
+
+    // Başlıkları oluştur
+    const fields = wizardModelFields[model].map(f => f.key);
+    let headHtml = `<tr><th>Satır No</th>`;
+    fields.forEach(f => {
+        headHtml += `<th>${f}</th>`;
+    });
+    headHtml += `</tr>`;
+    thead.innerHTML = headHtml;
+
+    // Satırları oluştur
+    validRecords.forEach(record => {
+        let rowHtml = `<tr><td>${record.row_index}</td>`;
+        fields.forEach(f => {
+            const val = record.mapped[f];
+            rowHtml += `<td>${val !== null ? val : "-"}</td>`;
+        });
+        rowHtml += `</tr>`;
+        tbody.innerHTML += rowHtml;
+    });
+}
+
+function renderWizardPreviewInvalid(invalidRecords) {
+    const tbody = document.getElementById("wizard-preview-invalid-tbody");
+    tbody.innerHTML = "";
+
+    if (!invalidRecords || invalidRecords.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--success);">Hatalı kayıt bulunmuyor.</td></tr>`;
+        return;
+    }
+
+    invalidRecords.forEach(record => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${record.row_index}</td>
+                <td style="color: var(--warning); font-weight: bold;">${record.reason}</td>
+                <td style="font-size: 0.8rem; font-family: monospace; max-width: 300px; white-space: normal;">${JSON.stringify(record.raw)}</td>
+            </tr>
+        `;
+    });
+}
+
+function toggleWizardPreviewTab(showValid) {
+    const validBtn = document.getElementById("wizard-tab-valid-btn");
+    const invalidBtn = document.getElementById("wizard-tab-invalid-btn");
+    const validContainer = document.getElementById("wizard-preview-valid-container");
+    const invalidContainer = document.getElementById("wizard-preview-invalid-container");
+
+    if (showValid) {
+        validBtn.style.color = "var(--success)";
+        validBtn.style.borderBottom = "2px solid var(--success)";
+        invalidBtn.style.color = "var(--text-muted)";
+        invalidBtn.style.borderBottom = "none";
+        validContainer.style.display = "block";
+        invalidContainer.style.display = "none";
+    } else {
+        invalidBtn.style.color = "var(--warning)";
+        invalidBtn.style.borderBottom = "2px solid var(--warning)";
+        validBtn.style.color = "var(--text-muted)";
+        validBtn.style.borderBottom = "none";
+        invalidContainer.style.display = "block";
+        validContainer.style.display = "none";
+    }
+}
+
+async function wizardExecuteImport() {
+    const msgEl = document.getElementById("wizard-step3-msg");
+    const execBtn = document.getElementById("wizard-execute-btn");
+    msgEl.textContent = "";
+
+    const model = document.getElementById("wizard-target-model").value;
+    const mapping = {};
+
+    document.querySelectorAll(".wizard-field-select").forEach(select => {
+        mapping[select.getAttribute("data-field")] = select.value;
+    });
+
+    execBtn.disabled = true;
+    execBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> İçe Aktarılıyor...`;
+
+    const formData = new FormData();
+    formData.append("file", wizardFile);
+    formData.append("model", model);
+    formData.append("mapping", JSON.stringify(mapping));
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/import/execute`, {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            msgEl.textContent = `❌ Hata: ${data.error || "Aktarım başlatılamadı."}`;
+            msgEl.className = "form-message error";
+            execBtn.disabled = false;
+            execBtn.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Eşleşenleri İçe Aktar`;
+            return;
+        }
+
+        // Rapor ekranını güncelle
+        document.getElementById("wizard-result-success").textContent = data.stats.success;
+        document.getElementById("wizard-result-failed").textContent = data.stats.failed;
+
+        const errorTbody = document.getElementById("wizard-result-errors-tbody");
+        errorTbody.innerHTML = "";
+
+        if (data.stats.failed_list && data.stats.failed_list.length > 0) {
+            document.getElementById("wizard-result-errors-section").style.display = "block";
+            data.stats.failed_list.forEach(errItem => {
+                errorTbody.innerHTML += `
+                    <tr>
+                        <td>${errItem.row_index}</td>
+                        <td style="color: var(--warning); font-weight: bold;">${errItem.reason}</td>
+                        <td style="font-size: 0.8rem; font-family: monospace;">${JSON.stringify(errItem.mapped)}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            document.getElementById("wizard-result-errors-section").style.display = "none";
+        }
+
+        // İstatistikleri ve tabloları yenile
+        loadDashboardStats();
+        loadCustomers();
+        loadProducts();
+        loadPayments();
+
+        changeWizardStep(4);
+    } catch (err) {
+        msgEl.textContent = `❌ Sunucu hatası: ${err.message}`;
+        msgEl.className = "form-message error";
+        execBtn.disabled = false;
+        execBtn.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Eşleşenleri İçe Aktar`;
+    }
+}
+
+function resetWizard() {
+    document.getElementById("wizard-file").value = "";
+    document.getElementById("wizard-filename").textContent = "Dosya seçilmedi";
+    wizardFile = null;
+    wizardColumns = [];
+    wizardInferredTypes = {};
+    wizardPreviewData = [];
+
+    document.getElementById("wizard-step1-msg").textContent = "";
+    document.getElementById("wizard-step1-msg").className = "form-message";
+    document.getElementById("wizard-step2-msg").textContent = "";
+    document.getElementById("wizard-step2-msg").className = "form-message";
+    document.getElementById("wizard-step3-msg").textContent = "";
+    document.getElementById("wizard-step3-msg").className = "form-message";
+
+    changeWizardStep(1);
+}
 
 // =====================
 // ÖZEL EXPORT MODALI İŞLEMLERİ

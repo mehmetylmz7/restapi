@@ -10,6 +10,7 @@ from services.refund_service import create_refund, get_refunds
 from services.file_service import upload_dispute_evidence, list_uploaded_files
 from services.export_service import export_data, _fetch_all
 from database import init_pool, get_db
+from services.import_service import parse_file, infer_data_types, validate_and_map_records, execute_import_record
 
 # Uygulama başlarken bağlantı havuzunu oluştur (bir kez çalışır)
 init_pool(pool_size=5)
@@ -235,108 +236,124 @@ def api_export():
     )
 
 
-@app.route("/api/import", methods=["POST"])
-def api_import():
-    """Müşteri verilerini JSON veya CSV olarak alır ve toplu içe aktarır."""
-    fmt = request.form.get("format", "json")
+@app.route("/api/import/analyze", methods=["POST"])
+def api_import_analyze():
+    """
+    Yüklenen dosyayı okur, veri tiplerini analiz eder ve ilk 3 satırın önizlemesini döner.
+    """
     if "file" not in request.files:
         return jsonify({"error": "Dosya yüklenmedi."}), 400
 
     file = request.files["file"]
-    filename = file.filename.lower()
+    filename = file.filename
 
-    # 1. Dosya Uzantısı Kontrolü
-    if fmt == "json":
-        if not filename.endswith(".json"):
-            return jsonify({"error": "JSON formatı seçildi ancak yüklenen dosya .json uzantılı değil."}), 400
-    elif fmt == "csv":
-        if not filename.endswith(".csv"):
-            return jsonify({"error": "CSV formatı seçildi ancak yüklenen dosya .csv uzantılı değil."}), 400
-    else:
-        return jsonify({"error": "Geçersiz format seçimi."}), 400
+    try:
+        file_bytes = file.read()
+        records = parse_file(file_bytes, filename)
+        if not records:
+            return jsonify({"error": "Dosya boş veya okunamadı."}), 400
 
-    file_bytes = file.read()
-    records = []
+        inferred_types = infer_data_types(records)
+        preview = records[:3]
 
-    # 2. Veri Ayrıştırma ve Şema/Format Kontrolü
-    if fmt == "json":
-        try:
-            content = file_bytes.decode("utf-8")
-            data = json.loads(content)
+        return jsonify({
+            "filename": filename,
+            "total_rows": len(records),
+            "columns": list(inferred_types.keys()),
+            "inferred_types": inferred_types,
+            "preview": preview
+        })
+    except Exception as e:
+        return jsonify({"error": f"Dosya analiz hatası: {str(e)}"}), 400
 
-            if not isinstance(data, list):
-                return jsonify({"error": "JSON dosyası bir liste (array) olmalıdır."}), 400
 
-            for idx, item in enumerate(data):
-                if not isinstance(item, dict):
-                    return jsonify({"error": f"JSON listesinin {idx+1}. elemanı bir obje olmalıdır."}), 400
-                if "name" not in item or "email" not in item:
-                    return jsonify({"error": f"JSON objesi 'name' ve 'email' alanlarını içermelidir. (Hata konumu: {idx+1}. eleman)"}), 400
-                records.append({
-                    "name": str(item["name"]).strip(),
-                    "email": str(item["email"]).strip()
-                })
-        except json.JSONDecodeError:
-            return jsonify({"error": "JSON dosyası geçerli bir JSON formatında değil."}), 400
-        except Exception as e:
-            return jsonify({"error": f"JSON okuma hatası: {str(e)}"}), 400
+@app.route("/api/import/preview", methods=["POST"])
+def api_import_preview():
+    """
+    Dosyayı ve eşleştirme şemasını alır, geçerli/geçersiz kayıtları doğrular.
+    """
+    if "file" not in request.files:
+        return jsonify({"error": "Dosya yüklenmedi."}), 400
 
-    elif fmt == "csv":
-        try:
-            import io
-            content = file_bytes.decode("utf-8-sig")
-            csv_file = io.StringIO(content)
-            reader = csv.DictReader(csv_file)
+    file = request.files["file"]
+    target_model = request.form.get("model")
+    mapping_str = request.form.get("mapping")
 
-            if not reader.fieldnames:
-                return jsonify({"error": "CSV dosyasının başlık satırı bulunamadı."}), 400
+    if not target_model or not mapping_str:
+        return jsonify({"error": "Model ve eşleştirme bilgisi zorunludur."}), 400
 
-            headers = [h.strip() for h in reader.fieldnames]
-            if "name" not in headers or "email" not in headers:
-                return jsonify({"error": "CSV dosyasında 'name' ve 'email' başlıkları bulunmalıdır."}), 400
+    try:
+        mapping = json.loads(mapping_str)
+        file_bytes = file.read()
+        records = parse_file(file_bytes, file.filename)
+        
+        result = validate_and_map_records(records, target_model, mapping)
+        return jsonify({
+            "total_records": len(records),
+            "valid_count": len(result["valid"]),
+            "invalid_count": len(result["invalid"]),
+            "valid": result["valid"][:10],      # Önizleme için ilk 10 adet geçerli
+            "invalid": result["invalid"][:10]   # Önizleme için ilk 10 adet geçersiz
+        })
+    except Exception as e:
+        return jsonify({"error": f"Önizleme oluşturma hatası: {str(e)}"}), 400
 
-            for idx, row in enumerate(reader):
-                row_clean = {k.strip(): v for k, v in row.items() if k is not None}
-                name = row_clean.get("name")
-                email = row_clean.get("email")
 
-                if name is None or email is None:
-                    return jsonify({"error": f"CSV dosyasının {idx+2}. satırında 'name' veya 'email' alanı eksik."}), 400
+@app.route("/api/import/execute", methods=["POST"])
+def api_import_execute():
+    """
+    Dosyayı ve eşleştirme şemasını alır, geçerli kayıtları Stripe ve veritabanına aktarır.
+    """
+    if "file" not in request.files:
+        return jsonify({"error": "Dosya yüklenmedi."}), 400
 
-                records.append({
-                    "name": str(name).strip(),
-                    "email": str(email).strip()
-                })
-        except Exception as e:
-            return jsonify({"error": f"CSV okuma hatası: {str(e)}"}), 400
+    file = request.files["file"]
+    target_model = request.form.get("model")
+    mapping_str = request.form.get("mapping")
 
-    # 3. Stripe'a Aktarım İşlemi
-    results = {"success": 0, "skipped": 0, "failed": 0, "failed_list": []}
+    if not target_model or not mapping_str:
+        return jsonify({"error": "Model ve eşleştirme bilgisi zorunludur."}), 400
 
-    for record in records:
-        name = record["name"]
-        email = record["email"]
+    try:
+        mapping = json.loads(mapping_str)
+        file_bytes = file.read()
+        records = parse_file(file_bytes, file.filename)
+        
+        validation = validate_and_map_records(records, target_model, mapping)
+        valid_records = validation["valid"]
 
-        if not name or not email:
-            results["skipped"] += 1
-            continue
+        results = {"success": 0, "failed": 0, "failed_list": []}
 
-        try:
-            time.sleep(0.05)  # Rate limit koruması için kısa bekleme
-            customer = create_customer(name=name, email=email)
-            if customer and customer.get("id"):
+        for item in valid_records:
+            time.sleep(0.3)  # Rate limit koruması
+            mapped_data = item["mapped"]
+            res = execute_import_record(target_model, mapped_data)
+
+            if res["success"]:
                 results["success"] += 1
             else:
                 results["failed"] += 1
-                results["failed_list"].append({"name": name, "email": email, "reason": "Stripe did not return customer ID"})
-        except Exception as e:
-            results["failed"] += 1
-            results["failed_list"].append({"name": name, "email": email, "reason": str(e)})
+                results["failed_list"].append({
+                    "row_index": item["row_index"],
+                    "mapped": mapped_data,
+                    "reason": res["reason"]
+                })
 
-    return jsonify({
-        "message": "İçe aktarım tamamlandı.",
-        "stats": results
-    }), 200
+        # Geçersiz kayıtları da hata raporuna ekle
+        for item in validation["invalid"]:
+            results["failed"] += 1
+            results["failed_list"].append({
+                "row_index": item["row_index"],
+                "mapped": item["mapped"],
+                "reason": f"Doğrulama Hatası: {item['reason']}"
+            })
+
+        return jsonify({
+            "message": "Aktarım tamamlandı.",
+            "stats": results
+        })
+    except Exception as e:
+        return jsonify({"error": f"Aktarım hatası: {str(e)}"}), 400
 
 
 if __name__ == "__main__":

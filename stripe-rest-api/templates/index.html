@@ -62,7 +62,10 @@
         <section id="customers-sec" class="content-section" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <h1 style="margin: 0;">Müşteri Yönetimi</h1>
-                <button class="btn" onclick="openExportModal('customers')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                <div style="display: flex; gap: 0.8rem;">
+                    <button class="btn" onclick="openImportModal('customers')" style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
+                    <button class="btn" onclick="openExportModal('customers')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                </div>
             </div>
             <div class="form-container">
                 <h3>Yeni Müşteri Ekle</h3>
@@ -113,7 +116,10 @@
         <section id="products-sec" class="content-section" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <h1 style="margin: 0;">Ürün Yönetimi</h1>
-                <button class="btn" onclick="openExportModal('products')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                <div style="display: flex; gap: 0.8rem;">
+                    <button class="btn" onclick="openImportModal('products')" style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
+                    <button class="btn" onclick="openExportModal('products')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                </div>
             </div>
             <div class="form-container">
                 <h3>Yeni Ürün Ekle</h3>
@@ -150,7 +156,10 @@
         <section id="payments-sec" class="content-section" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <h1 style="margin: 0;">Ödeme Yönetimi</h1>
-                <button class="btn" onclick="openExportModal('payments')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                <div style="display: flex; gap: 0.8rem;">
+                    <button class="btn" onclick="openImportModal('payments')" style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
+                    <button class="btn" onclick="openExportModal('payments')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                </div>
             </div>
             <div class="form-container">
                 <h3>Yeni Ödeme Oluştur</h3>
@@ -309,37 +318,8 @@
             <!-- Import İşlemleri -->
             <div class="form-container" style="margin-top: 2rem;">
                 <h3><i class="fas fa-file-import"></i> Import İşlemleri</h3>
-                
-                <!-- Format seçimi -->
-                <p class="section-desc">Dosya formatını seçin:</p>
-                <div class="export-format-group" id="import-format-group">
-                    <label class="radio-card" id="label-import-json">
-                        <input type="radio" name="import-format" value="json" checked>
-                        <i class="fas fa-code"></i>
-                        <span>JSON</span>
-                    </label>
-                    <label class="radio-card" id="label-import-csv">
-                        <input type="radio" name="import-format" value="csv">
-                        <i class="fas fa-table"></i>
-                        <span>CSV</span>
-                    </label>
-                </div>
-
-                <!-- Dosya yükleme -->
-                <p class="section-desc" style="margin-top: 1.5rem;">Yüklenecek dosyayı seçin (Sadece Müşteri aktarımı desteklenmektedir):</p>
-                <form id="import-form">
-                    <div class="form-row">
-                        <label class="file-label">
-                            <i class="fas fa-file-alt"></i> Dosya Seç
-                            <input type="file" id="import-file" accept=".json,.csv" required>
-                        </label>
-                        <span id="import-filename" class="file-name-display" style="color: var(--text-muted); margin-right: 1rem;">Dosya seçilmedi</span>
-                        <button type="submit" class="btn btn-import">
-                            <i class="fas fa-upload"></i> İçe Aktar (Import)
-                        </button>
-                    </div>
-                </form>
-                <div id="import-msg" class="form-message"></div>
+                <p class="section-desc" style="margin-bottom: 1.5rem;">CSV veya JSON formatındaki verilerinizi sisteme toplu olarak aktarın. Sihirbaz üzerinden kolon eşleştirmesi yapabilirsiniz.</p>
+                <button type="button" class="btn" onclick="openImportModal(null)" style="background-color: var(--success);"><i class="fas fa-magic"></i> İçe Aktarma Sihirbazını Aç</button>
             </div>
         </section>
     </div>
@@ -505,6 +485,201 @@
 
             <!-- Kapat (X) -->
             <button type="button" onclick="closeExportModal()" style="
+                position: absolute; top: 0.8rem; right: 1rem;
+                background: none; border: none; font-size: 1.3rem;
+                color: #9ca3af; cursor: pointer; line-height: 1;
+            ">&#215;</button>
+        </div>
+    </div>
+
+    <!-- ── İçe Aktarma Sihirbazı Modalı ────────────────────────────────── -->
+    <div id="custom-import-modal" style="
+        display: none;
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(0,0,0,0.7);
+        align-items: center; justify-content: center;
+    ">
+        <div style="
+            background: #27293d; border-radius: 14px;
+            padding: 2rem 2.5rem; max-width: 700px; width: 95%;
+            max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            color: #fff; position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+        ">
+            <!-- Modal Başlığı -->
+            <h3 id="import-modal-title" style="margin: 0 0 1.5rem; font-size: 1.3rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem;">
+                <i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> İçe Aktarma Sihirbazı
+            </h3>
+            
+            <!-- Adım Göstergesi -->
+            <div style="display: flex; justify-content: space-between; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                <div id="wizard-badge-1" style="flex: 1; text-align: center; font-weight: bold; color: var(--accent-color); border-bottom: 3px solid var(--accent-color); padding-bottom: 0.5rem; font-size: 0.85rem;">
+                    <span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--accent-color); color:#fff; text-align:center; line-height:22px; margin-right:5px;">1</span> Dosya Yükleme
+                </div>
+                <div id="wizard-badge-2" style="flex: 1; text-align: center; font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent; padding-bottom: 0.5rem; font-size: 0.85rem;">
+                    <span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--border-color); color:var(--text-muted); text-align:center; line-height:22px; margin-right:5px;">2</span> Alan Eşleştirme
+                </div>
+                <div id="wizard-badge-3" style="flex: 1; text-align: center; font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent; padding-bottom: 0.5rem; font-size: 0.85rem;">
+                    <span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--border-color); color:var(--text-muted); text-align:center; line-height:22px; margin-right:5px;">3</span> Önizleme & Onay
+                </div>
+                <div id="wizard-badge-4" style="flex: 1; text-align: center; font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent; padding-bottom: 0.5rem; font-size: 0.85rem;">
+                    <span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--border-color); color:var(--text-muted); text-align:center; line-height:22px; margin-right:5px;">4</span> Sonuç Raporu
+                </div>
+            </div>
+
+            <!-- Adım 1: Dosya Yükle -->
+            <div id="import-wizard-step-1">
+                <p class="section-desc" style="margin-bottom: 1.5rem; color: var(--text-muted);">İçe aktarmak istediğiniz CSV veya JSON dosyasını seçin. Dosya okunduktan sonra kolonlar otomatik olarak analiz edilecektir.</p>
+                <div class="form-row" style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <label class="file-label" style="margin: 0; flex-grow: 1; justify-content: center;">
+                        <i class="fas fa-file-alt"></i> Dosya Seç
+                        <input type="file" id="wizard-file" accept=".json,.csv" onchange="onWizardFileSelected()">
+                    </label>
+                    <span id="wizard-filename" class="file-name-display" style="color: var(--text-muted); font-weight: bold; min-width: 150px; text-align: center;">Dosya seçilmedi</span>
+                    <button type="button" class="btn" onclick="wizardAnalyzeFile()" style="padding: 11px 24px;">
+                        <i class="fas fa-search"></i> Analiz Et <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div id="wizard-step1-msg" class="form-message" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Adım 2: Model & Eşleştirme (Mapping) -->
+            <div id="import-wizard-step-2" style="display: none;">
+                <div id="wizard-target-model-group" style="margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem; font-size: 0.95rem; color: var(--text-muted);">1. Aktarılacak Veri Türü (Model) Seçin:</h4>
+                    <select id="wizard-target-model" class="form-select" style="width: 100%; max-width: 300px;" onchange="onWizardModelChanged()">
+                        <option value="customers" selected>Müşteriler (Customers)</option>
+                        <option value="products">Ürünler (Products)</option>
+                        <option value="payments">Ödemeler (Payments)</option>
+                        <option value="prices">Fiyat Tanımları (Prices)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <h4 style="margin-bottom: 0.8rem; font-size: 0.95rem; color: var(--text-muted);">2. Alanları Eşleştirin:</h4>
+                    <p class="section-desc" style="margin-bottom: 1rem; color: var(--text-muted);">Soldaki sistem alanlarını, sağdaki dosya kolonlarıyla eşleştirin.</p>
+                    <div id="wizard-mapping-container" style="display: flex; flex-direction: column; gap: 1rem; max-height: 40vh; overflow-y: auto; padding-right: 0.5rem;">
+                        <!-- Dinamik olarak JS ile üretilecek -->
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
+                    <button type="button" class="btn" onclick="changeWizardStep(1)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                        <i class="fas fa-arrow-left"></i> Geri
+                    </button>
+                    <button type="button" class="btn" onclick="wizardPreviewMapping()">
+                        Doğrula & Önizleme <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div id="wizard-step2-msg" class="form-message" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Adım 3: Önizleme & Onay -->
+            <div id="import-wizard-step-3" style="display: none;">
+                <div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px; background: rgba(0,242,195,0.1); border-left: 4px solid var(--success); padding: 15px; border-radius: 4px;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Geçerli Kayıtlar</span>
+                        <span id="wizard-preview-valid-count" style="font-size: 1.8rem; font-weight: bold; color: var(--success);">0</span>
+                    </div>
+                    <div style="flex: 1; min-width: 150px; background: rgba(255,141,114,0.1); border-left: 4px solid var(--warning); padding: 15px; border-radius: 4px;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Hatalı/Eksik Kayıtlar</span>
+                        <span id="wizard-preview-invalid-count" style="font-size: 1.8rem; font-weight: bold; color: var(--warning);">0</span>
+                    </div>
+                </div>
+
+                <!-- Sekmeler / Preview lists -->
+                <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                        <button type="button" id="wizard-tab-valid-btn" onclick="toggleWizardPreviewTab(true)" style="background:none; border:none; color:var(--success); font-weight:bold; cursor:pointer; border-bottom:2px solid var(--success); padding:5px 10px;">
+                            Aktarılacak Veriler (İlk 10 Kayıt)
+                        </button>
+                        <button type="button" id="wizard-tab-invalid-btn" onclick="toggleWizardPreviewTab(false)" style="background:none; border:none; color:var(--text-muted); font-weight:bold; cursor:pointer; padding:5px 10px;">
+                            Hatalı Kayıtlar (İlk 10 Kayıt)
+                        </button>
+                    </div>
+
+                    <!-- Geçerli kayıtlar listesi -->
+                    <div id="wizard-preview-valid-container" style="overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 35vh; overflow-y: auto;">
+                        <table style="margin-top: 0; font-size: 0.85rem; box-shadow: none; border-radius: 0;">
+                            <thead id="wizard-preview-valid-thead"></thead>
+                            <tbody id="wizard-preview-valid-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Geçersiz kayıtlar listesi -->
+                    <div id="wizard-preview-invalid-container" style="display: none; overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 35vh; overflow-y: auto;">
+                        <table style="margin-top: 0; font-size: 0.85rem; box-shadow: none; border-radius: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Satır No</th>
+                                    <th>Hata Nedeni</th>
+                                    <th>Gönderilen Veri</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wizard-preview-invalid-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
+                    <button type="button" class="btn" onclick="changeWizardStep(2)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                        <i class="fas fa-arrow-left"></i> Geri
+                    </button>
+                    <button type="button" id="wizard-execute-btn" class="btn" onclick="wizardExecuteImport()">
+                        <i class="fas fa-cloud-upload-alt"></i> Eşleşenleri İçe Aktar
+                    </button>
+                </div>
+                <div id="wizard-step3-msg" class="form-message" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Adım 4: Sonuç Raporu -->
+            <div id="import-wizard-step-4" style="display: none;">
+                <div style="text-align: center; margin-bottom: 2rem; padding: 2rem; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid var(--border-color);">
+                    <div style="width:60px; height:60px; border-radius:50%; background:rgba(0,242,195,0.15); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
+                        <i class="fas fa-check-circle" style="font-size:2.5rem; color:var(--success);"></i>
+                    </div>
+                    <h3 style="font-size: 1.2rem;">Aktarım İşlemi Tamamlandı!</h3>
+                    <p class="section-desc" style="margin-top:0.5rem; color: var(--text-muted);">Veritabanı ve Stripe güncellemeleri başarıyla yapıldı.</p>
+                    
+                    <div style="display: flex; gap: 1.5rem; justify-content: center; margin-top: 1.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                        <div style="flex:1; background:rgba(0,242,195,0.08); padding:10px; border-radius:8px; border: 1px solid rgba(0,242,195,0.15);">
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom: 3px;">Başarılı</span>
+                            <span id="wizard-result-success" style="font-size:1.5rem; font-weight:bold; color:var(--success);">0</span>
+                        </div>
+                        <div style="flex:1; background:rgba(255,141,114,0.08); padding:10px; border-radius:8px; border: 1px solid rgba(255,141,114,0.15);">
+                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom: 3px;">Başarısız</span>
+                            <span id="wizard-result-failed" style="font-size:1.5rem; font-weight:bold; color:var(--warning);">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hata Listesi Tablosu -->
+                <div id="wizard-result-errors-section" style="display: none; margin-bottom: 2rem;">
+                    <h4 style="color: var(--warning); margin-bottom: 0.8rem; font-size: 0.95rem;"><i class="fas fa-exclamation-triangle"></i> Hata Alan Kayıtlar:</h4>
+                    <div style="overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 25vh; overflow-y: auto;">
+                        <table style="margin-top: 0; font-size: 0.85rem; box-shadow: none; border-radius: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Satır No</th>
+                                    <th>Başarısızlık Sebebi</th>
+                                    <th>Eşleştirilen Değerler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wizard-result-errors-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn" onclick="closeImportModal()" style="background-color: var(--accent-color);">
+                        <i class="fas fa-times"></i> Kapat
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kapat (X) -->
+            <button type="button" onclick="closeImportModal()" style="
                 position: absolute; top: 0.8rem; right: 1rem;
                 background: none; border: none; font-size: 1.3rem;
                 color: #9ca3af; cursor: pointer; line-height: 1;
