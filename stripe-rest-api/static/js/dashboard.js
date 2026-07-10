@@ -371,19 +371,60 @@ function loadRefunds() {
 // PDF İşLEMLERİ
 // =====================
 
+// PDF yeniden oluşturma için mevcut payment ID'yi tutar
+let _pendingPdfPaymentId = null;
+
 /**
  * PDF Oluştur: POST /api/payments/<id>/pdf
- * PDF bellekte üretilir, LONGBLOB'a kaydedilir ve yeni sekmede açılır.
+ * - PDF daha önce oluşturulmuşsa → onay modalı açılır.
+ * - force=true ile çağrılırsa → üzerine yazılır.
  */
-async function createPdf(paymentId) {
-    const btn = event.currentTarget;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Oluşturuluyor...';
+async function createPdf(paymentId, force = false) {
+    const btn = event ? event.currentTarget : null;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Oluşturuluyor...';
+    }
 
     try {
-        const res = await fetch(`${API_BASE_URL}/payments/${paymentId}/pdf`, {
-            method: 'POST'
-        });
+        const url = `${API_BASE_URL}/payments/${paymentId}/pdf${force ? '?force=true' : ''}`;
+        const res = await fetch(url, { method: 'POST' });
+
+        // PDF zaten mevcut → modal göster
+        if (res.status === 409) {
+            _pendingPdfPaymentId = paymentId;
+            document.getElementById('pdf-confirm-modal').style.display = 'flex';
+            return;
+        }
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert(`PDF oluşturulamadı: ${err.error || res.status}`);
+            return;
+        }
+
+        const blob = await res.blob();
+        const objUrl = URL.createObjectURL(blob);
+        window.open(objUrl, '_blank');
+    } catch (e) {
+        alert('❌ Sunucu hatası: ' + e.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF Oluştur';
+        }
+    }
+}
+
+/** Modal — Evet: Yeni PDF oluştur (üzerine yaz) */
+async function pdfConfirmYes() {
+    closePdfModal();
+    if (!_pendingPdfPaymentId) return;
+    const paymentId = _pendingPdfPaymentId;
+    _pendingPdfPaymentId = null;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/payments/${paymentId}/pdf?force=true`, { method: 'POST' });
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             alert(`PDF oluşturulamadı: ${err.error || res.status}`);
@@ -394,10 +435,20 @@ async function createPdf(paymentId) {
         window.open(url, '_blank');
     } catch (e) {
         alert('❌ Sunucu hatası: ' + e.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF Oluştur';
     }
+}
+
+/** Modal — Hayır: Mevcut PDF'i görüntüle */
+function pdfConfirmNo() {
+    closePdfModal();
+    if (!_pendingPdfPaymentId) return;
+    const paymentId = _pendingPdfPaymentId;
+    _pendingPdfPaymentId = null;
+    window.open(`${API_BASE_URL}/payments/${paymentId}/pdf`, '_blank');
+}
+
+function closePdfModal() {
+    document.getElementById('pdf-confirm-modal').style.display = 'none';
 }
 
 /**

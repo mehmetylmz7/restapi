@@ -5,7 +5,7 @@ import csv
 import time
 from services.customer_service import get_customers, create_customer
 from services.product_service import get_products, create_product
-from services.payment_service import create_payment_intent, get_payment_intents, create_payment_pdf, get_payment_pdf
+from services.payment_service import create_payment_intent, get_payment_intents, create_payment_pdf, get_payment_pdf, pdf_exists
 from services.refund_service import create_refund, get_refunds
 from services.file_service import upload_dispute_evidence, list_uploaded_files
 from services.export_service import export_to_json, export_to_csv, _fetch_all
@@ -114,11 +114,21 @@ def api_create_refund():
 
 # 2. APP.RUN BLOĞU KESİNLİKLE EN ALTTA OLMALI
 
-# ── PDF Endpoint'leri ──────────────────────────────────────────────────────
 @app.route("/api/payments/<payment_id>/pdf", methods=["POST"])
 def api_create_payment_pdf(payment_id):
-    """Ödeme için PDF üretir (bellekte), LONGBLOB'a kaydeder, tarayıcıya döner."""
-    pdf_bytes = create_payment_pdf(payment_id)
+    """PDF üretir ve LONGBLOB'a kaydeder.
+
+    Query param:
+        force=true  → Mevcut PDF varsa üzerine yazar.
+        force=false (varsayılan) → Mevcut PDF varsa 409 döner.
+    """
+    force = request.args.get("force", "false").lower() == "true"
+
+    # Mevcut PDF var mı kontrol et (force=false ise)
+    if not force and pdf_exists(payment_id):
+        return jsonify({"already_exists": True, "payment_id": payment_id}), 409
+
+    pdf_bytes = create_payment_pdf(payment_id, force=force)
     if pdf_bytes is None:
         return jsonify({"error": "PDF oluşturulamadı. Ödeme ID'yi kontrol edin."}), 404
     return Response(

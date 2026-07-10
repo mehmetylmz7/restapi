@@ -87,12 +87,37 @@ def cancel_payment_intent(payment_intent_id,cancellation_reason=None):
     return response.json()
 
 
-def create_payment_pdf(payment_intent_id: str) -> bytes | None:
+def pdf_exists(payment_intent_id: str) -> bool:
+    """
+    Verilen payment_intent_id için DB'de kayıtlı PDF olup olmadığını kontrol eder.
+    """
+    try:
+        sql = "SELECT 1 FROM payment_pdfs WHERE payment_intent_stripe_id = %s LIMIT 1"
+        with get_db() as cursor:
+            cursor.execute(sql, (payment_intent_id,))
+            row = cursor.fetchone()
+        return row is not None
+    except Exception as e:
+        print(f"❌ PDF kontrol hatası: {e}")
+        return False
+
+
+def create_payment_pdf(payment_intent_id: str, force: bool = False) -> bytes | None:
     """
     Stripe'tan ödeme detayını çeker, tek sayfalık PDF üretir ve
     MySQL payment_pdfs tablosuna LONGBLOB olarak kaydeder.
-    Üretilen PDF bytes'ı döner (endpoint doğrudan serve eder).
+
+    Args:
+        payment_intent_id: Stripe payment intent ID'si
+        force: True ise mevcut PDF üzerine yazar; False ise mevcut varsa None döner
+
+    Returns:
+        Üretilen PDF bytes'ı döner. Mevcut PDF varsa ve force=False ise None döner.
     """
+    # Mevcut PDF var mı kontrol et
+    if not force and pdf_exists(payment_intent_id):
+        return None  # Üzerine yazma — çağıran katman zaten_var durumunu bilir
+
     payment = get_payment_intent(payment_intent_id)
     if payment is None:
         return None

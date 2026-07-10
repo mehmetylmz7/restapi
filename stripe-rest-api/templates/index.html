@@ -333,6 +333,70 @@
         </section>
     </div>
 
+    <!-- ── PDF Onay Modalı ─────────────────────────────────────────────── -->
+    <div id="pdf-confirm-modal" style="
+        display: none;
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(0,0,0,0.55);
+        align-items: center; justify-content: center;
+    ">
+        <div style="
+            background: #fff; border-radius: 14px;
+            padding: 2.2rem 2.5rem; max-width: 420px; width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            text-align: center; position: relative;
+        ">
+            <!-- İkon -->
+            <div style="
+                width: 60px; height: 60px; border-radius: 50%;
+                background: #fff4e0; margin: 0 auto 1.2rem;
+                display: flex; align-items: center; justify-content: center;
+            ">
+                <i class="fas fa-file-pdf" style="font-size: 1.8rem; color: #f59e0b;"></i>
+            </div>
+
+            <h3 style="margin: 0 0 0.6rem; font-size: 1.15rem; color: #1a1a2e;">
+                PDF Zaten Mevcut
+            </h3>
+            <p style="margin: 0 0 1.8rem; color: #555; font-size: 0.92rem; line-height: 1.5;">
+                Bu ödeme için daha önce bir PDF oluşturulmuş.<br>
+                <strong>Yeniden oluşturmak</strong> ister misiniz?
+            </p>
+
+            <div style="display: flex; gap: 0.8rem; justify-content: center;">
+                <!-- Evet -->
+                <button onclick="pdfConfirmYes()" style="
+                    flex: 1; padding: 0.7rem 1.2rem;
+                    background: #635bff; color: #fff;
+                    border: none; border-radius: 8px;
+                    font-size: 0.95rem; font-weight: 600;
+                    cursor: pointer; transition: background 0.2s;
+                " onmouseover="this.style.background='#4f46e5'"
+                   onmouseout="this.style.background='#635bff'">
+                    <i class="fas fa-sync-alt"></i> Evet, Yeniden Oluştur
+                </button>
+                <!-- Hayır -->
+                <button onclick="pdfConfirmNo()" style="
+                    flex: 1; padding: 0.7rem 1.2rem;
+                    background: #f3f4f6; color: #374151;
+                    border: 1.5px solid #d1d5db; border-radius: 8px;
+                    font-size: 0.95rem; font-weight: 600;
+                    cursor: pointer; transition: background 0.2s;
+                " onmouseover="this.style.background='#e5e7eb'"
+                   onmouseout="this.style.background='#f3f4f6'">
+                    <i class="fas fa-eye"></i> Hayır, Mevcut PDF'i Gör
+                </button>
+            </div>
+
+            <!-- Kapat (X) -->
+            <button onclick="closePdfModal()" style="
+                position: absolute; top: 0.8rem; right: 1rem;
+                background: none; border: none; font-size: 1.3rem;
+                color: #9ca3af; cursor: pointer; line-height: 1;
+            ">&#215;</button>
+        </div>
+    </div>
+
     <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
