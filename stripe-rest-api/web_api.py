@@ -8,7 +8,7 @@ from services.product_service import get_products, create_product
 from services.payment_service import create_payment_intent, get_payment_intents, create_payment_pdf, get_payment_pdf, pdf_exists
 from services.refund_service import create_refund, get_refunds
 from services.file_service import upload_dispute_evidence, list_uploaded_files
-from services.export_service import export_to_json, export_to_csv, _fetch_all
+from services.export_service import export_data, _fetch_all
 from database import init_pool, get_db
 
 # Uygulama başlarken bağlantı havuzunu oluştur (bir kez çalışır)
@@ -191,16 +191,18 @@ def api_list_files():
 def api_export():
     """
     Stripe'tan veri çekip JSON veya CSV olarak tarayıcıya indirir.
-    body: { "resource": "customers", "format": "json", "limit": "100" }
-    limit: '100' = son 100 kayıt (hızlı), 'all' = tüm kayıtlar (yavaş)
+    body: { "resource": "customers", "format": "json", "limit": "100", "created_gte": 1720000000, "created_lte": 1730000000, "fields": ["id", "name"] }
     """
     data = request.get_json()
     if not data:
         return jsonify({"error": "JSON body bekleniyor."}), 400
 
-    resource  = data.get("resource", "")
-    fmt       = data.get("format", "json")
-    limit_val = data.get("limit", "100")  # '100' veya 'all'
+    resource    = data.get("resource", "")
+    fmt         = data.get("format", "json")
+    limit_val   = data.get("limit", "100")
+    created_gte = data.get("created_gte")
+    created_lte = data.get("created_lte")
+    fields      = data.get("fields")
 
     valid_resources = ("customers", "products", "payments", "refunds")
     if resource not in valid_resources:
@@ -208,15 +210,19 @@ def api_export():
     if fmt not in ("json", "csv"):
         return jsonify({"error": "Geçersiz format. 'json' veya 'csv' kullanın."}), 400
 
-    fetch_all = (limit_val == "all")
-
     try:
+        content = export_data(
+            resource=resource,
+            fmt=fmt,
+            limit_val=limit_val,
+            created_gte=created_gte,
+            created_lte=created_lte,
+            fields=fields
+        )
         if fmt == "json":
-            content  = export_to_json(resource, fetch_all=fetch_all)
             mimetype = "application/json"
             filename = f"{resource}.json"
         else:
-            content  = export_to_csv(resource, fetch_all=fetch_all)
             mimetype = "text/csv; charset=utf-8"
             filename = f"{resource}.csv"
     except Exception as e:

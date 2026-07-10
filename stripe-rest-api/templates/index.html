@@ -60,7 +60,10 @@
         </section>
 
         <section id="customers-sec" class="content-section" style="display: none;">
-            <h1>Müşteri Yönetimi</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1 style="margin: 0;">Müşteri Yönetimi</h1>
+                <button class="btn" onclick="openExportModal('customers')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+            </div>
             <div class="form-container">
                 <h3>Yeni Müşteri Ekle</h3>
                 <form id="add-customer-form">
@@ -108,7 +111,10 @@
         </section>
 
         <section id="products-sec" class="content-section" style="display: none;">
-            <h1>Ürün Yönetimi</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1 style="margin: 0;">Ürün Yönetimi</h1>
+                <button class="btn" onclick="openExportModal('products')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+            </div>
             <div class="form-container">
                 <h3>Yeni Ürün Ekle</h3>
                 <form id="add-product-form">
@@ -129,6 +135,7 @@
                         <th>Açıklama</th>
                         <th>Fiyat</th>
                         <th>Durum</th>
+                        <th>Kayıt Tarihi</th>
                     </tr>
                 </thead>
                 <tbody id="products-tbody"></tbody>
@@ -141,7 +148,10 @@
         </section>
 
         <section id="payments-sec" class="content-section" style="display: none;">
-            <h1>Ödeme Yönetimi</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1 style="margin: 0;">Ödeme Yönetimi</h1>
+                <button class="btn" onclick="openExportModal('payments')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+            </div>
             <div class="form-container">
                 <h3>Yeni Ödeme Oluştur</h3>
                 <form id="add-payment-form">
@@ -168,6 +178,7 @@
                         <th>Tutar</th>
                         <th>Para Birimi</th>
                         <th>Durum</th>
+                        <th>Kayıt Tarihi</th>
                         <th>PDF İşlemleri</th>
                     </tr>
                 </thead>
@@ -390,6 +401,110 @@
 
             <!-- Kapat (X) -->
             <button onclick="closePdfModal()" style="
+                position: absolute; top: 0.8rem; right: 1rem;
+                background: none; border: none; font-size: 1.3rem;
+                color: #9ca3af; cursor: pointer; line-height: 1;
+            ">&#215;</button>
+        </div>
+    </div>
+
+    <!-- ── Özel Export Modalı ───────────────────────────────────────────── -->
+    <div id="custom-export-modal" style="
+        display: none;
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(0,0,0,0.7);
+        align-items: center; justify-content: center;
+    ">
+        <div style="
+            background: #27293d; border-radius: 14px;
+            padding: 2rem 2.5rem; max-width: 500px; width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            color: #fff; position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+        ">
+            <!-- Başlık -->
+            <h3 id="export-modal-title" style="margin: 0 0 1.5rem; font-size: 1.3rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem;">
+                <i class="fas fa-file-export" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Veri Dışa Aktar
+            </h3>
+
+            <!-- Dosya Formatı Seçimi -->
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 0.6rem; font-size: 0.95rem; color: var(--text-muted);">Dosya Formatı:</h4>
+                <div style="display: flex; gap: 1.5rem;">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                        <input type="radio" name="custom-export-format" value="json" checked style="accent-color: var(--accent-color); margin: 0;"> JSON
+                    </label>
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                        <input type="radio" name="custom-export-format" value="csv" style="accent-color: var(--accent-color); margin: 0;"> CSV
+                    </label>
+                </div>
+            </div>
+
+            <!-- Kayıt Sayısı Seçimi -->
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 0.6rem; font-size: 0.95rem; color: var(--text-muted);">Kayıt Aralığı:</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                        <input type="radio" name="custom-export-limit" value="100" checked onchange="toggleExportDateRange(false)" style="accent-color: var(--accent-color); margin: 0;"> Son 100 Kayıt
+                    </label>
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                        <input type="radio" name="custom-export-limit" value="all" onchange="toggleExportDateRange(false)" style="accent-color: var(--accent-color); margin: 0;"> Tüm Kayıtlar
+                    </label>
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+                        <input type="radio" name="custom-export-limit" value="date" onchange="toggleExportDateRange(true)" style="accent-color: var(--accent-color); margin: 0;"> Tarih Aralığı Seç
+                    </label>
+                </div>
+
+                <!-- Tarih Seçimi (Gizlenebilir/Gösterilebilir) -->
+                <div id="custom-export-date-inputs" style="display: none; gap: 0.8rem; margin-top: 0.8rem;">
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 0.3rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Başlangıç:</span>
+                        <input type="date" id="custom-export-start" style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 5px; border: 1px solid var(--accent-color); color: #fff; background: transparent;" onclick="this.showPicker()">
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 0.3rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Bitiş:</span>
+                        <input type="date" id="custom-export-end" style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 5px; border: 1px solid var(--accent-color); color: #fff; background: transparent;" onclick="this.showPicker()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hangi Alanların Seçileceği -->
+            <div style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                    <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">Dışa Aktarılacak Alanlar:</h4>
+                    <button type="button" onclick="toggleAllExportFields()" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-size: 0.8rem; font-weight: bold; text-decoration: underline; padding: 0;">Tümünü Seç/Temizle</button>
+                </div>
+                <div id="custom-export-fields" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);">
+                    <!-- JS ile doldurulacak -->
+                </div>
+            </div>
+
+            <!-- İşlem Butonları -->
+            <div style="display: flex; gap: 0.8rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
+                <button type="button" onclick="closeExportModal()" style="
+                    padding: 0.6rem 1.2rem;
+                    background: transparent; color: #fff;
+                    border: 1px solid rgba(255,255,255,0.2); border-radius: 5px;
+                    font-size: 0.9rem; font-weight: bold;
+                    cursor: pointer; transition: 0.2s;
+                " onmouseover="this.style.background='rgba(255,255,255,0.1)'"
+                   onmouseout="this.style.background='transparent'">
+                    İptal
+                </button>
+                <button type="button" id="custom-export-submit-btn" onclick="submitCustomExport()" style="
+                    padding: 0.6rem 1.4rem;
+                    background: var(--accent-color); color: #fff;
+                    border: none; border-radius: 5px;
+                    font-size: 0.9rem; font-weight: bold;
+                    cursor: pointer; transition: 0.2s;
+                " onmouseover="this.style.background='#4f51c7'"
+                   onmouseout="this.style.background='var(--accent-color)'">
+                    <i class="fas fa-download"></i> Dışa Aktar
+                </button>
+            </div>
+
+            <!-- Kapat (X) -->
+            <button type="button" onclick="closeExportModal()" style="
                 position: absolute; top: 0.8rem; right: 1rem;
                 background: none; border: none; font-size: 1.3rem;
                 color: #9ca3af; cursor: pointer; line-height: 1;

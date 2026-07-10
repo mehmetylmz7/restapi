@@ -206,6 +206,8 @@ function loadProducts() {
                         priceText = `${amount} ${currency}`;
                     }
 
+                    const date = product.created ? new Date(product.created * 1000).toLocaleString('tr-TR') : '-';
+
                     tbody.innerHTML += `
                         <tr>
                             <td>${product.id}</td>
@@ -213,6 +215,7 @@ function loadProducts() {
                             <td>${product.description || '-'}</td>
                             <td>${priceText}</td>
                             <td><span class="status-badge ${sc}">${st}</span></td>
+                            <td>${date}</td>
                         </tr>
                     `;
                 });
@@ -271,6 +274,7 @@ function loadPayments() {
                 result.data.forEach(payment => {
                     const amount = (payment.amount / 100).toFixed(2);
                     const sc = statusClass(payment.status);
+                    const date = payment.created ? new Date(payment.created * 1000).toLocaleString('tr-TR') : '-';
                     tbody.innerHTML += `
                         <tr>
                             <td>${payment.id}</td>
@@ -278,6 +282,7 @@ function loadPayments() {
                             <td>${amount}</td>
                             <td>${payment.currency.toUpperCase()}</td>
                             <td><span class="status-badge ${sc}">${payment.status}</span></td>
+                            <td>${date}</td>
                             <td class="action-cell">
                                 <button class="btn btn-sm btn-pdf" onclick="createPdf('${payment.id}')" title="PDF Oluştur">
                                     <i class="fas fa-file-pdf"></i> PDF Oluştur
@@ -723,3 +728,170 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// =====================
+// ÖZEL EXPORT MODALI İŞLEMLERİ
+// =====================
+let activeExportResource = null;
+
+const resourceExportFields = {
+    customers: [
+        { key: "id", label: "ID" },
+        { key: "name", label: "İsim" },
+        { key: "email", label: "E-posta" },
+        { key: "created", label: "Kayıt Tarihi" }
+    ],
+    products: [
+        { key: "id", label: "ID" },
+        { key: "name", label: "Ürün Adı" },
+        { key: "description", label: "Açıklama" },
+        { key: "price", label: "Fiyat" },
+        { key: "active", label: "Durum" },
+        { key: "created", label: "Kayıt Tarihi" }
+    ],
+    payments: [
+        { key: "id", label: "ID" },
+        { key: "customer", label: "Müşteri" },
+        { key: "amount", label: "Tutar" },
+        { key: "currency", label: "Para Birimi" },
+        { key: "status", label: "Durum" },
+        { key: "created", label: "Kayıt Tarihi" }
+    ]
+};
+
+function openExportModal(resource) {
+    activeExportResource = resource;
+    
+    // Başlığı belirle
+    const titles = {
+        customers: "Müşteri Verilerini Dışa Aktar",
+        products: "Ürün Verilerini Dışa Aktar",
+        payments: "Ödeme Verilerini Dışa Aktar"
+    };
+    document.getElementById("export-modal-title").innerHTML = 
+        `<i class="fas fa-file-export" style="color: var(--accent-color); margin-right: 0.5rem;"></i> ${titles[resource] || 'Veri Dışa Aktar'}`;
+
+    // Varsayılan format ve aralıkları sıfırla
+    document.querySelector('input[name="custom-export-format"][value="json"]').checked = true;
+    document.querySelector('input[name="custom-export-limit"][value="100"]').checked = true;
+    toggleExportDateRange(false);
+
+    // Tarih alanlarını sıfırla
+    document.getElementById("custom-export-start").value = "";
+    document.getElementById("custom-export-end").value = "";
+
+    // Alan seçim listesini oluştur
+    const fieldsContainer = document.getElementById("custom-export-fields");
+    fieldsContainer.innerHTML = "";
+    
+    const fields = resourceExportFields[resource] || [];
+    fields.forEach(f => {
+        fieldsContainer.innerHTML += `
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem;">
+                <input type="checkbox" name="custom-export-field-checkbox" value="${f.key}" checked style="accent-color: var(--accent-color); margin: 0;"> ${f.label}
+            </label>
+        `;
+    });
+
+    // Modalı aç
+    document.getElementById("custom-export-modal").style.display = "flex";
+}
+
+function closeExportModal() {
+    document.getElementById("custom-export-modal").style.display = "none";
+    activeExportResource = null;
+}
+
+function toggleExportDateRange(show) {
+    const container = document.getElementById("custom-export-date-inputs");
+    container.style.display = show ? "flex" : "none";
+}
+
+function toggleAllExportFields() {
+    const checkboxes = document.querySelectorAll('input[name="custom-export-field-checkbox"]');
+    if (checkboxes.length === 0) return;
+    
+    // Herhangi biri unchecked ise tümünü check et, hepsi check ise tümünü uncheck et
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => cb.checked = !allChecked);
+}
+
+async function submitCustomExport() {
+    if (!activeExportResource) return;
+
+    const formatEl = document.querySelector('input[name="custom-export-format"]:checked');
+    const limitEl = document.querySelector('input[name="custom-export-limit"]:checked');
+    
+    const format = formatEl ? formatEl.value : "json";
+    const limit = limitEl ? limitEl.value : "100";
+
+    let created_gte = null;
+    let created_lte = null;
+
+    if (limit === "date") {
+        const startVal = document.getElementById("custom-export-start").value;
+        const endVal = document.getElementById("custom-export-end").value;
+
+        if (!startVal || !endVal) {
+            alert("Lütfen başlangıç ve bitiş tarihlerini seçin.");
+            return;
+        }
+
+        created_gte = Math.floor(new Date(startVal).getTime() / 1000);
+        // Bitiş gününün son saniyesine kadar dahil et (23:59:59)
+        created_lte = Math.floor(new Date(endVal + 'T23:59:59').getTime() / 1000);
+    }
+
+    const checkedBoxes = document.querySelectorAll('input[name="custom-export-field-checkbox"]:checked');
+    const fields = Array.from(checkedBoxes).map(cb => cb.value);
+
+    if (fields.length === 0) {
+        alert("Lütfen dışa aktarılacak en az bir alan seçin.");
+        return;
+    }
+
+    const btn = document.getElementById("custom-export-submit-btn");
+    btn.disabled = true;
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İndiriliyor...';
+
+    try {
+        const bodyData = {
+            resource: activeExportResource,
+            format: format,
+            limit: limit,
+            fields: fields
+        };
+        if (created_gte !== null) bodyData.created_gte = created_gte;
+        if (created_lte !== null) bodyData.created_lte = created_lte;
+
+        const res = await fetch(`${API_BASE_URL}/export`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData)
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert(`Dışa aktarım başarısız: ${err.error || res.status}`);
+            return;
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${activeExportResource}_export.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        closeExportModal();
+    } catch (e) {
+        alert('❌ Sunucu hatası: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
