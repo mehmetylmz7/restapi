@@ -2,6 +2,8 @@ from stripe_client import get, post, delete
 from config import BASE_URL
 from database import get_db
 
+#deneme 
+
 def get_customers(limit=10, starting_after=None, created_gte=None, created_lte=None):
 
     params = {"limit": limit}

@@ -9,6 +9,8 @@ from services.payment_service import create_payment_intent
 
 EMAIL_REGEX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
 
+#deneme 
+
 # Dosya içeriğini okur ve sözlük listesine dönüştürür
 def parse_file(file_bytes: bytes, filename: str) -> list:
     """

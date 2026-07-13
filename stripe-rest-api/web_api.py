@@ -31,7 +31,7 @@ def api_stats():
         print(f"Stats fetch error: {e}")
     return jsonify(stats)
 
-
+#deneme 
 # 1. ESKİ JSON DÖNDÜREN ROTAYI SİLDİK VE YENİSİNİ BURAYA ALDIK
 @app.route("/")
 def home():
