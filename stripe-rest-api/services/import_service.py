@@ -9,7 +9,7 @@ from services.payment_service import create_payment_intent
 
 EMAIL_REGEX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
 
-
+# Dosya içeriğini okur ve sözlük listesine dönüştürür
 def parse_file(file_bytes: bytes, filename: str) -> list:
     """
     Dosya uzantısına göre JSON veya CSV içeriğini okuyup sözlük listesine dönüştürür.
@@ -29,7 +29,7 @@ def parse_file(file_bytes: bytes, filename: str) -> list:
     else:
         raise ValueError("Yalnızca .csv veya .json uzantılı dosyalar desteklenir.")
 
-
+# her bir sutunun veri tipini tahmin eder
 def infer_data_types(records: list) -> dict:
     """
     Kayıt listesini inceleyerek her bir sütunun (anahtar) veri tipini tahmin eder.
@@ -88,6 +88,7 @@ def infer_data_types(records: list) -> dict:
     return inferred_types
 
 
+#Sütun eşleştirmelerini uygular, verileri doğrular ve kayıtları ayırır.
 def validate_and_map_records(records: list, target_model: str, mapping: dict) -> dict:
     """
     Kullanıcının belirlediği sütun eşleştirmelerine göre kayıtları filtreler ve doğrular.
@@ -200,7 +201,7 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
         "invalid": invalid_list
     }
 
-
+#Hedef modele göre uygun servis fonksiyonunu çağırır
 def execute_import_record(target_model: str, mapped_data: dict) -> dict:
     """
     Tek bir geçerli kaydı ilgili modelin oluşturma fonksiyonunu çağırarak Stripe ve DB'ye yazar.

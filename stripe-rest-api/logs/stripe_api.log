@@ -3630,3 +3630,319 @@
 2026-07-10 17:42:14,311 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
 2026-07-10 17:42:14,914 - INFO - Basarili cevap: 200
 2026-07-10 17:42:14,915 - INFO - 127.0.0.1 - - [10/Jul/2026 17:42:14] "GET /api/stats HTTP/1.1" 200 -
+2026-07-10 17:52:45,587 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-10 17:52:45,588 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-10 17:52:45,590 - INFO -  * Restarting with stat
+2026-07-10 17:52:46,528 - WARNING -  * Debugger is active!
+2026-07-10 17:52:46,573 - INFO -  * Debugger PIN: 131-908-340
+2026-07-10 17:52:53,842 - INFO - 127.0.0.1 - - [10/Jul/2026 17:52:53] "GET / HTTP/1.1" 200 -
+2026-07-10 17:52:54,050 - INFO - 127.0.0.1 - - [10/Jul/2026 17:52:54] "[36mGET /static/js/dashboard.js HTTP/1.1[0m" 304 -
+2026-07-10 17:52:54,050 - INFO - 127.0.0.1 - - [10/Jul/2026 17:52:54] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-10 17:52:54,118 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-10 17:52:54,143 - INFO - 127.0.0.1 - - [10/Jul/2026 17:52:54] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-07-10 17:52:55,753 - INFO - Basarili cevap: 200
+2026-07-10 17:52:55,756 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-10 17:52:56,511 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-10 17:52:57,583 - INFO - Basarili cevap: 200
+2026-07-10 17:52:57,585 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-10 17:52:57,942 - INFO - Basarili cevap: 200
+2026-07-10 17:52:57,945 - INFO - 127.0.0.1 - - [10/Jul/2026 17:52:57] "GET /api/customers?limit=10 HTTP/1.1" 200 -
+2026-07-10 17:52:58,709 - INFO - Basarili cevap: 200
+2026-07-10 17:52:58,710 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-10 17:52:59,524 - INFO - Basarili cevap: 200
+2026-07-10 17:52:59,527 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-10 17:53:00,169 - INFO - Basarili cevap: 200
+2026-07-10 17:53:00,170 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-10 17:53:00,790 - INFO - Basarili cevap: 200
+2026-07-10 17:53:00,794 - INFO - 127.0.0.1 - - [10/Jul/2026 17:53:00] "GET /api/stats HTTP/1.1" 200 -
+2026-07-10 17:53:11,736 - INFO - 127.0.0.1 - - [10/Jul/2026 17:53:11] "GET /api/files HTTP/1.1" 200 -
+2026-07-10 17:53:13,118 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-10 17:53:13,729 - INFO - Basarili cevap: 200
+2026-07-10 17:53:13,732 - INFO - 127.0.0.1 - - [10/Jul/2026 17:53:13] "GET /api/products?limit=10 HTTP/1.1" 200 -
+2026-07-10 17:53:14,653 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-10 17:53:15,453 - INFO - Basarili cevap: 200
+2026-07-10 17:53:15,456 - INFO - 127.0.0.1 - - [10/Jul/2026 17:53:15] "GET /api/payments?limit=10 HTTP/1.1" 200 -
+2026-07-10 17:53:19,448 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-10 17:53:21,594 - INFO - Basarili cevap: 200
+2026-07-10 17:53:21,595 - INFO - 127.0.0.1 - - [10/Jul/2026 17:53:21] "GET /api/products?limit=10 HTTP/1.1" 200 -
+2026-07-10 17:53:28,533 - INFO - 127.0.0.1 - - [10/Jul/2026 17:53:28] "POST /api/import/analyze HTTP/1.1" 200 -
+2026-07-13 09:10:15,744 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-13 09:10:15,746 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-13 09:10:15,748 - INFO -  * Restarting with stat
+2026-07-13 09:10:16,688 - WARNING -  * Debugger is active!
+2026-07-13 09:10:16,730 - INFO -  * Debugger PIN: 131-908-340
+2026-07-13 09:10:36,074 - INFO - 127.0.0.1 - - [13/Jul/2026 09:10:36] "GET / HTTP/1.1" 200 -
+2026-07-13 09:10:36,225 - INFO - 127.0.0.1 - - [13/Jul/2026 09:10:36] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-07-13 09:10:36,262 - INFO - 127.0.0.1 - - [13/Jul/2026 09:10:36] "GET /static/js/dashboard.js HTTP/1.1" 200 -
+2026-07-13 09:10:36,300 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:10:36,904 - INFO - 127.0.0.1 - - [13/Jul/2026 09:10:36] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-07-13 09:10:38,002 - INFO - Basarili cevap: 200
+2026-07-13 09:10:38,007 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:10:39,277 - INFO - Basarili cevap: 200
+2026-07-13 09:10:39,280 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:10:40,304 - INFO - Basarili cevap: 200
+2026-07-13 09:10:40,306 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 09:10:41,308 - INFO - Basarili cevap: 200
+2026-07-13 09:10:41,310 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-13 09:10:41,915 - INFO - Basarili cevap: 200
+2026-07-13 09:10:41,916 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 09:10:42,530 - INFO - Basarili cevap: 200
+2026-07-13 09:10:42,533 - INFO - 127.0.0.1 - - [13/Jul/2026 09:10:42] "GET /api/stats HTTP/1.1" 200 -
+2026-07-13 09:10:52,278 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:10:53,180 - INFO - Basarili cevap: 200
+2026-07-13 09:10:53,186 - INFO - 127.0.0.1 - - [13/Jul/2026 09:10:53] "GET /api/customers?limit=10 HTTP/1.1" 200 -
+2026-07-13 09:10:59,454 - INFO - 127.0.0.1 - - [13/Jul/2026 09:10:59] "POST /api/import/analyze HTTP/1.1" 200 -
+2026-07-13 09:11:03,500 - INFO - 127.0.0.1 - - [13/Jul/2026 09:11:03] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 09:11:15,100 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:15,916 - INFO - Basarili cevap: 200
+2026-07-13 09:11:16,277 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:17,142 - INFO - Basarili cevap: 200
+2026-07-13 09:11:17,488 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:18,166 - INFO - Basarili cevap: 200
+2026-07-13 09:11:18,509 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:19,305 - INFO - Basarili cevap: 200
+2026-07-13 09:11:19,649 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:20,289 - INFO - Basarili cevap: 200
+2026-07-13 09:11:20,634 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:21,238 - INFO - Basarili cevap: 200
+2026-07-13 09:11:21,583 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:22,467 - INFO - Basarili cevap: 200
+2026-07-13 09:11:22,777 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:23,592 - INFO - Basarili cevap: 200
+2026-07-13 09:11:23,625 - INFO - 127.0.0.1 - - [13/Jul/2026 09:11:23] "POST /api/import/execute HTTP/1.1" 200 -
+2026-07-13 09:11:23,645 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:23,647 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:23,651 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 09:11:23,654 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 09:11:24,168 - INFO - Basarili cevap: 200
+2026-07-13 09:11:24,170 - INFO - 127.0.0.1 - - [13/Jul/2026 09:11:24] "GET /api/products?limit=10 HTTP/1.1" 200 -
+2026-07-13 09:11:24,319 - INFO - Basarili cevap: 200
+2026-07-13 09:11:24,321 - INFO - 127.0.0.1 - - [13/Jul/2026 09:11:24] "GET /api/customers?limit=10 HTTP/1.1" 200 -
+2026-07-13 09:11:24,409 - INFO - Basarili cevap: 200
+2026-07-13 09:11:24,412 - INFO - 127.0.0.1 - - [13/Jul/2026 09:11:24] "GET /api/payments?limit=10 HTTP/1.1" 200 -
+2026-07-13 09:11:25,048 - INFO - Basarili cevap: 200
+2026-07-13 09:11:25,053 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:26,971 - INFO - Basarili cevap: 200
+2026-07-13 09:11:26,973 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:28,208 - INFO - Basarili cevap: 200
+2026-07-13 09:11:28,209 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 09:11:29,013 - INFO - Basarili cevap: 200
+2026-07-13 09:11:29,014 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-13 09:11:29,633 - INFO - Basarili cevap: 200
+2026-07-13 09:11:29,634 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 09:11:30,761 - INFO - Basarili cevap: 200
+2026-07-13 09:11:30,762 - INFO - 127.0.0.1 - - [13/Jul/2026 09:11:30] "GET /api/stats HTTP/1.1" 200 -
+2026-07-13 09:11:34,576 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:35,759 - INFO - Basarili cevap: 200
+2026-07-13 09:11:35,761 - INFO - 127.0.0.1 - - [13/Jul/2026 09:11:35] "GET /api/customers?limit=10&starting_after=cus_Ur1LrQVdFS68jL HTTP/1.1" 200 -
+2026-07-13 09:11:39,236 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:39,874 - INFO - Basarili cevap: 200
+2026-07-13 09:11:39,876 - INFO - 127.0.0.1 - - [13/Jul/2026 09:11:39] "GET /api/customers?limit=10 HTTP/1.1" 200 -
+2026-07-13 09:11:46,768 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 09:11:47,656 - INFO - Basarili cevap: 200
+2026-07-13 09:11:47,658 - INFO - 127.0.0.1 - - [13/Jul/2026 09:11:47] "GET /api/customers?limit=10&created_gte=1783900800&created_lte=1783976399 HTTP/1.1" 200 -
+2026-07-13 11:51:18,673 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-13 11:51:18,673 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-13 11:51:18,673 - INFO -  * Restarting with stat
+2026-07-13 11:51:19,438 - WARNING -  * Debugger is active!
+2026-07-13 11:51:19,442 - INFO -  * Debugger PIN: 131-908-340
+2026-07-13 11:51:34,499 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:51:35,375 - INFO - Basarili cevap: 200
+2026-07-13 11:51:35,384 - INFO - 127.0.0.1 - - [13/Jul/2026 11:51:35] "GET /api/customers?limit=10&created_gte=1783900800&created_lte=1783976399 HTTP/1.1" 200 -
+2026-07-13 11:51:35,708 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:51:36,199 - INFO - Basarili cevap: 200
+2026-07-13 11:51:36,199 - INFO - 127.0.0.1 - - [13/Jul/2026 11:51:36] "GET /api/customers?limit=10&created_gte=1783900800&created_lte=1783976399 HTTP/1.1" 200 -
+2026-07-13 11:51:36,484 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:51:36,928 - INFO - Basarili cevap: 200
+2026-07-13 11:51:36,941 - INFO - 127.0.0.1 - - [13/Jul/2026 11:51:36] "GET /api/customers?limit=10&created_gte=1783900800&created_lte=1783976399 HTTP/1.1" 200 -
+2026-07-13 11:51:36,946 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:51:37,457 - INFO - Basarili cevap: 200
+2026-07-13 11:51:37,457 - INFO - 127.0.0.1 - - [13/Jul/2026 11:51:37] "GET /api/customers?limit=10&created_gte=1783900800&created_lte=1783976399 HTTP/1.1" 200 -
+2026-07-13 11:51:49,451 - INFO - 127.0.0.1 - - [13/Jul/2026 11:51:49] "POST /api/import/analyze HTTP/1.1" 200 -
+2026-07-13 11:52:15,022 - INFO - 127.0.0.1 - - [13/Jul/2026 11:52:15] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 11:54:06,386 - INFO - 127.0.0.1 - - [13/Jul/2026 11:54:06] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 11:54:25,468 - INFO - 127.0.0.1 - - [13/Jul/2026 11:54:25] "POST /api/import/analyze HTTP/1.1" 200 -
+2026-07-13 11:54:26,550 - INFO - 127.0.0.1 - - [13/Jul/2026 11:54:26] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 11:54:27,950 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:54:28,936 - INFO - Basarili cevap: 200
+2026-07-13 11:54:29,298 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:54:29,878 - INFO - Basarili cevap: 200
+2026-07-13 11:54:30,194 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:54:30,894 - INFO - Basarili cevap: 200
+2026-07-13 11:54:31,207 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:54:31,894 - INFO - Basarili cevap: 200
+2026-07-13 11:54:32,211 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:54:32,834 - INFO - Basarili cevap: 200
+2026-07-13 11:54:32,834 - INFO - 127.0.0.1 - - [13/Jul/2026 11:54:32] "POST /api/import/execute HTTP/1.1" 200 -
+2026-07-13 11:54:32,850 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:54:32,850 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:54:32,850 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 11:54:32,850 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 11:54:33,372 - INFO - Basarili cevap: 200
+2026-07-13 11:54:33,374 - INFO - 127.0.0.1 - - [13/Jul/2026 11:54:33] "GET /api/products?limit=10 HTTP/1.1" 200 -
+2026-07-13 11:54:33,401 - INFO - Basarili cevap: 200
+2026-07-13 11:54:33,401 - INFO - 127.0.0.1 - - [13/Jul/2026 11:54:33] "GET /api/customers?limit=10&created_gte=1783900800&created_lte=1783976399 HTTP/1.1" 200 -
+2026-07-13 11:54:33,727 - INFO - Basarili cevap: 200
+2026-07-13 11:54:33,730 - INFO - 127.0.0.1 - - [13/Jul/2026 11:54:33] "GET /api/payments?limit=10 HTTP/1.1" 200 -
+2026-07-13 11:54:34,605 - INFO - Basarili cevap: 200
+2026-07-13 11:54:34,608 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:54:36,608 - INFO - Basarili cevap: 200
+2026-07-13 11:54:36,610 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:54:37,633 - INFO - Basarili cevap: 200
+2026-07-13 11:54:37,634 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 11:54:38,414 - INFO - Basarili cevap: 200
+2026-07-13 11:54:38,415 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-13 11:54:38,910 - INFO - Basarili cevap: 200
+2026-07-13 11:54:38,910 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 11:54:39,561 - INFO - Basarili cevap: 200
+2026-07-13 11:54:39,563 - INFO - 127.0.0.1 - - [13/Jul/2026 11:54:39] "GET /api/stats HTTP/1.1" 200 -
+2026-07-13 11:56:09,382 - INFO - 127.0.0.1 - - [13/Jul/2026 11:56:09] "POST /api/import/analyze HTTP/1.1" 200 -
+2026-07-13 11:56:12,438 - INFO - 127.0.0.1 - - [13/Jul/2026 11:56:12] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 11:56:22,885 - INFO - 127.0.0.1 - - [13/Jul/2026 11:56:22] "GET / HTTP/1.1" 200 -
+2026-07-13 11:56:22,989 - INFO - 127.0.0.1 - - [13/Jul/2026 11:56:22] "[36mGET /static/js/dashboard.js HTTP/1.1[0m" 304 -
+2026-07-13 11:56:22,995 - INFO - 127.0.0.1 - - [13/Jul/2026 11:56:22] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 11:56:23,013 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:56:23,856 - INFO - Basarili cevap: 200
+2026-07-13 11:56:23,856 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:56:24,587 - INFO - Basarili cevap: 200
+2026-07-13 11:56:24,589 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:56:25,337 - INFO - Basarili cevap: 200
+2026-07-13 11:56:25,338 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 11:56:26,132 - INFO - Basarili cevap: 200
+2026-07-13 11:56:26,132 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-13 11:56:26,663 - INFO - Basarili cevap: 200
+2026-07-13 11:56:26,663 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 11:56:27,217 - INFO - Basarili cevap: 200
+2026-07-13 11:56:27,218 - INFO - 127.0.0.1 - - [13/Jul/2026 11:56:27] "GET /api/stats HTTP/1.1" 200 -
+2026-07-13 11:56:30,739 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 11:56:31,466 - INFO - Basarili cevap: 200
+2026-07-13 11:56:31,468 - INFO - 127.0.0.1 - - [13/Jul/2026 11:56:31] "GET /api/customers?limit=10 HTTP/1.1" 200 -
+2026-07-13 11:59:26,763 - INFO - 127.0.0.1 - - [13/Jul/2026 11:59:26] "POST /api/import/analyze HTTP/1.1" 200 -
+2026-07-13 11:59:33,738 - INFO - 127.0.0.1 - - [13/Jul/2026 11:59:33] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 12:49:15,374 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-07-13 12:49:15,374 - INFO - [33mPress CTRL+C to quit[0m
+2026-07-13 12:49:15,375 - INFO -  * Restarting with stat
+2026-07-13 12:49:15,987 - WARNING -  * Debugger is active!
+2026-07-13 12:49:15,990 - INFO -  * Debugger PIN: 131-908-340
+2026-07-13 12:50:20,841 - INFO - 127.0.0.1 - - [13/Jul/2026 12:50:20] "GET / HTTP/1.1" 200 -
+2026-07-13 12:50:21,030 - INFO - 127.0.0.1 - - [13/Jul/2026 12:50:21] "[36mGET /static/js/dashboard.js HTTP/1.1[0m" 304 -
+2026-07-13 12:50:21,032 - INFO - 127.0.0.1 - - [13/Jul/2026 12:50:21] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 12:50:21,045 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 12:50:23,125 - INFO - Basarili cevap: 200
+2026-07-13 12:50:23,126 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 12:50:25,024 - INFO - Basarili cevap: 200
+2026-07-13 12:50:25,026 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 12:50:26,202 - INFO - Basarili cevap: 200
+2026-07-13 12:50:26,202 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 12:50:27,026 - INFO - Basarili cevap: 200
+2026-07-13 12:50:27,028 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-13 12:50:27,609 - INFO - Basarili cevap: 200
+2026-07-13 12:50:27,610 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 12:50:28,229 - INFO - Basarili cevap: 200
+2026-07-13 12:50:28,232 - INFO - 127.0.0.1 - - [13/Jul/2026 12:50:28] "GET /api/stats HTTP/1.1" 200 -
+2026-07-13 13:01:59,866 - INFO - 127.0.0.1 - - [13/Jul/2026 13:01:59] "GET / HTTP/1.1" 200 -
+2026-07-13 13:01:59,905 - INFO - 127.0.0.1 - - [13/Jul/2026 13:01:59] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2026-07-13 13:01:59,907 - INFO - 127.0.0.1 - - [13/Jul/2026 13:01:59] "[36mGET /static/js/dashboard.js HTTP/1.1[0m" 304 -
+2026-07-13 13:01:59,916 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 13:02:01,225 - INFO - Basarili cevap: 200
+2026-07-13 13:02:01,227 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 13:02:03,154 - INFO - Basarili cevap: 200
+2026-07-13 13:02:03,154 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 13:02:04,237 - INFO - Basarili cevap: 200
+2026-07-13 13:02:04,237 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 13:02:05,079 - INFO - Basarili cevap: 200
+2026-07-13 13:02:05,079 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-13 13:02:05,548 - INFO - Basarili cevap: 200
+2026-07-13 13:02:05,548 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:02:06,172 - INFO - Basarili cevap: 200
+2026-07-13 13:02:06,172 - INFO - 127.0.0.1 - - [13/Jul/2026 13:02:06] "GET /api/stats HTTP/1.1" 200 -
+2026-07-13 13:04:36,209 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:04:36,972 - INFO - Basarili cevap: 200
+2026-07-13 13:04:36,974 - INFO - 127.0.0.1 - - [13/Jul/2026 13:04:36] "GET /api/products?limit=10 HTTP/1.1" 200 -
+2026-07-13 13:05:35,575 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:05:36,270 - INFO - Basarili cevap: 200
+2026-07-13 13:05:36,272 - INFO - 127.0.0.1 - - [13/Jul/2026 13:05:36] "POST /api/export HTTP/1.1" 200 -
+2026-07-13 13:06:26,268 - INFO - 127.0.0.1 - - [13/Jul/2026 13:06:26] "POST /api/import/analyze HTTP/1.1" 200 -
+2026-07-13 13:07:29,407 - INFO - 127.0.0.1 - - [13/Jul/2026 13:07:29] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 13:07:56,728 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:07:57,412 - INFO - Basarili cevap: 200
+2026-07-13 13:07:57,761 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:07:58,407 - INFO - Basarili cevap: 200
+2026-07-13 13:07:58,723 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:07:59,311 - INFO - Basarili cevap: 200
+2026-07-13 13:07:59,625 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:00,224 - INFO - Basarili cevap: 200
+2026-07-13 13:08:00,539 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:01,124 - INFO - Basarili cevap: 200
+2026-07-13 13:08:01,431 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:02,074 - INFO - Basarili cevap: 200
+2026-07-13 13:08:02,388 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:03,165 - INFO - Basarili cevap: 200
+2026-07-13 13:08:03,478 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:04,070 - INFO - Basarili cevap: 200
+2026-07-13 13:08:04,382 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:04,980 - INFO - Basarili cevap: 200
+2026-07-13 13:08:05,294 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:05,936 - INFO - Basarili cevap: 200
+2026-07-13 13:08:06,245 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:06,823 - INFO - Basarili cevap: 200
+2026-07-13 13:08:07,130 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:07,771 - INFO - Basarili cevap: 200
+2026-07-13 13:08:08,085 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:08,788 - INFO - Basarili cevap: 200
+2026-07-13 13:08:08,794 - INFO - 127.0.0.1 - - [13/Jul/2026 13:08:08] "POST /api/import/execute HTTP/1.1" 200 -
+2026-07-13 13:08:08,802 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:08,803 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 13:08:08,805 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 13:08:08,808 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 13:08:09,322 - INFO - Basarili cevap: 200
+2026-07-13 13:08:09,324 - INFO - 127.0.0.1 - - [13/Jul/2026 13:08:09] "GET /api/products?limit=10 HTTP/1.1" 200 -
+2026-07-13 13:08:09,467 - INFO - Basarili cevap: 200
+2026-07-13 13:08:09,470 - INFO - 127.0.0.1 - - [13/Jul/2026 13:08:09] "GET /api/customers?limit=10 HTTP/1.1" 200 -
+2026-07-13 13:08:09,586 - INFO - Basarili cevap: 200
+2026-07-13 13:08:09,590 - INFO - 127.0.0.1 - - [13/Jul/2026 13:08:09] "GET /api/payments?limit=10 HTTP/1.1" 200 -
+2026-07-13 13:08:10,022 - INFO - Basarili cevap: 200
+2026-07-13 13:08:10,025 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 13:08:11,294 - INFO - Basarili cevap: 200
+2026-07-13 13:08:11,297 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 13:08:12,215 - INFO - Basarili cevap: 200
+2026-07-13 13:08:12,217 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 13:08:12,976 - INFO - Basarili cevap: 200
+2026-07-13 13:08:12,977 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-13 13:08:13,486 - INFO - Basarili cevap: 200
+2026-07-13 13:08:13,486 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:08:14,126 - INFO - Basarili cevap: 200
+2026-07-13 13:08:14,128 - INFO - 127.0.0.1 - - [13/Jul/2026 13:08:14] "GET /api/stats HTTP/1.1" 200 -
+2026-07-13 13:10:17,823 - INFO - 127.0.0.1 - - [13/Jul/2026 13:10:17] "POST /api/import/analyze HTTP/1.1" 200 -
+2026-07-13 13:10:20,276 - INFO - 127.0.0.1 - - [13/Jul/2026 13:10:20] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 13:12:49,543 - INFO - 127.0.0.1 - - [13/Jul/2026 13:12:49] "POST /api/import/analyze HTTP/1.1" 200 -
+2026-07-13 13:13:33,307 - INFO - 127.0.0.1 - - [13/Jul/2026 13:13:33] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 13:16:10,054 - INFO - 127.0.0.1 - - [13/Jul/2026 13:16:10] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 13:16:35,663 - INFO - 127.0.0.1 - - [13/Jul/2026 13:16:35] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 13:17:03,109 - INFO - 127.0.0.1 - - [13/Jul/2026 13:17:03] "POST /api/import/preview HTTP/1.1" 200 -
+2026-07-13 13:20:24,407 - INFO - 127.0.0.1 - - [13/Jul/2026 13:20:24] "GET /api/files HTTP/1.1" 200 -
+2026-07-13 13:20:25,721 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/refunds
+2026-07-13 13:20:26,359 - INFO - Basarili cevap: 200
+2026-07-13 13:20:26,361 - INFO - 127.0.0.1 - - [13/Jul/2026 13:20:26] "GET /api/refunds?limit=10 HTTP/1.1" 200 -
+2026-07-13 13:20:34,045 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 13:20:34,781 - INFO - Basarili cevap: 200
+2026-07-13 13:20:34,784 - INFO - 127.0.0.1 - - [13/Jul/2026 13:20:34] "GET /api/payments?limit=10 HTTP/1.1" 200 -
+2026-07-13 13:22:35,200 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents/pi_3TsdV3KBkUL9vnMV0funczEh
+2026-07-13 13:22:35,815 - INFO - Basarili cevap: 200
+2026-07-13 13:22:35,849 - INFO - 127.0.0.1 - - [13/Jul/2026 13:22:35] "POST /api/payments/pi_3TsdV3KBkUL9vnMV0funczEh/pdf HTTP/1.1" 200 -
+2026-07-13 13:24:52,670 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:24:53,488 - INFO - Basarili cevap: 200
+2026-07-13 13:24:53,491 - INFO - 127.0.0.1 - - [13/Jul/2026 13:24:53] "GET /api/products?limit=10 HTTP/1.1" 200 -
+2026-07-13 13:33:17,887 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/customers
+2026-07-13 13:33:18,670 - INFO - Basarili cevap: 200
+2026-07-13 13:33:18,674 - INFO - 127.0.0.1 - - [13/Jul/2026 13:33:18] "GET /api/customers?limit=10 HTTP/1.1" 200 -
+2026-07-13 13:33:19,690 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/products
+2026-07-13 13:33:20,243 - INFO - Basarili cevap: 200
+2026-07-13 13:33:20,245 - INFO - 127.0.0.1 - - [13/Jul/2026 13:33:20] "GET /api/products?limit=10 HTTP/1.1" 200 -
+2026-07-13 13:33:20,364 - INFO - GET istegi gonderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-13 13:33:21,134 - INFO - Basarili cevap: 200
+2026-07-13 13:33:21,137 - INFO - 127.0.0.1 - - [13/Jul/2026 13:33:21] "GET /api/payments?limit=10 HTTP/1.1" 200 -

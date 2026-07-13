@@ -244,11 +244,11 @@ def api_import_analyze():
     if "file" not in request.files:
         return jsonify({"error": "Dosya yüklenmedi."}), 400
 
-    file = request.files["file"]
-    filename = file.filename
+    file = request.files["file"] # elimizde Flaskın FileStorage nesnesi var
+    filename = file.filename     # name alinma sebebi json mi csv mi onu anlamak icin
 
     try:
-        file_bytes = file.read()
+        file_bytes = file.read()  
         records = parse_file(file_bytes, filename)
         if not records:
             return jsonify({"error": "Dosya boş veya okunamadı."}), 400
