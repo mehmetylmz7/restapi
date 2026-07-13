@@ -16,6 +16,7 @@
             <li><a href="#" onclick="showSection('products-sec'); loadProducts();"><i class="fas fa-box"></i> Ürünler</a></li>
             <li><a href="#" onclick="showSection('payments-sec'); loadPayments();"><i class="fas fa-credit-card"></i> Ödemeler</a></li>
             <li><a href="#" onclick="showSection('refunds-sec'); loadRefunds();"><i class="fas fa-undo"></i> İadeler</a></li>
+            <li><a href="#" onclick="showSection('invoices-sec'); loadInvoicesTab();"><i class="fas fa-file-invoice-dollar"></i> Faturalar</a></li>
             <li><a href="#" onclick="showSection('dispute-sec'); loadUploadedFiles();"><i class="fas fa-shield-alt"></i> İtiraz Belgesi</a></li>
             <li><a href="#" onclick="showSection('fileops-sec');"><i class="fas fa-folder-open"></i> Dosya İşlemleri</a></li>
         </ul>
@@ -320,6 +321,172 @@
                 <h3><i class="fas fa-file-import"></i> Import İşlemleri</h3>
                 <p class="section-desc" style="margin-bottom: 1.5rem;">CSV veya JSON formatındaki verilerinizi sisteme toplu olarak aktarın. Sihirbaz üzerinden kolon eşleştirmesi yapabilirsiniz.</p>
                 <button type="button" class="btn" onclick="openImportModal(null)" style="background-color: var(--success);"><i class="fas fa-magic"></i> İçe Aktarma Sihirbazını Aç</button>
+            </div>
+        </section>
+
+        <section id="invoices-sec" class="content-section" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 style="margin: 0;"><i class="fas fa-file-invoice-dollar"></i> Fatura Yönetimi</h1>
+            </div>
+
+            <!-- İki Panelli Düzen -->
+            <div class="invoice-workspace">
+                <!-- SOL PANEL: Veri Girişi -->
+                <div class="invoice-left-panel">
+                    <div class="form-container" style="margin-bottom: 1.5rem;">
+                        <h3>1. Müşteri & Para Birimi Seçimi</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Müşteri:</label>
+                                <select id="invoice-customer-select" class="form-select" style="width: 100%;" onchange="onInvoiceInputChange()"></select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Para Birimi:</label>
+                                <select id="invoice-currency-select" class="form-select" style="width: 100%;" onchange="onInvoiceInputChange()">
+                                    <option value="usd">USD</option>
+                                    <option value="eur">EUR</option>
+                                    <option value="try">TRY</option>
+                                    <option value="gbp">GBP</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-container" style="margin-bottom: 1.5rem;">
+                        <h3>2. Ürün Ekle</h3>
+                        <div style="display: flex; gap: 0.8rem; margin-top: 1rem; align-items: flex-end;">
+                            <div style="flex: 2;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Ürün:</label>
+                                <select id="invoice-product-select" class="form-select" style="width: 100%;"></select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Adet:</label>
+                                <input type="number" id="invoice-product-qty" class="form-select" style="width: 100%;" value="1" min="1">
+                            </div>
+                            <button type="button" class="btn" onclick="addInvoiceItemToList()"><i class="fas fa-plus"></i> Ekle</button>
+                        </div>
+                    </div>
+
+                    <div class="form-container">
+                        <h3>3. Eklenen Ürünler</h3>
+                        <table style="margin-top: 1rem; font-size: 0.9rem; box-shadow: none;">
+                            <thead>
+                                <tr>
+                                    <th>Ürün Adı</th>
+                                    <th>Fiyat</th>
+                                    <th>Adet</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoice-cart-tbody"></tbody>
+                        </table>
+                        <p id="invoice-cart-empty" style="text-align: center; color: var(--text-muted); padding: 1rem 0; margin: 0;">Henüz ürün eklenmedi.</p>
+                        
+                        <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.8rem;">
+                            <button type="button" class="btn btn-clear" onclick="clearInvoiceCart()" style="background: #e0e0e0; color: #333;"><i class="fas fa-trash-alt"></i> Temizle</button>
+                            <button type="button" class="btn btn-export" onclick="submitFinalizeInvoice()" style="background-color: var(--success);"><i class="fas fa-check-circle"></i> Faturayı Kesinleştir</button>
+                        </div>
+                        <div id="invoice-action-msg" class="form-message" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
+
+                <!-- SAĞ PANEL: Anlık Fatura Önizlemesi -->
+                <div class="invoice-right-panel">
+                    <div class="invoice-preview-container">
+                        <div class="invoice-preview-badge">ANLIK ÖNİZLEME</div>
+                        <div class="invoice-sheet" id="invoice-preview-sheet">
+                            <!-- Fatura Şablonu -->
+                            <div class="invoice-header">
+                                <div class="invoice-brand">
+                                    <i class="fab fa-stripe" style="font-size: 2.2rem; color: #635bff;"></i>
+                                    <span style="font-size: 1.2rem; font-weight: bold; margin-left: 0.5rem; color: #30313d;">REST API Manager</span>
+                                </div>
+                                <div class="invoice-meta-info" style="text-align: right;">
+                                    <h2 style="margin: 0; color: #30313d; font-size: 1.5rem; text-transform: uppercase;">FATURA</h2>
+                                    <p style="margin: 5px 0 0; color: #687385; font-size: 0.85rem;">Tarih: <span id="preview-date">-</span></p>
+                                    <p style="margin: 3px 0 0; color: #687385; font-size: 0.85rem;">Fatura No: <span id="preview-invoice-no">TASLAK</span></p>
+                                </div>
+                            </div>
+                            
+                            <hr style="border: 0; border-top: 1px solid #e0e0e0; margin: 1.5rem 0;">
+
+                            <div class="invoice-billing">
+                                <div>
+                                    <h4 style="margin: 0 0 5px; color: #687385; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Müşteri Bilgileri</h4>
+                                    <p id="preview-customer-name" style="margin: 0; font-weight: bold; color: #30313d; font-size: 0.95rem;">-</p>
+                                    <p id="preview-customer-email" style="margin: 2px 0 0; color: #687385; font-size: 0.85rem;">-</p>
+                                    <p id="preview-customer-id" style="margin: 2px 0 0; color: #687385; font-size: 0.8rem; font-family: monospace;">-</p>
+                                </div>
+                            </div>
+
+                            <table class="invoice-preview-table" style="margin-top: 1.5rem; width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #e0e0e0; text-align: left;">
+                                        <th style="padding: 10px 5px; color: #687385; font-size: 0.85rem;">Açıklama</th>
+                                        <th style="padding: 10px 5px; text-align: right; color: #687385; font-size: 0.85rem;">Birim Fiyat</th>
+                                        <th style="padding: 10px 5px; text-align: center; color: #687385; font-size: 0.85rem;">Adet</th>
+                                        <th style="padding: 10px 5px; text-align: right; color: #687385; font-size: 0.85rem;">Toplam</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="preview-table-tbody">
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; padding: 2rem; color: #9ca3af;">Ürün eklenmedi.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
+                                <div style="width: 250px; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
+                                    <div style="display: flex; justify-content: space-between; color: #687385;">
+                                        <span>Ara Toplam:</span>
+                                        <span id="preview-subtotal">$0.00</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; color: #687385;" id="preview-discount-row">
+                                        <span>İndirim:</span>
+                                        <span id="preview-discount">-$0.00</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; color: #687385;">
+                                        <span>Vergi (KDV):</span>
+                                        <span id="preview-tax">$0.00</span>
+                                    </div>
+                                    <hr style="border: 0; border-top: 1px solid #e0e0e0; margin: 5px 0;">
+                                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; color: #30313d;">
+                                        <span>Genel Toplam:</span>
+                                        <span id="preview-total">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 3rem; text-align: center; color: #9ca3af; font-size: 0.75rem; border-top: 1px solid #e0e0e0; padding-top: 1rem;">
+                                Bu fatura Stripe REST API Manager entegrasyonu ile otomatik hesaplanmıştır.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fatura Geçmişi Tablosu -->
+            <div class="form-container" style="margin-top: 2rem;">
+                <h3><i class="fas fa-history"></i> Fatura Geçmişi (MySQL & Stripe)</h3>
+                <p class="section-desc">MySQL veritabanına kaydedilen ve local diske indirilen PDF faturaları listeler.</p>
+                <table style="margin-top: 1rem;">
+                    <thead>
+                        <tr>
+                            <th>Fatura ID</th>
+                            <th>Müşteri ID</th>
+                            <th>Tutar</th>
+                            <th>Para Birimi</th>
+                            <th>Durum</th>
+                            <th>Kayıt Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoices-tbody-list">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </section>
     </div>

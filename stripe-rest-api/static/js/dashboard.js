@@ -1245,3 +1245,420 @@ async function submitCustomExport() {
         btn.innerHTML = origText;
     }
 }
+
+// =========================================================================
+// FATURA (INVOICE) YÖNETİMİ MANTIĞI
+// =========================================================================
+
+let invoiceCart = [];
+let previewTimeout = null;
+
+function loadInvoicesTab() {
+    invoiceCart = [];
+    updateCartUI();
+    clearPreviewSheet();
+    
+    // Dropdown'ları ve fatura listesini yükle
+    loadInvoiceCustomers();
+    loadInvoiceProducts();
+    loadLocalInvoicesList();
+}
+
+function formatInvoiceCurrency(amountCents, currencyCode) {
+    const amount = amountCents / 100;
+    const code = currencyCode.toLowerCase();
+    
+    if (code === 'try') {
+        return amount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+    } else if (code === 'eur') {
+        return amount.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+    } else if (code === 'gbp') {
+        return amount.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' });
+    }
+    
+    return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
+
+function loadInvoiceCustomers() {
+    const select = document.getElementById("invoice-customer-select");
+    select.innerHTML = '<option value="">Müşteri Seçin...</option>';
+    
+    fetch(`${API_BASE_URL}/customers?limit=100`)
+        .then(res => res.json())
+        .then(result => {
+            if (result && result.data) {
+                result.data.forEach(cust => {
+                    const option = document.createElement("option");
+                    option.value = cust.id;
+                    option.textContent = `${cust.name || 'Bilinmiyor'} (${cust.email || 'E-posta yok'})`;
+                    option.dataset.name = cust.name || 'Bilinmiyor';
+                    option.dataset.email = cust.email || '';
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading invoice customers:", err));
+}
+
+function loadInvoiceProducts() {
+    const select = document.getElementById("invoice-product-select");
+    select.innerHTML = '<option value="">Ürün Seçin...</option>';
+    
+    fetch(`${API_BASE_URL}/products?limit=100`)
+        .then(res => res.json())
+        .then(result => {
+            if (result && result.data) {
+                // Sadece fiyatı tanımlı olan ve aktif ürünleri listele
+                const activeProducts = result.data.filter(p => p.active && p.default_price);
+                activeProducts.forEach(prod => {
+                    const price = prod.default_price;
+                    const amountFormatted = formatInvoiceCurrency(price.unit_amount, price.currency);
+                    
+                    const option = document.createElement("option");
+                    option.value = prod.id;
+                    option.textContent = `${prod.name} (${amountFormatted})`;
+                    option.dataset.priceId = price.id;
+                    option.dataset.priceAmount = price.unit_amount;
+                    option.dataset.currency = price.currency;
+                    option.dataset.name = prod.name;
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading invoice products:", err));
+}
+
+function addInvoiceItemToList() {
+    const select = document.getElementById("invoice-product-select");
+    const qtyInput = document.getElementById("invoice-product-qty");
+    
+    if (!select.value) {
+        alert("Lütfen önce bir ürün seçin.");
+        return;
+    }
+    
+    const qty = parseInt(qtyInput.value);
+    if (isNaN(qty) || qty < 1) {
+        alert("Lütfen geçerli bir adet girin.");
+        return;
+    }
+    
+    const selectedOption = select.options[select.selectedIndex];
+    const productId = select.value;
+    const priceId = selectedOption.dataset.priceId;
+    const priceAmount = parseInt(selectedOption.dataset.priceAmount);
+    const currency = selectedOption.dataset.currency;
+    const name = selectedOption.dataset.name;
+    
+    // Fatura para birimi eşleşme kontrolü
+    const chosenCurrency = document.getElementById("invoice-currency-select").value.toLowerCase();
+    if (currency.toLowerCase() !== chosenCurrency) {
+        alert(`Seçilen ürün para birimi (${currency.toUpperCase()}), fatura para birimi (${chosenCurrency.toUpperCase()}) ile eşleşmelidir.`);
+        return;
+    }
+    
+    // Sepet kontrolü
+    const existingItem = invoiceCart.find(item => item.productId === productId);
+    if (existingItem) {
+        existingItem.quantity += qty;
+    } else {
+        invoiceCart.push({
+            productId,
+            priceId,
+            name,
+            priceAmount,
+            currency,
+            quantity: qty
+        });
+    }
+    
+    qtyInput.value = 1;
+    updateCartUI();
+    debouncePreview();
+}
+
+function updateCartUI() {
+    const tbody = document.getElementById("invoice-cart-tbody");
+    const emptyMsg = document.getElementById("invoice-cart-empty");
+    tbody.innerHTML = "";
+    
+    if (invoiceCart.length === 0) {
+        emptyMsg.style.display = "block";
+        return;
+    }
+    emptyMsg.style.display = "none";
+    
+    invoiceCart.forEach((item, index) => {
+        const itemTotal = item.priceAmount * item.quantity;
+        const priceFormatted = formatInvoiceCurrency(item.priceAmount, item.currency);
+        const totalFormatted = formatInvoiceCurrency(itemTotal, item.currency);
+        
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${item.name}</td>
+            <td>${priceFormatted}</td>
+            <td>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <button class="btn-sm btn-view" onclick="updateQty(${index}, -1)" style="padding: 2px 6px; font-size:10px; margin:0;"><i class="fas fa-minus"></i></button>
+                    <span style="font-weight:bold; min-width:20px; text-align:center;">${item.quantity}</span>
+                    <button class="btn-sm btn-view" onclick="updateQty(${index}, 1)" style="padding: 2px 6px; font-size:10px; margin:0;"><i class="fas fa-plus"></i></button>
+                </div>
+            </td>
+            <td>${totalFormatted}</td>
+            <td>
+                <button class="btn-sm btn-pdf" style="margin:0;" onclick="removeInvoiceItemFromList(${index})"><i class="fas fa-trash-alt"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function updateQty(index, delta) {
+    if (invoiceCart[index]) {
+        invoiceCart[index].quantity += delta;
+        if (invoiceCart[index].quantity <= 0) {
+            invoiceCart.splice(index, 1);
+        }
+        updateCartUI();
+        debouncePreview();
+    }
+}
+
+function removeInvoiceItemFromList(index) {
+    invoiceCart.splice(index, 1);
+    updateCartUI();
+    debouncePreview();
+}
+
+function clearInvoiceCart() {
+    invoiceCart = [];
+    updateCartUI();
+    debouncePreview();
+}
+
+function onInvoiceInputChange() {
+    debouncePreview();
+}
+
+function debouncePreview() {
+    if (previewTimeout) clearTimeout(previewTimeout);
+    previewTimeout = setTimeout(() => {
+        fetchInvoicePreview();
+    }, 500);
+}
+
+function clearPreviewSheet() {
+    document.getElementById("preview-date").textContent = "-";
+    document.getElementById("preview-customer-name").textContent = "-";
+    document.getElementById("preview-customer-email").textContent = "-";
+    document.getElementById("preview-customer-id").textContent = "-";
+    document.getElementById("preview-subtotal").textContent = "$0.00";
+    document.getElementById("preview-discount-row").style.display = "none";
+    document.getElementById("preview-discount").textContent = "-$0.00";
+    document.getElementById("preview-tax").textContent = "$0.00";
+    document.getElementById("preview-total").textContent = "$0.00";
+    
+    const tbody = document.getElementById("preview-table-tbody");
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="4" style="text-align: center; padding: 2rem; color: #9ca3af;">Ürün eklenmedi.</td>
+        </tr>
+    `;
+}
+
+function fetchInvoicePreview() {
+    const customerSelect = document.getElementById("invoice-customer-select");
+    const currencySelect = document.getElementById("invoice-currency-select");
+    const badge = document.querySelector(".invoice-preview-badge");
+    
+    const customerId = customerSelect.value;
+    const currency = currencySelect.value;
+    
+    if (!customerId || invoiceCart.length === 0) {
+        clearPreviewSheet();
+        return;
+    }
+    
+    badge.textContent = "ANLIK ÖNİZLEME (Güncelleniyor...)";
+    badge.style.background = "rgba(245, 158, 11, 0.15)";
+    badge.style.color = "#f59e0b";
+    badge.style.borderColor = "rgba(245, 158, 11, 0.3)";
+    
+    const items = invoiceCart.map(item => ({
+        price: item.priceId,
+        quantity: item.quantity
+    }));
+    
+    fetch(`${API_BASE_URL}/invoices/preview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            customer: customerId,
+            currency: currency,
+            items: items
+        })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Önizleme çekilemedi.");
+        return res.json();
+    })
+    .then(preview => {
+        const now = new Date();
+        document.getElementById("preview-date").textContent = now.toLocaleDateString("tr-TR");
+        
+        const opt = customerSelect.options[customerSelect.selectedIndex];
+        document.getElementById("preview-customer-name").textContent = opt.dataset.name || "-";
+        document.getElementById("preview-customer-email").textContent = opt.dataset.email || "-";
+        document.getElementById("preview-customer-id").textContent = customerId;
+        
+        const tbody = document.getElementById("preview-table-tbody");
+        tbody.innerHTML = "";
+        
+        if (preview.lines && preview.lines.data) {
+            preview.lines.data.forEach(line => {
+                const tr = document.createElement("tr");
+                const desc = line.description || "Ürün Tanımı";
+                const unitFormatted = formatInvoiceCurrency(line.price ? line.price.unit_amount : line.amount / line.quantity, preview.currency);
+                const totalFormatted = formatInvoiceCurrency(line.amount, preview.currency);
+                
+                tr.innerHTML = `
+                    <td style="padding: 10px 5px; color: #30313d;">${desc}</td>
+                    <td style="padding: 10px 5px; text-align: right; color: #30313d;">${unitFormatted}</td>
+                    <td style="padding: 10px 5px; text-align: center; color: #30313d;">${line.quantity}</td>
+                    <td style="padding: 10px 5px; text-align: right; color: #30313d;">${totalFormatted}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        const previewSubtotal = preview.subtotal || 0;
+        const previewTax = preview.tax || 0;
+        const previewTotal = preview.total || 0;
+        const previewCurrency = preview.currency;
+        
+        document.getElementById("preview-subtotal").textContent = formatInvoiceCurrency(previewSubtotal, previewCurrency);
+        document.getElementById("preview-tax").textContent = formatInvoiceCurrency(previewTax, previewCurrency);
+        document.getElementById("preview-total").textContent = formatInvoiceCurrency(previewTotal, previewCurrency);
+        
+        const diff = (previewSubtotal + previewTax) - previewTotal;
+        const discountRow = document.getElementById("preview-discount-row");
+        if (diff > 0) {
+            discountRow.style.display = "flex";
+            document.getElementById("preview-discount").textContent = "-" + formatInvoiceCurrency(diff, previewCurrency);
+        } else {
+            discountRow.style.display = "none";
+        }
+        
+        badge.textContent = "ANLIK ÖNİZLEME";
+        badge.style.background = "rgba(99, 91, 255, 0.15)";
+        badge.style.color = "#a5b4fc";
+        badge.style.borderColor = "rgba(99, 91, 255, 0.3)";
+    })
+    .catch(err => {
+        console.error("Preview fetch error:", err);
+        badge.textContent = "HATA (Müşteri Para Birimi Uyuşmazlığı)";
+        badge.style.background = "rgba(239, 68, 68, 0.15)";
+        badge.style.color = "#ef4444";
+        badge.style.borderColor = "rgba(239, 68, 68, 0.3)";
+    });
+}
+
+function submitFinalizeInvoice() {
+    const customerSelect = document.getElementById("invoice-customer-select");
+    const currencySelect = document.getElementById("invoice-currency-select");
+    
+    const customerId = customerSelect.value;
+    const currency = currencySelect.value;
+    
+    if (!customerId) {
+        alert("Lütfen önce bir müşteri seçin.");
+        return;
+    }
+    if (invoiceCart.length === 0) {
+        alert("Lütfen faturaya en az bir ürün ekleyin.");
+        return;
+    }
+    
+    const confirmAction = confirm("Faturayı kesinleştirmek ve Stripe üzerinden oluşturmak istediğinizden emin misiniz?");
+    if (!confirmAction) return;
+    
+    const btn = document.querySelector(".invoice-left-panel button[onclick='submitFinalizeInvoice()']");
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fatura Kesiliyor...';
+    
+    const items = invoiceCart.map(item => ({
+        price: item.priceId,
+        quantity: item.quantity
+    }));
+    
+    fetch(`${API_BASE_URL}/invoices`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            customer: customerId,
+            currency: currency,
+            items: items
+        })
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Fatura oluşturulamadı.");
+        return data;
+    })
+    .then(invoice => {
+        showMessage("invoice-action-msg", `✅ Fatura başarıyla oluşturuldu: ${invoice.id}`);
+        invoiceCart = [];
+        updateCartUI();
+        clearPreviewSheet();
+        loadLocalInvoicesList();
+        loadDashboardStats();
+    })
+    .catch(err => {
+        console.error("Invoice finalization error:", err);
+        showMessage("invoice-action-msg", `❌ Hata: ${err.message}`, "error");
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+function loadLocalInvoicesList() {
+    const tbody = document.getElementById("invoices-tbody-list");
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Yükleniyor...</td></tr>';
+    
+    fetch(`${API_BASE_URL}/invoices`)
+        .then(res => res.json())
+        .then(result => {
+            tbody.innerHTML = "";
+            if (result && result.data && result.data.length > 0) {
+                result.data.forEach(inv => {
+                    const date = inv.olusturma_tarihi ? new Date(inv.olusturma_tarihi).toLocaleString('tr-TR') : '-';
+                    const amountFormatted = formatInvoiceCurrency(inv.amount, inv.currency);
+                    
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${inv.stripe_invoice_id}</td>
+                        <td>${inv.customer_stripe_id}</td>
+                        <td>${amountFormatted}</td>
+                        <td style="text-transform: uppercase;">${inv.currency}</td>
+                        <td><span class="status-badge ${statusClass(inv.status)}">${inv.status.toUpperCase()}</span></td>
+                        <td>${date}</td>
+                        <td class="action-cell">
+                            <a href="${API_BASE_URL}/invoices/${inv.stripe_invoice_id}/pdf" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">
+                                <i class="fas fa-file-pdf"></i> PDF Gör
+                            </a>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Kayıtlı fatura bulunamadı.</td></tr>';
+            }
+        })
+        .catch(err => {
+            console.error("Error loading local invoices:", err);
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
+        });
+}

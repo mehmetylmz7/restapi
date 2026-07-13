@@ -550,3 +550,108 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: not-allowed;
     transform: none;
 }
+
+/* ==========================================
+   INVOICE WORKSPACE & PREVIEW SHEET STYLES
+   ========================================== */
+.invoice-workspace {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.invoice-left-panel {
+    flex: 1 1 450px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.invoice-right-panel {
+    flex: 1 1 450px;
+    display: flex;
+    flex-direction: column;
+}
+
+.invoice-preview-container {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.invoice-preview-badge {
+    background: rgba(99, 91, 255, 0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 91, 255, 0.3);
+    font-size: 11px;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 4px;
+    align-self: flex-start;
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+
+.invoice-sheet {
+    background-color: #ffffff;
+    color: #30313d;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.05), 0 10px 25px rgba(0, 0, 0, 0.15);
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.invoice-brand {
+    display: flex;
+    align-items: center;
+}
+
+.invoice-sheet table {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    margin-top: 15px !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    width: 100% !important;
+}
+
+.invoice-sheet th,
+.invoice-sheet td {
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #30313d !important;
+    padding: 10px 8px !important;
+}
+
+.invoice-sheet th {
+    background-color: #f8fafc !important;
+    color: #64748b !important;
+    font-weight: bold !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.invoice-sheet tr:hover {
+    background-color: #f8fafc !important;
+}
+
+.invoice-sheet p {
+    color: #475569;
+}
+
