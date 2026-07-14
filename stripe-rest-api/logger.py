@@ -1,18 +1,39 @@
+# stripe-rest-api/logger.py  (güncellenmiş)
+
 import logging
 import os
+from dotenv import load_dotenv
+from mongo_log_handler import MongoDBHandler
 
-# logger.py'nin bulundugu dizini (stripe-rest-api) baz al
+load_dotenv()
+
+# ── Dizin ve dosya ayarları ───────────────────────────────────────────────────
 current_dir = os.path.dirname(os.path.abspath(__file__))
 logs_dir = os.path.join(current_dir, "logs")
+os.makedirs(logs_dir, exist_ok=True)
 
-# logs klasoru yoksa olustur
-if not os.path.exists(logs_dir):
-    os.makedirs(logs_dir)
+# ── Logger oluştur ────────────────────────────────────────────────────────────
+logger = logging.getLogger("stripe_api")
+logger.setLevel(logging.INFO)
 
-logging.basicConfig(
-    filename=os.path.join(logs_dir, "stripe_api.log"),
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+log_format = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+# Handler 1: Dosya (mevcut, korunuyor)
+file_handler = logging.FileHandler(os.path.join(logs_dir, "stripe_api.log"))
+file_handler.setFormatter(log_format)
+
+# Handler 2: MongoDB (yeni)
+mongo_uri        = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+mongo_db_name    = os.getenv("MONGO_DB_NAME", "stripe_logs")
+mongo_collection = os.getenv("MONGO_COLLECTION", "logs")
+
+mongo_handler = MongoDBHandler(
+    uri=mongo_uri,
+    db_name=mongo_db_name,
+    collection=mongo_collection,
 )
+mongo_handler.setFormatter(log_format)
 
-logger = logging.getLogger(__name__)
+# Her iki handler'ı logger'a ekle
+logger.addHandler(file_handler)
+logger.addHandler(mongo_handler)
