@@ -17,9 +17,11 @@ def init_pool(pool_size=5):
         host=DB_HOST,
         user=DB_USER,
         password=DB_PASSWORD,
-        database=DB_NAME
+        database=DB_NAME,
     )
-    print(f"✅ Bağlantı havuzu oluşturuldu (pool_name='{_POOL_NAME}', pool_size={pool_size})")
+    print(
+        f"✅ Bağlantı havuzu oluşturuldu (pool_name='{_POOL_NAME}', pool_size={pool_size})"
+    )
 
 
 def get_connection():
@@ -54,11 +56,11 @@ def get_db():
 
     cursor = conn.cursor()
     try:
-        yield cursor          # servis kodu burada çalışır
-        conn.commit()         # hata yoksa commit
+        yield cursor  # servis kodu burada çalışır
+        conn.commit()  # hata yoksa commit
     except Exception:
-        conn.rollback()       # hata varsa geri al
-        raise                 # hatayı yukarıya ilet
+        conn.rollback()  # hata varsa geri al
+        raise  # hatayı yukarıya ilet
     finally:
-        cursor.close()        # her koşulda kapat
-        conn.close()          # pool'a iade eder, gerçekten kapatmaz
+        cursor.close()  # her koşulda kapat
+        conn.close()  # pool'a iade eder, gerçekten kapatmaz

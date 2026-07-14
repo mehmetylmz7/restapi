@@ -10,7 +10,7 @@ authors = [
     {name = "Didim",email = "yilmazmehmet7711@gmail.com"}
 ]
 readme = "README.md"
-requires-python = "^3.11"
+requires-python = ">=3.11"
 dependencies = [
     "requests (==2.32.3)",
     "python-dotenv (==1.0.1)",

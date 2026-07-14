@@ -8,19 +8,20 @@ from database import get_db
 INVOICES_DIR = "data/invoices"
 os.makedirs(INVOICES_DIR, exist_ok=True)
 
+
 def preview_invoice(customer_id, currency, items):
     """
     Stripe'ın Fatura Önizleme API'sini kullanarak fatura oluşturma işlemini simüle eder.
     Önizleme verilerini döndürür (ara toplam, vergi, toplam, satırlar).
     """
     url = f"{BASE_URL}/invoices/create_preview"
-    
+
     # Standart parametreler
     data = {
         "customer": customer_id,
-        "automatic_tax[enabled]": "false"  # Vergi hesaplamasını yapılandırılmadığı sürece basit tut
+        "automatic_tax[enabled]": "false",  # Vergi hesaplamasını yapılandırılmadığı sürece basit tut
     }
-    
+
     # Satır kalemlerini biçimlendir
     for idx, item in enumerate(items):
         price_id = item.get("price")
@@ -33,16 +34,13 @@ def preview_invoice(customer_id, currency, items):
         # POST create_preview başarısız olursa veya API sürümünde desteklenmiyorsa
         # GET /v1/invoices/upcoming yoluna geri dön
         fallback_url = f"{BASE_URL}/invoices/upcoming"
-        fallback_params = {
-            "customer": customer_id,
-            "automatic_tax[enabled]": "false"
-        }
+        fallback_params = {"customer": customer_id, "automatic_tax[enabled]": "false"}
         for idx, item in enumerate(items):
             price_id = item.get("price")
             quantity = item.get("quantity", 1)
             fallback_params[f"invoice_items[{idx}][price]"] = price_id
             fallback_params[f"invoice_items[{idx}][quantity]"] = int(quantity)
-        
+
         response = get(fallback_url, params=fallback_params)
         if response is None:
             return None
@@ -60,15 +58,12 @@ def create_and_finalize_invoice(customer_id, currency, items):
     """
     # Adım 1: Taslak Fatura Oluştur
     invoice_url = f"{BASE_URL}/invoices"
-    invoice_data = {
-        "customer": customer_id,
-        "currency": currency.lower()
-    }
-    
+    invoice_data = {"customer": customer_id, "currency": currency.lower()}
+
     response_invoice = post(invoice_url, data=invoice_data)
     if not response_invoice:
         raise RuntimeError("Draft invoice creation failed on Stripe.")
-    
+
     invoice = response_invoice.json()
     invoice_id = invoice["id"]
 
@@ -80,20 +75,22 @@ def create_and_finalize_invoice(customer_id, currency, items):
                 "customer": customer_id,
                 "pricing[price]": item["price"],
                 "quantity": int(item.get("quantity", 1)),
-                "invoice": invoice_id
+                "invoice": invoice_id,
             }
             res_item = post(item_url, data=item_data)
             if not res_item:
-                raise RuntimeError(f"Adding invoice item for price {item['price']} failed.")
+                raise RuntimeError(
+                    f"Adding invoice item for price {item['price']} failed."
+                )
 
         # Adım 3: Faturayı Onayla
         finalize_url = f"{BASE_URL}/invoices/{invoice_id}/finalize"
         res_finalize = post(finalize_url, data={})
         if not res_finalize:
             raise RuntimeError("Finalizing invoice failed on Stripe.")
-        
+
         finalized_invoice = res_finalize.json()
-        
+
         # Adım 4: PDF İndir
         pdf_url = finalized_invoice.get("invoice_pdf")
         pdf_path = ""
@@ -107,23 +104,23 @@ def create_and_finalize_invoice(customer_id, currency, items):
                 print(f"✅ Invoice PDF downloaded: {pdf_path}")
             else:
                 print(f"⚠️ Warning: Could not download PDF from {pdf_url}")
-        
+
         # Adım 5: MySQL Veritabanına Kaydet
         amount_total = finalized_invoice.get("total", 0)
         currency_res = finalized_invoice.get("currency", currency).upper()
         status = finalized_invoice.get("status", "open")
-        
+
         sql = """
             INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path)
             VALUES (%s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE status = VALUES(status), pdf_path = VALUES(pdf_path)
         """
         values = (invoice_id, customer_id, amount_total, currency_res, status, pdf_path)
-        
+
         with get_db() as cursor:
             cursor.execute(sql, values)
         print(f"✅ Invoice stored in database: {invoice_id}")
-        
+
         return finalized_invoice
 
     except Exception as e:
@@ -147,19 +144,21 @@ def get_local_invoices(limit=50):
         with get_db() as cursor:
             cursor.execute(sql, (limit,))
             rows = cursor.fetchall()
-            
+
         invoices = []
         for r in rows:
-            invoices.append({
-                "id": r[0],
-                "stripe_invoice_id": r[1],
-                "customer_stripe_id": r[2],
-                "amount": r[3],
-                "currency": r[4],
-                "status": r[5],
-                "pdf_path": r[6],
-                "olusturma_tarihi": str(r[7])
-            })
+            invoices.append(
+                {
+                    "id": r[0],
+                    "stripe_invoice_id": r[1],
+                    "customer_stripe_id": r[2],
+                    "amount": r[3],
+                    "currency": r[4],
+                    "status": r[5],
+                    "pdf_path": r[6],
+                    "olusturma_tarihi": str(r[7]),
+                }
+            )
         return invoices
     except Exception as e:
         print(f"❌ Database error fetching local invoices: {e}")
@@ -176,10 +175,10 @@ def get_local_invoice_pdf(invoice_id):
         with get_db() as cursor:
             cursor.execute(sql, (invoice_id,))
             row = cursor.fetchone()
-            
+
         if not row or not row[0]:
             return None
-            
+
         pdf_path = row[0]
         if os.path.exists(pdf_path):
             with open(pdf_path, "rb") as f:

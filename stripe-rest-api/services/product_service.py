@@ -2,75 +2,67 @@ from stripe_client import get, post, update
 from config import BASE_URL
 from database import get_db
 
+
 def get_products(limit=10, starting_after=None):
 
-    params = {
-        "limit": limit,
-        "expand[]": "data.default_price"
-    }
+    params = {"limit": limit, "expand[]": "data.default_price"}
     if starting_after:
         params["starting_after"] = starting_after
 
     url = f"{BASE_URL}/products"
     response = get(url, params=params)
-    
+
     if response is None:
         return None
-    
+
     result = response.json()
-    return {
-        "data": result["data"],
-        "has_more": result.get("has_more", False)
-    }
+    return {"data": result["data"], "has_more": result.get("has_more", False)}
+
 
 def get_product(product_id):
 
-    url =f"{BASE_URL}/products/{product_id}"
+    url = f"{BASE_URL}/products/{product_id}"
     response = get(url)
 
     if response is None:
         return None
     return response.json()
 
+
 def deactivate_product(product_id):
 
     url = f"{BASE_URL}/products/{product_id}"
 
-    data = {
-        "active": False
-    }
+    data = {"active": False}
     response = update(url, data=data)
 
     if response is None:
         return None
-    
+
     return response.json()
+
 
 def create_product(name, description, active=True, price=None):
 
-    data = {
-        "name": name,
-        "description": description,
-        "active": active
-    }
+    data = {"name": name, "description": description, "active": active}
 
-    response = post(
-        f"{BASE_URL}/products",
-        data=data
-    )
+    response = post(f"{BASE_URL}/products", data=data)
 
     if response is None:
         return None
-    
+
     product = response.json()
 
     # Fiyat tanımlanmışsa Stripe üzerinde fiyat oluşturup ürüne ata
     if price:
         try:
             amount_cents = int(float(price) * 100)
-            price_obj = create_price(product['id'], amount=amount_cents)
+            price_obj = create_price(product["id"], amount=amount_cents)
             if price_obj:
-                update(f"{BASE_URL}/products/{product['id']}", data={"default_price": price_obj["id"]})
+                update(
+                    f"{BASE_URL}/products/{product['id']}",
+                    data={"default_price": price_obj["id"]},
+                )
                 product["default_price"] = price_obj
         except Exception as e:
             print(f"❌ Fiyat oluşturma veya atama hatası: {e}")
@@ -78,7 +70,12 @@ def create_product(name, description, active=True, price=None):
     # Veritabanına kaydet
     try:
         sql = "INSERT INTO products (stripe_id, name, description, active) VALUES (%s, %s, %s, %s)"
-        values = (product['id'], product.get('name'), product.get('description'), product.get('active'))
+        values = (
+            product["id"],
+            product.get("name"),
+            product.get("description"),
+            product.get("active"),
+        )
 
         with get_db() as cursor:
             cursor.execute(sql, values)
@@ -86,9 +83,8 @@ def create_product(name, description, active=True, price=None):
 
     except Exception as e:
         print(f"❌ Veritabanına kaydedilirken hata oluştu: {e}")
-    
+
     return product
-    
 
 
 def get_prices(product_id=None):
@@ -103,23 +99,23 @@ def get_prices(product_id=None):
 
     if response is None:
         return None
-    
+
     data = response.json().get("data", [])
     return data
 
 
-def create_price(product_id, amount,currency="usd"):
+def create_price(product_id, amount, currency="usd"):
     # 100 dolar icin 10000 cent olarak gonderilmelidir. Bu nedenle amount'u int'e ceviriyoruz.
-    data={
+    data = {
         "currency": currency.lower(),
         "unit_amount": int(amount),
         "product": product_id,
-        "active": True
+        "active": True,
     }
-    
-    url=f"{BASE_URL}/prices"
 
-    response = post(url,data=data)
+    url = f"{BASE_URL}/prices"
+
+    response = post(url, data=data)
 
     if response is None:
         return None

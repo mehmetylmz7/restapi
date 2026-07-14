@@ -26,9 +26,9 @@ from services.bulk_import_service import (
 )
 
 # ── Dosya yolları ──────────────────────────────────────────────
-BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(BASE_DIR, "data", "json", "customers.json")
-CSV_PATH  = os.path.join(BASE_DIR, "data", "csv", "customers.csv")
+CSV_PATH = os.path.join(BASE_DIR, "data", "csv", "customers.csv")
 
 
 def print_summary(results: dict) -> None:
@@ -55,9 +55,11 @@ if __name__ == "__main__":
 
     # Onay al
     source = "JSON (1000 kayıt)" if choice == "1" else "CSV (100 kayıt)"
-    confirm = input(
-        f"\n⚠️  {source} → Stripe'a aktarılacak. Devam edilsin mi? (evet/hayir): "
-    ).strip().lower()
+    confirm = (
+        input(f"\n⚠️  {source} → Stripe'a aktarılacak. Devam edilsin mi? (evet/hayir): ")
+        .strip()
+        .lower()
+    )
 
     if confirm != "evet":
         print("İptal edildi.")

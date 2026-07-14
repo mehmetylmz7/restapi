@@ -29,7 +29,7 @@ def import_from_json(filepath: str, delay: float = 0.3) -> dict:
     print("=" * 55)
 
     for i, record in enumerate(records, start=1):
-        name  = (record.get("name") or "").strip()
+        name = (record.get("name") or "").strip()
         email = (record.get("email") or "").strip()
 
         # Zorunlu alanlar boşsa kayıtı atla
@@ -78,7 +78,7 @@ def import_from_csv(filepath: str, delay: float = 0.3) -> dict:
         {'success': int, 'skipped': int, 'failed': int, 'failed_list': list}
     """
     with open(filepath, "r", encoding="utf-8") as f:
-        reader  = csv.DictReader(f)
+        reader = csv.DictReader(f)
         records = list(reader)
 
     total = len(records)
@@ -88,7 +88,7 @@ def import_from_csv(filepath: str, delay: float = 0.3) -> dict:
     print("=" * 55)
 
     for i, row in enumerate(records, start=1):
-        name  = (row.get("name") or "").strip()
+        name = (row.get("name") or "").strip()
         email = (row.get("email") or "").strip()
 
         if not name or not email:
@@ -121,7 +121,9 @@ def import_from_csv(filepath: str, delay: float = 0.3) -> dict:
     return results
 
 
-def save_failed_report(failed_list: list, output_path: str = "failed_imports.csv") -> None:
+def save_failed_report(
+    failed_list: list, output_path: str = "failed_imports.csv"
+) -> None:
     """
     Başarısız import kayıtlarını CSV olarak dışa aktarır.
     """

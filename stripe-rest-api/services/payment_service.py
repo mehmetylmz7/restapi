@@ -3,37 +3,39 @@ from config import BASE_URL
 from database import get_db
 from services.pdf_service import generate_payment_pdf
 
-def create_payment_intent(customer_id, amount, currency="usd",order_id=None ):
-    
-    
+
+def create_payment_intent(customer_id, amount, currency="usd", order_id=None):
+
     data = {
         "customer": customer_id,
         "amount": int(amount),
         "currency": currency.lower(),
         "automatic_payment_methods[enabled]": "true",
         "metadata[order_id]": "ORD-1001",
-        "metadata[source]": "staj-project"
-
+        "metadata[source]": "staj-project",
     }
     if order_id:
         data["metadata[order_id]"] = order_id
-        
-    url=f"{BASE_URL}/payment_intents"
 
-    response = post(
-        url,
-        data=data
-    )
+    url = f"{BASE_URL}/payment_intents"
+
+    response = post(url, data=data)
 
     if response is None:
         return None
-    
+
     payment = response.json()
 
     # 2. Veritabanına kaydet
     try:
         sql = "INSERT INTO payment_intents (stripe_id, customer_stripe_id, amount, currency, status) VALUES (%s, %s, %s, %s, %s)"
-        values = (payment['id'], customer_id, payment['amount'], payment['currency'], payment['status'])
+        values = (
+            payment["id"],
+            customer_id,
+            payment["amount"],
+            payment["currency"],
+            payment["status"],
+        )
 
         with get_db() as cursor:
             cursor.execute(sql, values)
@@ -44,6 +46,7 @@ def create_payment_intent(customer_id, amount, currency="usd",order_id=None ):
 
     return payment
 
+
 def get_payment_intent(payment_intent_id):
     url = f"{BASE_URL}/payment_intents/{payment_intent_id}"
 
@@ -51,10 +54,13 @@ def get_payment_intent(payment_intent_id):
 
     if response is None:
         return None
-    
+
     return response.json()
 
-def get_payment_intents(limit=10, starting_after=None, created_gte=None, created_lte=None):
+
+def get_payment_intents(
+    limit=10, starting_after=None, created_gte=None, created_lte=None
+):
 
     params = {"limit": limit}
     if starting_after:
@@ -72,21 +78,19 @@ def get_payment_intents(limit=10, starting_after=None, created_gte=None, created
         return None
 
     result = response.json()
-    return {
-        "data": result["data"],
-        "has_more": result.get("has_more", False)
-    }
+    return {"data": result["data"], "has_more": result.get("has_more", False)}
 
-def cancel_payment_intent(payment_intent_id,cancellation_reason=None): 
-    
-    url =f"{BASE_URL}/payment_intents/{payment_intent_id}/cancel"
+
+def cancel_payment_intent(payment_intent_id, cancellation_reason=None):
+
+    url = f"{BASE_URL}/payment_intents/{payment_intent_id}/cancel"
 
     data = {}
 
     if cancellation_reason:
         data["cancellation_reason"] = cancellation_reason
 
-    response = post(url,data=data)
+    response = post(url, data=data)
 
     return response.json()
 
@@ -157,5 +161,3 @@ def get_payment_pdf(payment_intent_id: str) -> bytes | None:
     except Exception as e:
         print(f"❌ PDF DB okuma hatası: {e}")
         return None
-
-

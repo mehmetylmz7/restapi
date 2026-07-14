@@ -6,7 +6,9 @@ from logger import logger
 FILES_BASE_URL = "https://files.stripe.com/v1/files"
 
 
-def upload_dispute_evidence(payment_intent_id: str, file_bytes: bytes, filename: str) -> dict | None:
+def upload_dispute_evidence(
+    payment_intent_id: str, file_bytes: bytes, filename: str
+) -> dict | None:
     """
     PDF'i Stripe Files API'ye yükler (purpose=dispute_evidence),
     sonucu MySQL'e kaydeder.
@@ -18,13 +20,15 @@ def upload_dispute_evidence(payment_intent_id: str, file_bytes: bytes, filename:
     headers = {"Authorization": f"Bearer {STRIPE_SECRET_KEY}"}
 
     try:
-        logger.info(f"Stripe'a dosya yükleniyor: {filename} (ödeme: {payment_intent_id})")
+        logger.info(
+            f"Stripe'a dosya yükleniyor: {filename} (ödeme: {payment_intent_id})"
+        )
         response = requests.post(
             FILES_BASE_URL,
             headers=headers,
             files={"file": (filename, file_bytes, "application/pdf")},
             data={"purpose": "dispute_evidence"},
-            timeout=30
+            timeout=30,
         )
         response.raise_for_status()
         file_obj = response.json()
@@ -72,10 +76,10 @@ def list_uploaded_files(payment_intent_id: str = None) -> list:
     """
     try:
         if payment_intent_id:
-            sql    = "SELECT * FROM stripe_files WHERE payment_intent_stripe_id = %s ORDER BY olusturma_tarihi DESC"
+            sql = "SELECT * FROM stripe_files WHERE payment_intent_stripe_id = %s ORDER BY olusturma_tarihi DESC"
             params = (payment_intent_id,)
         else:
-            sql    = "SELECT * FROM stripe_files ORDER BY olusturma_tarihi DESC LIMIT 50"
+            sql = "SELECT * FROM stripe_files ORDER BY olusturma_tarihi DESC LIMIT 50"
             params = ()
 
         with get_db() as cursor:

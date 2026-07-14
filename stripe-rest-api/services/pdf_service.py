@@ -60,18 +60,18 @@ def generate_payment_pdf(payment_data: dict) -> bytes:
         amount_val = 0.0
 
     currency = payment_data.get("currency", "").upper()
-    status   = payment_data.get("status", "-")
+    status = payment_data.get("status", "-")
     customer = payment_data.get("customer") or "-"
-    meta     = payment_data.get("metadata", {})
+    meta = payment_data.get("metadata", {})
     order_id = meta.get("order_id", "-") if isinstance(meta, dict) else "-"
 
     base_y = height - 195
     fields = [
-        ("Musteri ID:",   customer),
-        ("Tutar:",        f"{amount_val:.2f} {currency}"),
-        ("Para Birimi:",  currency),
-        ("Durum:",        status),
-        ("Siparis ID:",   order_id),
+        ("Musteri ID:", customer),
+        ("Tutar:", f"{amount_val:.2f} {currency}"),
+        ("Para Birimi:", currency),
+        ("Durum:", status),
+        ("Siparis ID:", order_id),
     ]
     for label, val in fields:
         draw_field(label, val, base_y)
@@ -81,13 +81,13 @@ def generate_payment_pdf(payment_data: dict) -> bytes:
     status_lower = status.lower()
     if status_lower == "succeeded":
         badge_color = colors.HexColor("#228403")
-        badge_text  = "BASARILI"
+        badge_text = "BASARILI"
     elif status_lower in ("canceled", "cancelled"):
         badge_color = colors.HexColor("#df1b41")
-        badge_text  = "IPTAL"
+        badge_text = "IPTAL"
     else:
         badge_color = colors.HexColor("#c84801")
-        badge_text  = "BEKLEMEDE"
+        badge_text = "BEKLEMEDE"
 
     badge_y = base_y - 15
     c.setFillColor(badge_color)
@@ -102,8 +102,16 @@ def generate_payment_pdf(payment_data: dict) -> bytes:
 
     c.setFillColor(colors.HexColor("#687385"))
     c.setFont("Helvetica", 8)
-    c.drawCentredString(width / 2, 2.8 * cm, "Bu belge Stripe REST API Manager tarafindan otomatik olarak uretilmistir.")
-    c.drawCentredString(width / 2, 2.2 * cm, "Herhangi bir sorun icin sistem yoneticinizle iletisime gecin.")
+    c.drawCentredString(
+        width / 2,
+        2.8 * cm,
+        "Bu belge Stripe REST API Manager tarafindan otomatik olarak uretilmistir.",
+    )
+    c.drawCentredString(
+        width / 2,
+        2.2 * cm,
+        "Herhangi bir sorun icin sistem yoneticinizle iletisime gecin.",
+    )
 
     # ── Alt logo bandı ───────────────────────────────────────────────
     c.setFillColor(colors.HexColor("#635bff"))

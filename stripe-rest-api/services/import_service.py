@@ -9,7 +9,8 @@ from services.payment_service import create_payment_intent
 
 EMAIL_REGEX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
 
-#deneme 
+# deneme
+
 
 # Dosya içeriğini okur ve sözlük listesine dönüştürür
 def parse_file(file_bytes: bytes, filename: str) -> list:
@@ -31,6 +32,7 @@ def parse_file(file_bytes: bytes, filename: str) -> list:
     else:
         raise ValueError("Yalnızca .csv veya .json uzantılı dosyalar desteklenir.")
 
+
 # her bir sutunun veri tipini tahmin eder
 def infer_data_types(records: list) -> dict:
     """
@@ -44,7 +46,9 @@ def infer_data_types(records: list) -> dict:
     inferred_types = {}
 
     for col in columns:
-        sample_values = [str(r.get(col)).strip() for r in records[:20] if r.get(col) is not None]
+        sample_values = [
+            str(r.get(col)).strip() for r in records[:20] if r.get(col) is not None
+        ]
         non_empty_values = [v for v in sample_values if v != ""]
 
         if not non_empty_values:
@@ -72,7 +76,9 @@ def infer_data_types(records: list) -> dict:
                 is_float = False
             # Tarih kontrolü (YYYY-MM-DD formatı veya Unix Timestamp)
             # Basit kontrol: YYYY-MM-DD veya YYYY/MM/DD veya Unix Timestamp
-            date_match = re.match(r"^\d{4}[-/]\d{2}[-/]\d{2}$", val) or (val.isdigit() and len(val) == 10)
+            date_match = re.match(r"^\d{4}[-/]\d{2}[-/]\d{2}$", val) or (
+                val.isdigit() and len(val) == 10
+            )
             if not date_match:
                 is_date = False
 
@@ -90,7 +96,7 @@ def infer_data_types(records: list) -> dict:
     return inferred_types
 
 
-#Sütun eşleştirmelerini uygular, verileri doğrular ve kayıtları ayırır.
+# Sütun eşleştirmelerini uygular, verileri doğrular ve kayıtları ayırır.
 def validate_and_map_records(records: list, target_model: str, mapping: dict) -> dict:
     """
     Kullanıcının belirlediği sütun eşleştirmelerine göre kayıtları filtreler ve doğrular.
@@ -111,7 +117,9 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
     if target_model == "customers":
         try:
             with get_db() as cursor:
-                cursor.execute("SELECT email FROM customers WHERE email IS NOT NULL AND email != ''")
+                cursor.execute(
+                    "SELECT email FROM customers WHERE email IS NOT NULL AND email != ''"
+                )
                 existing_emails = {row[0].strip().lower() for row in cursor.fetchall()}
         except Exception as e:
             print(f"Error fetching existing customer emails: {e}")
@@ -119,17 +127,27 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
     elif target_model == "products":
         try:
             with get_db() as cursor:
-                cursor.execute("SELECT name FROM products WHERE name IS NOT NULL AND name != ''")
-                existing_product_names = {row[0].strip().lower() for row in cursor.fetchall()}
+                cursor.execute(
+                    "SELECT name FROM products WHERE name IS NOT NULL AND name != ''"
+                )
+                existing_product_names = {
+                    row[0].strip().lower() for row in cursor.fetchall()
+                }
         except Exception as e:
             print(f"Error fetching existing product names: {e}")
 
     elif target_model == "payments":
         try:
             with get_db() as cursor:
-                cursor.execute("SELECT customer_stripe_id, amount, currency FROM payment_intents")
+                cursor.execute(
+                    "SELECT customer_stripe_id, amount, currency FROM payment_intents"
+                )
                 existing_payments = {
-                    (row[0].strip() if row[0] else "", int(row[1]), row[2].strip().lower() if row[2] else "")
+                    (
+                        row[0].strip() if row[0] else "",
+                        int(row[1]),
+                        row[2].strip().lower() if row[2] else "",
+                    )
                     for row in cursor.fetchall()
                 }
         except Exception as e:
@@ -138,6 +156,7 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
     elif target_model == "prices":
         try:
             from services.product_service import get_prices
+
             prices_list = get_prices() or []
             for p in prices_list:
                 p_prod = p.get("product")
@@ -235,12 +254,14 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
             errors.append(f"Bilinmeyen model: {target_model}")
 
         if errors:
-            invalid_list.append({
-                "row_index": idx,
-                "raw": record,
-                "mapped": mapped,
-                "reason": ", ".join(errors)
-            })
+            invalid_list.append(
+                {
+                    "row_index": idx,
+                    "raw": record,
+                    "mapped": mapped,
+                    "reason": ", ".join(errors),
+                }
+            )
         else:
             # Check duplication / existence
             is_existing = False
@@ -274,23 +295,14 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
                     pass
 
             if is_existing:
-                existing_list.append({
-                    "row_index": idx,
-                    "mapped": mapped
-                })
+                existing_list.append({"row_index": idx, "mapped": mapped})
             else:
-                valid_list.append({
-                    "row_index": idx,
-                    "mapped": mapped
-                })
+                valid_list.append({"row_index": idx, "mapped": mapped})
 
-    return {
-        "valid": valid_list,
-        "invalid": invalid_list,
-        "existing": existing_list
-    }
+    return {"valid": valid_list, "invalid": invalid_list, "existing": existing_list}
 
-#Hedef modele göre uygun servis fonksiyonunu çağırır
+
+# Hedef modele göre uygun servis fonksiyonunu çağırır
 def execute_import_record(target_model: str, mapped_data: dict) -> dict:
     """
     Tek bir geçerli kaydı ilgili modelin oluşturma fonksiyonunu çağırarak Stripe ve DB'ye yazar.
@@ -306,7 +318,7 @@ def execute_import_record(target_model: str, mapped_data: dict) -> dict:
         prod = create_product(
             name=mapped_data["name"],
             description=mapped_data.get("description") or "",
-            price=mapped_data["price"]
+            price=mapped_data["price"],
         )
         if prod and prod.get("id"):
             return {"success": True, "id": prod["id"]}
@@ -320,7 +332,7 @@ def execute_import_record(target_model: str, mapped_data: dict) -> dict:
             customer_id=mapped_data["customer_id"],
             amount=amount_cents,
             currency=mapped_data["currency"],
-            order_id=mapped_data.get("order_id")
+            order_id=mapped_data.get("order_id"),
         )
         if pay and pay.get("id"):
             return {"success": True, "id": pay["id"]}
@@ -332,7 +344,7 @@ def execute_import_record(target_model: str, mapped_data: dict) -> dict:
         price_obj = create_price(
             product_id=mapped_data["product_id"],
             amount=amount_cents,
-            currency=mapped_data["currency"]
+            currency=mapped_data["currency"],
         )
         if price_obj and price_obj.get("id"):
             return {"success": True, "id": price_obj["id"]}

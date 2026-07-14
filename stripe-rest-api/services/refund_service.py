@@ -2,12 +2,11 @@ from stripe_client import get, post
 from config import BASE_URL
 from database import get_db
 
+
 def create_refund(payment_intent_id, amount=None, reason=None):
     url = f"{BASE_URL}/refunds"
 
-    data = {
-        "payment_intent": payment_intent_id
-    }
+    data = {"payment_intent": payment_intent_id}
 
     if amount is not None:
         data["amount"] = int(amount)
@@ -26,12 +25,12 @@ def create_refund(payment_intent_id, amount=None, reason=None):
     try:
         sql = "INSERT INTO refunds (stripe_id, payment_intent_stripe_id, amount, currency, status, reason) VALUES (%s, %s, %s, %s, %s, %s)"
         values = (
-            refund['id'],
-            refund.get('payment_intent'),
-            refund.get('amount'),
-            refund.get('currency'),
-            refund.get('status'),
-            refund.get('reason')
+            refund["id"],
+            refund.get("payment_intent"),
+            refund.get("amount"),
+            refund.get("currency"),
+            refund.get("status"),
+            refund.get("reason"),
         )
 
         with get_db() as cursor:
@@ -42,6 +41,7 @@ def create_refund(payment_intent_id, amount=None, reason=None):
         print(f"❌ İade veritabanına kaydedilirken hata oluştu: {e}")
 
     return refund
+
 
 def get_refund(refund_id):
 
@@ -72,7 +72,4 @@ def get_refunds(payment_intent_id=None, limit=10, starting_after=None):
         return None
 
     result = response.json()
-    return {
-        "data": result["data"],
-        "has_more": result.get("has_more", False)
-    }
+    return {"data": result["data"], "has_more": result.get("has_more", False)}

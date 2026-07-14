@@ -11,16 +11,16 @@ from services.refund_service import get_refunds
 # ── Kaynak → Stripe fetcher eşleşmesi ─────────────────────────
 _FETCHERS = {
     "customers": get_customers,
-    "products":  get_products,
-    "payments":  get_payment_intents,
-    "refunds":   get_refunds,
+    "products": get_products,
+    "payments": get_payment_intents,
+    "refunds": get_refunds,
 }
 
 _DEFAULT_FIELDS = {
     "customers": ["id", "name", "email", "created"],
-    "products":  ["id", "name", "description", "active", "price", "created"],
-    "payments":  ["id", "customer", "amount", "currency", "status", "created"],
-    "refunds":   ["id", "payment_intent", "amount", "currency", "status", "created"],
+    "products": ["id", "name", "description", "active", "price", "created"],
+    "payments": ["id", "customer", "amount", "currency", "status", "created"],
+    "refunds": ["id", "payment_intent", "amount", "currency", "status", "created"],
 }
 
 
@@ -51,7 +51,9 @@ def map_record_fields(record: dict, resource: str, fields: list) -> dict:
         elif f == "created":
             val = record.get("created")
             if val:
-                row["created"] = datetime.datetime.fromtimestamp(val).strftime("%d.%m.%Y %H:%M:%S")
+                row["created"] = datetime.datetime.fromtimestamp(val).strftime(
+                    "%d.%m.%Y %H:%M:%S"
+                )
             else:
                 row["created"] = "-"
         else:
@@ -69,8 +71,10 @@ def _fetch_all(resource: str, created_gte=None, created_lte=None) -> list:
 
     kwargs = {}
     if resource in ("customers", "payments") and (created_gte or created_lte):
-        if created_gte: kwargs["created_gte"] = created_gte
-        if created_lte: kwargs["created_lte"] = created_lte
+        if created_gte:
+            kwargs["created_gte"] = created_gte
+        if created_lte:
+            kwargs["created_lte"] = created_lte
 
     while True:
         result = fetcher(limit=100, starting_after=cursor, **kwargs)
@@ -97,15 +101,19 @@ def _fetch_all(resource: str, created_gte=None, created_lte=None) -> list:
     return all_data
 
 
-def _fetch_limited(resource: str, limit: int = 100, created_gte=None, created_lte=None) -> list:
+def _fetch_limited(
+    resource: str, limit: int = 100, created_gte=None, created_lte=None
+) -> list:
     """
     Belirtilen adette kayıt çeker. Tarih filtresi varsa API veya bellek düzeyinde filtreler.
     """
     fetcher = _FETCHERS[resource]
     kwargs = {}
     if resource in ("customers", "payments") and (created_gte or created_lte):
-        if created_gte: kwargs["created_gte"] = created_gte
-        if created_lte: kwargs["created_lte"] = created_lte
+        if created_gte:
+            kwargs["created_gte"] = created_gte
+        if created_lte:
+            kwargs["created_lte"] = created_lte
 
     result = fetcher(limit=limit, **kwargs)
     if not result or not result.get("data"):
@@ -127,7 +135,14 @@ def _fetch_limited(resource: str, limit: int = 100, created_gte=None, created_lt
     return all_data
 
 
-def export_data(resource: str, fmt: str = "json", limit_val: str = "100", created_gte=None, created_lte=None, fields: list = None) -> bytes:
+def export_data(
+    resource: str,
+    fmt: str = "json",
+    limit_val: str = "100",
+    created_gte=None,
+    created_lte=None,
+    fields: list = None,
+) -> bytes:
     """
     Filtrelenmiş ve seçilmiş alanları içeren verileri JSON veya CSV bytes olarak dışa aktarır.
     """
@@ -144,7 +159,9 @@ def export_data(resource: str, fmt: str = "json", limit_val: str = "100", create
             limit = int(limit_val)
         except ValueError:
             limit = 100
-        data = _fetch_limited(resource, limit=limit, created_gte=created_gte, created_lte=created_lte)
+        data = _fetch_limited(
+            resource, limit=limit, created_gte=created_gte, created_lte=created_lte
+        )
 
     mapped_data = [map_record_fields(record, resource, fields) for record in data]
 
@@ -153,10 +170,7 @@ def export_data(resource: str, fmt: str = "json", limit_val: str = "100", create
     elif fmt == "csv":
         output = io.StringIO()
         writer = csv.DictWriter(
-            output,
-            fieldnames=fields,
-            extrasaction="ignore",
-            lineterminator="\r\n"
+            output, fieldnames=fields, extrasaction="ignore", lineterminator="\r\n"
         )
         writer.writeheader()
         for row in mapped_data:

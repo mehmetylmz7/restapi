@@ -5,19 +5,36 @@ import csv
 import time
 from services.customer_service import get_customers, create_customer
 from services.product_service import get_products, create_product
-from services.payment_service import create_payment_intent, get_payment_intents, create_payment_pdf, get_payment_pdf, pdf_exists
+from services.payment_service import (
+    create_payment_intent,
+    get_payment_intents,
+    create_payment_pdf,
+    get_payment_pdf,
+    pdf_exists,
+)
 from services.refund_service import create_refund, get_refunds
 from services.file_service import upload_dispute_evidence, list_uploaded_files
 from services.export_service import export_data, _fetch_all
 from database import init_pool, get_db
-from services.import_service import parse_file, infer_data_types, validate_and_map_records, execute_import_record
-from services.invoice_service import preview_invoice, create_and_finalize_invoice, get_local_invoices, get_local_invoice_pdf
+from services.import_service import (
+    parse_file,
+    infer_data_types,
+    validate_and_map_records,
+    execute_import_record,
+)
+from services.invoice_service import (
+    preview_invoice,
+    create_and_finalize_invoice,
+    get_local_invoices,
+    get_local_invoice_pdf,
+)
 
 # Uygulama başlarken bağlantı havuzunu oluştur (bir kez çalışır)
 init_pool(pool_size=5)
 
 app = Flask(__name__)
 CORS(app)
+
 
 @app.route("/api/stats", methods=["GET"])
 def api_stats():
@@ -32,11 +49,13 @@ def api_stats():
         print(f"Stats fetch error: {e}")
     return jsonify(stats)
 
-#deneme 
+
+# deneme
 # 1. ESKİ JSON DÖNDÜREN ROTAYI SİLDİK VE YENİSİNİ BURAYA ALDIK
 @app.route("/")
 def home():
     return render_template("index.html")
+
 
 @app.route("/api/customers", methods=["GET"])
 def api_customers():
@@ -48,9 +67,10 @@ def api_customers():
         limit=limit,
         starting_after=starting_after,
         created_gte=created_gte,
-        created_lte=created_lte
+        created_lte=created_lte,
     )
     return jsonify(result)
+
 
 @app.route("/api/customers", methods=["POST"])
 def api_create_customer():
@@ -61,6 +81,7 @@ def api_create_customer():
     )
     return jsonify(customer), 201
 
+
 @app.route("/api/products", methods=["GET"])
 def api_products():
     limit = int(request.args.get("limit", 10))
@@ -68,15 +89,15 @@ def api_products():
     result = get_products(limit=limit, starting_after=starting_after)
     return jsonify(result)
 
+
 @app.route("/api/products", methods=["POST"])
 def api_create_product():
     data = request.get_json()
     product = create_product(
-        data["name"],
-        data.get("description"),
-        price=data.get("price")
+        data["name"], data.get("description"), price=data.get("price")
     )
     return jsonify(product), 201
+
 
 @app.route("/api/payments", methods=["GET"])
 def api_payments():
@@ -85,6 +106,7 @@ def api_payments():
     result = get_payment_intents(limit=limit, starting_after=starting_after)
     return jsonify(result)
 
+
 @app.route("/api/payments", methods=["POST"])
 def api_create_payment():
     data = request.get_json()
@@ -92,9 +114,10 @@ def api_create_payment():
         customer_id=data["customer_id"],
         amount=int(float(data["amount"]) * 100),
         currency=data.get("currency", "usd"),
-        order_id=data.get("order_id")
+        order_id=data.get("order_id"),
     )
     return jsonify(payment), 201
+
 
 @app.route("/api/refunds", methods=["GET"])
 def api_refunds():
@@ -103,6 +126,7 @@ def api_refunds():
     result = get_refunds(limit=limit, starting_after=starting_after)
     return jsonify(result)
 
+
 @app.route("/api/refunds", methods=["POST"])
 def api_create_refund():
     data = request.get_json()
@@ -110,11 +134,13 @@ def api_create_refund():
     refund = create_refund(
         payment_intent_id=data["payment_intent_id"],
         amount=int(float(amount) * 100) if amount else None,
-        reason=data.get("reason")
+        reason=data.get("reason"),
     )
     return jsonify(refund), 201
 
+
 # 2. APP.RUN BLOĞU KESİNLİKLE EN ALTTA OLMALI
+
 
 @app.route("/api/payments/<payment_id>/pdf", methods=["POST"])
 def api_create_payment_pdf(payment_id):
@@ -136,7 +162,7 @@ def api_create_payment_pdf(payment_id):
     return Response(
         pdf_bytes,
         mimetype="application/pdf",
-        headers={"Content-Disposition": f"inline; filename=odeme_{payment_id}.pdf"}
+        headers={"Content-Disposition": f"inline; filename=odeme_{payment_id}.pdf"},
     )
 
 
@@ -149,7 +175,7 @@ def api_get_payment_pdf(payment_id):
     return Response(
         pdf_bytes,
         mimetype="application/pdf",
-        headers={"Content-Disposition": f"inline; filename=odeme_{payment_id}.pdf"}
+        headers={"Content-Disposition": f"inline; filename=odeme_{payment_id}.pdf"},
     )
 
 
@@ -166,9 +192,7 @@ def api_upload_file():
         return jsonify({"error": "Sadece PDF dosyaları kabul edilmektedir."}), 400
 
     file_obj = upload_dispute_evidence(
-        payment_intent_id=payment_intent_id,
-        file_bytes=f.read(),
-        filename=f.filename
+        payment_intent_id=payment_intent_id, file_bytes=f.read(), filename=f.filename
     )
     if file_obj is None:
         return jsonify({"error": "Stripe'a yükleme başarısız."}), 500
@@ -199,12 +223,12 @@ def api_export():
     if not data:
         return jsonify({"error": "JSON body bekleniyor."}), 400
 
-    resource    = data.get("resource", "")
-    fmt         = data.get("format", "json")
-    limit_val   = data.get("limit", "100")
+    resource = data.get("resource", "")
+    fmt = data.get("format", "json")
+    limit_val = data.get("limit", "100")
     created_gte = data.get("created_gte")
     created_lte = data.get("created_lte")
-    fields      = data.get("fields")
+    fields = data.get("fields")
 
     valid_resources = ("customers", "products", "payments", "refunds")
     if resource not in valid_resources:
@@ -219,7 +243,7 @@ def api_export():
             limit_val=limit_val,
             created_gte=created_gte,
             created_lte=created_lte,
-            fields=fields
+            fields=fields,
         )
         if fmt == "json":
             mimetype = "application/json"
@@ -233,7 +257,7 @@ def api_export():
     return Response(
         content,
         mimetype=mimetype,
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
 
@@ -245,11 +269,11 @@ def api_import_analyze():
     if "file" not in request.files:
         return jsonify({"error": "Dosya yüklenmedi."}), 400
 
-    file = request.files["file"] # elimizde Flaskın FileStorage nesnesi var
-    filename = file.filename     # name alinma sebebi json mi csv mi onu anlamak icin
+    file = request.files["file"]  # elimizde Flaskın FileStorage nesnesi var
+    filename = file.filename  # name alinma sebebi json mi csv mi onu anlamak icin
 
     try:
-        file_bytes = file.read()  
+        file_bytes = file.read()
         records = parse_file(file_bytes, filename)
         if not records:
             return jsonify({"error": "Dosya boş veya okunamadı."}), 400
@@ -257,13 +281,15 @@ def api_import_analyze():
         inferred_types = infer_data_types(records)
         preview = records[:3]
 
-        return jsonify({
-            "filename": filename,
-            "total_rows": len(records),
-            "columns": list(inferred_types.keys()),
-            "inferred_types": inferred_types,
-            "preview": preview
-        })
+        return jsonify(
+            {
+                "filename": filename,
+                "total_rows": len(records),
+                "columns": list(inferred_types.keys()),
+                "inferred_types": inferred_types,
+                "preview": preview,
+            }
+        )
     except Exception as e:
         return jsonify({"error": f"Dosya analiz hatası: {str(e)}"}), 400
 
@@ -287,17 +313,19 @@ def api_import_preview():
         mapping = json.loads(mapping_str)
         file_bytes = file.read()
         records = parse_file(file_bytes, file.filename)
-        
+
         result = validate_and_map_records(records, target_model, mapping)
-        return jsonify({
-            "total_records": len(records),
-            "valid_count": len(result["valid"]),
-            "invalid_count": len(result["invalid"]),
-            "existing_count": len(result["existing"]),
-            "valid": result["valid"][:10],      # Önizleme için ilk 10 adet geçerli
-            "invalid": result["invalid"][:10],   # Önizleme için ilk 10 adet geçersiz
-            "existing": result["existing"][:10]  # Önizleme için ilk 10 adet mevcut
-        })
+        return jsonify(
+            {
+                "total_records": len(records),
+                "valid_count": len(result["valid"]),
+                "invalid_count": len(result["invalid"]),
+                "existing_count": len(result["existing"]),
+                "valid": result["valid"][:10],  # Önizleme için ilk 10 adet geçerli
+                "invalid": result["invalid"][:10],  # Önizleme için ilk 10 adet geçersiz
+                "existing": result["existing"][:10],  # Önizleme için ilk 10 adet mevcut
+            }
+        )
     except Exception as e:
         return jsonify({"error": f"Önizleme oluşturma hatası: {str(e)}"}), 400
 
@@ -321,7 +349,7 @@ def api_import_execute():
         mapping = json.loads(mapping_str)
         file_bytes = file.read()
         records = parse_file(file_bytes, file.filename)
-        
+
         validation = validate_and_map_records(records, target_model, mapping)
         valid_records = validation["valid"]
 
@@ -336,28 +364,28 @@ def api_import_execute():
                 results["success"] += 1
             else:
                 results["failed"] += 1
-                results["failed_list"].append({
-                    "row_index": item["row_index"],
-                    "mapped": mapped_data,
-                    "reason": res["reason"]
-                })
+                results["failed_list"].append(
+                    {
+                        "row_index": item["row_index"],
+                        "mapped": mapped_data,
+                        "reason": res["reason"],
+                    }
+                )
 
         # Geçersiz kayıtları da hata raporuna ekle
         for item in validation["invalid"]:
             results["failed"] += 1
-            results["failed_list"].append({
-                "row_index": item["row_index"],
-                "mapped": item["mapped"],
-                "reason": f"Doğrulama Hatası: {item['reason']}"
-            })
+            results["failed_list"].append(
+                {
+                    "row_index": item["row_index"],
+                    "mapped": item["mapped"],
+                    "reason": f"Doğrulama Hatası: {item['reason']}",
+                }
+            )
 
-        return jsonify({
-            "message": "Aktarım tamamlandı.",
-            "stats": results
-        })
+        return jsonify({"message": "Aktarım tamamlandı.", "stats": results})
     except Exception as e:
         return jsonify({"error": f"Aktarım hatası: {str(e)}"}), 400
-
 
 
 # ── Fatura (Invoice) Endpoint'leri ─────────────────────────────────────────
@@ -366,31 +394,39 @@ def api_invoice_preview():
     data = request.get_json()
     if not data or "customer" not in data or "items" not in data:
         return jsonify({"error": "Müşteri ve ürün bilgileri zorunludur."}), 400
-    
+
     preview = preview_invoice(
         customer_id=data["customer"],
         currency=data.get("currency", "usd"),
-        items=data["items"]
+        items=data["items"],
     )
     if preview is None:
-        return jsonify({"error": "Fatura önizlemesi oluşturulamadı. Stripe API hatası veya uyumsuz para birimi."}), 500
+        return jsonify(
+            {
+                "error": "Fatura önizlemesi oluşturulamadı. Stripe API hatası veya uyumsuz para birimi."
+            }
+        ), 500
     return jsonify(preview)
+
 
 @app.route("/api/invoices", methods=["POST"])
 def api_create_invoice():
     data = request.get_json()
     if not data or "customer" not in data or "items" not in data:
         return jsonify({"error": "Müşteri ve ürün bilgileri zorunludur."}), 400
-    
+
     try:
         invoice = create_and_finalize_invoice(
             customer_id=data["customer"],
             currency=data.get("currency", "usd"),
-            items=data["items"]
+            items=data["items"],
         )
         return jsonify(invoice), 201
     except Exception as e:
-        return jsonify({"error": f"Fatura oluşturma ve kesinleştirme başarısız: {str(e)}"}), 500
+        return jsonify(
+            {"error": f"Fatura oluşturma ve kesinleştirme başarısız: {str(e)}"}
+        ), 500
+
 
 @app.route("/api/invoices", methods=["GET"])
 def api_get_invoices():
@@ -398,15 +434,18 @@ def api_get_invoices():
     invoices = get_local_invoices(limit=limit)
     return jsonify({"data": invoices})
 
+
 @app.route("/api/invoices/<invoice_id>/pdf", methods=["GET"])
 def api_get_invoice_pdf(invoice_id):
     pdf_bytes = get_local_invoice_pdf(invoice_id)
     if pdf_bytes is None:
-        return jsonify({"error": "Fatura PDF'i bulunamadı veya diskten okunamadı."}), 404
+        return jsonify(
+            {"error": "Fatura PDF'i bulunamadı veya diskten okunamadı."}
+        ), 404
     return Response(
         pdf_bytes,
         mimetype="application/pdf",
-        headers={"Content-Disposition": f"inline; filename=fatura_{invoice_id}.pdf"}
+        headers={"Content-Disposition": f"inline; filename=fatura_{invoice_id}.pdf"},
     )
 
 

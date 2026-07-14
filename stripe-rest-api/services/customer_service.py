@@ -2,7 +2,8 @@ from stripe_client import get, post, delete
 from config import BASE_URL
 from database import get_db
 
-#deneme 
+# deneme
+
 
 def get_customers(limit=10, starting_after=None, created_gte=None, created_lte=None):
 
@@ -19,27 +20,24 @@ def get_customers(limit=10, starting_after=None, created_gte=None, created_lte=N
 
     if response is None:
         return None
-    
-    result = response.json()
-    return {
-        "data": result["data"],
-        "has_more": result.get("has_more", False)
-    }
 
-    
+    result = response.json()
+    return {"data": result["data"], "has_more": result.get("has_more", False)}
+
+
 def print_customers(customers):
 
     if not customers:
         print("henuz musteri bulunmuyor")
         return
-    
+
     print("\n--------- Customer List --------- ")
 
     for customer in customers:
         print(f"""
-ID    : {customer['id']}
-Name  : {customer.get('name', 'Unknown')}
-Email : {customer.get('email', 'Unknown')}
+ID    : {customer["id"]}
+Name  : {customer.get("name", "Unknown")}
+Email : {customer.get("email", "Unknown")}
 -----------------------------
               
               
@@ -53,13 +51,13 @@ def create_customer(name, email):
 
     if response is None:
         return None
-    
+
     customer = response.json()
 
     # 2. Veritabanına kaydet
     try:
         sql = "INSERT INTO customers (stripe_id, name, email) VALUES (%s, %s, %s)"
-        values = (customer['id'], customer.get('name'), customer.get('email'))
+        values = (customer["id"], customer.get("name"), customer.get("email"))
 
         with get_db() as cursor:
             cursor.execute(sql, values)
@@ -68,8 +66,9 @@ def create_customer(name, email):
 
     except Exception as e:
         print(f"❌ Veritabanına kaydedilirken hata oluştu: {e}")
-    
+
     return customer
+
 
 def get_customer(customer_id):
 
@@ -81,14 +80,14 @@ def get_customer(customer_id):
 
     return response.json()
 
+
 def delete_customer(customer_id):
 
-    url= f"{BASE_URL}/customers/{customer_id}"
+    url = f"{BASE_URL}/customers/{customer_id}"
 
     response = delete(url)
 
     if response is None:
         return None
-    
-    return response.json()
 
+    return response.json()
