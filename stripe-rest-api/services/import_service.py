@@ -94,10 +94,59 @@ def infer_data_types(records: list) -> dict:
 def validate_and_map_records(records: list, target_model: str, mapping: dict) -> dict:
     """
     Kullanıcının belirlediği sütun eşleştirmelerine göre kayıtları filtreler ve doğrular.
-    Geçerli ve geçersiz kayıt listelerini döner.
+    Geçerli, geçersiz ve sistemde zaten mevcut olan kayıt listelerini döner.
     """
     valid_list = []
     invalid_list = []
+    existing_list = []
+
+    # Pre-fetch existing items from database or Stripe to check for duplicates
+    existing_emails = set()
+    existing_product_names = set()
+    existing_payments = set()
+    existing_prices = set()
+
+    from database import get_db
+
+    if target_model == "customers":
+        try:
+            with get_db() as cursor:
+                cursor.execute("SELECT email FROM customers WHERE email IS NOT NULL AND email != ''")
+                existing_emails = {row[0].strip().lower() for row in cursor.fetchall()}
+        except Exception as e:
+            print(f"Error fetching existing customer emails: {e}")
+
+    elif target_model == "products":
+        try:
+            with get_db() as cursor:
+                cursor.execute("SELECT name FROM products WHERE name IS NOT NULL AND name != ''")
+                existing_product_names = {row[0].strip().lower() for row in cursor.fetchall()}
+        except Exception as e:
+            print(f"Error fetching existing product names: {e}")
+
+    elif target_model == "payments":
+        try:
+            with get_db() as cursor:
+                cursor.execute("SELECT customer_stripe_id, amount, currency FROM payment_intents")
+                existing_payments = {
+                    (row[0].strip() if row[0] else "", int(row[1]), row[2].strip().lower() if row[2] else "")
+                    for row in cursor.fetchall()
+                }
+        except Exception as e:
+            print(f"Error fetching existing payments: {e}")
+
+    elif target_model == "prices":
+        try:
+            from services.product_service import get_prices
+            prices_list = get_prices() or []
+            for p in prices_list:
+                p_prod = p.get("product")
+                p_amount = p.get("unit_amount")
+                p_curr = p.get("currency")
+                if p_prod and p_amount is not None and p_curr:
+                    existing_prices.add((p_prod, int(p_amount), p_curr.strip().lower()))
+        except Exception as e:
+            print(f"Error fetching existing prices: {e}")
 
     for idx, record in enumerate(records, start=1):
         mapped = {}
@@ -193,14 +242,52 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
                 "reason": ", ".join(errors)
             })
         else:
-            valid_list.append({
-                "row_index": idx,
-                "mapped": mapped
-            })
+            # Check duplication / existence
+            is_existing = False
+            if target_model == "customers":
+                email_val = mapped.get("email", "").strip().lower()
+                if email_val in existing_emails:
+                    is_existing = True
+            elif target_model == "products":
+                name_val = mapped.get("name", "").strip().lower()
+                if name_val in existing_product_names:
+                    is_existing = True
+            elif target_model == "payments":
+                cust_id = mapped.get("customer_id", "").strip()
+                amt = mapped.get("amount")
+                curr = mapped.get("currency", "usd").strip().lower()
+                try:
+                    amt_cents = int(float(amt) * 100) if amt else 0
+                    if (cust_id, amt_cents, curr) in existing_payments:
+                        is_existing = True
+                except ValueError:
+                    pass
+            elif target_model == "prices":
+                prod_id = mapped.get("product_id", "").strip()
+                amt = mapped.get("amount")
+                curr = mapped.get("currency", "usd").strip().lower()
+                try:
+                    amt_cents = int(float(amt) * 100) if amt else 0
+                    if (prod_id, amt_cents, curr) in existing_prices:
+                        is_existing = True
+                except ValueError:
+                    pass
+
+            if is_existing:
+                existing_list.append({
+                    "row_index": idx,
+                    "mapped": mapped
+                })
+            else:
+                valid_list.append({
+                    "row_index": idx,
+                    "mapped": mapped
+                })
 
     return {
         "valid": valid_list,
-        "invalid": invalid_list
+        "invalid": invalid_list,
+        "existing": existing_list
     }
 
 #Hedef modele göre uygun servis fonksiyonunu çağırır

@@ -893,11 +893,15 @@ async function wizardPreviewMapping() {
 
         // Önizleme ekranını güncelle
         document.getElementById("wizard-preview-valid-count").textContent = data.valid_count;
+        document.getElementById("wizard-preview-existing-count").textContent = data.existing_count;
         document.getElementById("wizard-preview-invalid-count").textContent = data.invalid_count;
 
         // Geçerli tabloyu çiz
         renderWizardPreviewValid(model, data.valid);
         
+        // Mevcut tabloyu çiz
+        renderWizardPreviewExisting(model, data.existing);
+
         // Geçersiz tabloyu çiz
         renderWizardPreviewInvalid(data.invalid);
 
@@ -905,7 +909,7 @@ async function wizardPreviewMapping() {
         const execBtn = document.getElementById("wizard-execute-btn");
         execBtn.disabled = data.valid_count === 0;
 
-        toggleWizardPreviewTab(true);
+        toggleWizardPreviewTab('valid');
         changeWizardStep(3);
     } catch (err) {
         msgEl.textContent = `❌ Sunucu hatası: ${err.message}`;
@@ -946,6 +950,39 @@ function renderWizardPreviewValid(model, validRecords) {
     });
 }
 
+function renderWizardPreviewExisting(model, existingRecords) {
+    const thead = document.getElementById("wizard-preview-existing-thead");
+    const tbody = document.getElementById("wizard-preview-existing-tbody");
+    
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    if (!existingRecords || existingRecords.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="100%" style="text-align: center; color: var(--text-muted);">Hiç mevcut kayıt bulunamadı.</td></tr>`;
+        return;
+    }
+
+    // Başlıkları oluştur
+    const fields = wizardModelFields[model].map(f => f.key);
+    let headHtml = `<tr><th>Satır No</th>`;
+    fields.forEach(f => {
+        headHtml += `<th>${f}</th>`;
+    });
+    headHtml += `</tr>`;
+    thead.innerHTML = headHtml;
+
+    // Satırları oluştur
+    existingRecords.forEach(record => {
+        let rowHtml = `<tr><td>${record.row_index}</td>`;
+        fields.forEach(f => {
+            const val = record.mapped[f];
+            rowHtml += `<td>${val !== null ? val : "-"}</td>`;
+        });
+        rowHtml += `</tr>`;
+        tbody.innerHTML += rowHtml;
+    });
+}
+
 function renderWizardPreviewInvalid(invalidRecords) {
     const tbody = document.getElementById("wizard-preview-invalid-tbody");
     tbody.innerHTML = "";
@@ -966,26 +1003,39 @@ function renderWizardPreviewInvalid(invalidRecords) {
     });
 }
 
-function toggleWizardPreviewTab(showValid) {
+function toggleWizardPreviewTab(tabType) {
     const validBtn = document.getElementById("wizard-tab-valid-btn");
+    const existingBtn = document.getElementById("wizard-tab-existing-btn");
     const invalidBtn = document.getElementById("wizard-tab-invalid-btn");
+
     const validContainer = document.getElementById("wizard-preview-valid-container");
+    const existingContainer = document.getElementById("wizard-preview-existing-container");
     const invalidContainer = document.getElementById("wizard-preview-invalid-container");
 
-    if (showValid) {
+    // Reset styles
+    validBtn.style.color = "var(--text-muted)";
+    validBtn.style.borderBottom = "none";
+    existingBtn.style.color = "var(--text-muted)";
+    existingBtn.style.borderBottom = "none";
+    invalidBtn.style.color = "var(--text-muted)";
+    invalidBtn.style.borderBottom = "none";
+
+    validContainer.style.display = "none";
+    existingContainer.style.display = "none";
+    invalidContainer.style.display = "none";
+
+    if (tabType === 'valid' || tabType === true) {
         validBtn.style.color = "var(--success)";
         validBtn.style.borderBottom = "2px solid var(--success)";
-        invalidBtn.style.color = "var(--text-muted)";
-        invalidBtn.style.borderBottom = "none";
         validContainer.style.display = "block";
-        invalidContainer.style.display = "none";
-    } else {
+    } else if (tabType === 'existing') {
+        existingBtn.style.color = "var(--accent-color)";
+        existingBtn.style.borderBottom = "2px solid var(--accent-color)";
+        existingContainer.style.display = "block";
+    } else { // 'invalid' or false
         invalidBtn.style.color = "var(--warning)";
         invalidBtn.style.borderBottom = "2px solid var(--warning)";
-        validBtn.style.color = "var(--text-muted)";
-        validBtn.style.borderBottom = "none";
         invalidContainer.style.display = "block";
-        validContainer.style.display = "none";
     }
 }
 

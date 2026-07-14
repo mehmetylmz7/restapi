@@ -749,6 +749,10 @@
                         <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Geçerli Kayıtlar</span>
                         <span id="wizard-preview-valid-count" style="font-size: 1.8rem; font-weight: bold; color: var(--success);">0</span>
                     </div>
+                    <div style="flex: 1; min-width: 150px; background: rgba(99,102,241,0.1); border-left: 4px solid var(--accent-color); padding: 15px; border-radius: 4px;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Mevcut Kayıtlar</span>
+                        <span id="wizard-preview-existing-count" style="font-size: 1.8rem; font-weight: bold; color: var(--accent-color);">0</span>
+                    </div>
                     <div style="flex: 1; min-width: 150px; background: rgba(255,141,114,0.1); border-left: 4px solid var(--warning); padding: 15px; border-radius: 4px;">
                         <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Hatalı/Eksik Kayıtlar</span>
                         <span id="wizard-preview-invalid-count" style="font-size: 1.8rem; font-weight: bold; color: var(--warning);">0</span>
@@ -758,10 +762,13 @@
                 <!-- Sekmeler / Preview lists -->
                 <div style="margin-bottom: 2rem;">
                     <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
-                        <button type="button" id="wizard-tab-valid-btn" onclick="toggleWizardPreviewTab(true)" style="background:none; border:none; color:var(--success); font-weight:bold; cursor:pointer; border-bottom:2px solid var(--success); padding:5px 10px;">
+                        <button type="button" id="wizard-tab-valid-btn" onclick="toggleWizardPreviewTab('valid')" style="background:none; border:none; color:var(--success); font-weight:bold; cursor:pointer; border-bottom:2px solid var(--success); padding:5px 10px;">
                             Aktarılacak Veriler (İlk 10 Kayıt)
                         </button>
-                        <button type="button" id="wizard-tab-invalid-btn" onclick="toggleWizardPreviewTab(false)" style="background:none; border:none; color:var(--text-muted); font-weight:bold; cursor:pointer; padding:5px 10px;">
+                        <button type="button" id="wizard-tab-existing-btn" onclick="toggleWizardPreviewTab('existing')" style="background:none; border:none; color:var(--text-muted); font-weight:bold; cursor:pointer; padding:5px 10px;">
+                            Mevcut Kayıtlar (İlk 10 Kayıt)
+                        </button>
+                        <button type="button" id="wizard-tab-invalid-btn" onclick="toggleWizardPreviewTab('invalid')" style="background:none; border:none; color:var(--text-muted); font-weight:bold; cursor:pointer; padding:5px 10px;">
                             Hatalı Kayıtlar (İlk 10 Kayıt)
                         </button>
                     </div>
@@ -771,6 +778,14 @@
                         <table style="margin-top: 0; font-size: 0.85rem; box-shadow: none; border-radius: 0;">
                             <thead id="wizard-preview-valid-thead"></thead>
                             <tbody id="wizard-preview-valid-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mevcut kayıtlar listesi -->
+                    <div id="wizard-preview-existing-container" style="display: none; overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 35vh; overflow-y: auto;">
+                        <table style="margin-top: 0; font-size: 0.85rem; box-shadow: none; border-radius: 0;">
+                            <thead id="wizard-preview-existing-thead"></thead>
+                            <tbody id="wizard-preview-existing-tbody"></tbody>
                         </table>
                     </div>
 

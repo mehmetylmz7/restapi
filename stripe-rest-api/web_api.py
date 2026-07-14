@@ -293,8 +293,10 @@ def api_import_preview():
             "total_records": len(records),
             "valid_count": len(result["valid"]),
             "invalid_count": len(result["invalid"]),
+            "existing_count": len(result["existing"]),
             "valid": result["valid"][:10],      # Önizleme için ilk 10 adet geçerli
-            "invalid": result["invalid"][:10]   # Önizleme için ilk 10 adet geçersiz
+            "invalid": result["invalid"][:10],   # Önizleme için ilk 10 adet geçersiz
+            "existing": result["existing"][:10]  # Önizleme için ilk 10 adet mevcut
         })
     except Exception as e:
         return jsonify({"error": f"Önizleme oluşturma hatası: {str(e)}"}), 400

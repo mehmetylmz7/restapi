@@ -4,24 +4,24 @@ from stripe_client import post, get
 from config import BASE_URL
 from database import get_db
 
-# Ensure directory for invoices exists
+# Faturalar için dizinin mevcut olduğundan emin ol
 INVOICES_DIR = "data/invoices"
 os.makedirs(INVOICES_DIR, exist_ok=True)
 
 def preview_invoice(customer_id, currency, items):
     """
-    Simulates invoice creation using Stripe's Create Preview Invoice API.
-    Returns preview data (subtotal, tax, total, lines).
+    Stripe'ın Fatura Önizleme API'sini kullanarak fatura oluşturma işlemini simüle eder.
+    Önizleme verilerini döndürür (ara toplam, vergi, toplam, satırlar).
     """
     url = f"{BASE_URL}/invoices/create_preview"
     
-    # Standard parameters
+    # Standart parametreler
     data = {
         "customer": customer_id,
-        "automatic_tax[enabled]": "false"  # Keep tax calculation simple unless configured
+        "automatic_tax[enabled]": "false"  # Vergi hesaplamasını yapılandırılmadığı sürece basit tut
     }
     
-    # Format line items
+    # Satır kalemlerini biçimlendir
     for idx, item in enumerate(items):
         price_id = item.get("price")
         quantity = item.get("quantity", 1)
@@ -30,8 +30,8 @@ def preview_invoice(customer_id, currency, items):
 
     response = post(url, data=data)
     if response is None:
-        # Fallback to GET /v1/invoices/upcoming if POST create_preview fails
-        # or is not supported on the API version
+        # POST create_preview başarısız olursa veya API sürümünde desteklenmiyorsa
+        # GET /v1/invoices/upcoming yoluna geri dön
         fallback_url = f"{BASE_URL}/invoices/upcoming"
         fallback_params = {
             "customer": customer_id,
@@ -52,13 +52,13 @@ def preview_invoice(customer_id, currency, items):
 
 def create_and_finalize_invoice(customer_id, currency, items):
     """
-    1. Creates a draft invoice.
-    2. Adds selected line items to that draft invoice.
-    3. Finalizes the invoice (generating PDF link).
-    4. Downloads the PDF locally.
-    5. Saves the metadata and PDF path in the MySQL database.
+    1. Taslak fatura oluşturur.
+    2. Bu taslak faturaya seçilen satır kalemlerini ekler.
+    3. Faturayı onaylar (PDF bağlantısı oluşturur).
+    4. PDF'yi yerelde indirir.
+    5. Meta verileri ve PDF yolunu MySQL veritabanına kaydeder.
     """
-    # Step 1: Create a Draft Invoice
+    # Adım 1: Taslak Fatura Oluştur
     invoice_url = f"{BASE_URL}/invoices"
     invoice_data = {
         "customer": customer_id,
@@ -73,7 +73,7 @@ def create_and_finalize_invoice(customer_id, currency, items):
     invoice_id = invoice["id"]
 
     try:
-        # Step 2: Add Invoice Items to this Draft Invoice
+        # Adım 2: Bu Taslak Faturaya Fatura Kalemleri Ekle
         for item in items:
             item_url = f"{BASE_URL}/invoiceitems"
             item_data = {
@@ -86,7 +86,7 @@ def create_and_finalize_invoice(customer_id, currency, items):
             if not res_item:
                 raise RuntimeError(f"Adding invoice item for price {item['price']} failed.")
 
-        # Step 3: Finalize the Invoice
+        # Adım 3: Faturayı Onayla
         finalize_url = f"{BASE_URL}/invoices/{invoice_id}/finalize"
         res_finalize = post(finalize_url, data={})
         if not res_finalize:
@@ -94,7 +94,7 @@ def create_and_finalize_invoice(customer_id, currency, items):
         
         finalized_invoice = res_finalize.json()
         
-        # Step 4: Download PDF
+        # Adım 4: PDF İndir
         pdf_url = finalized_invoice.get("invoice_pdf")
         pdf_path = ""
         if pdf_url:
@@ -108,7 +108,7 @@ def create_and_finalize_invoice(customer_id, currency, items):
             else:
                 print(f"⚠️ Warning: Could not download PDF from {pdf_url}")
         
-        # Step 5: Save in MySQL database
+        # Adım 5: MySQL Veritabanına Kaydet
         amount_total = finalized_invoice.get("total", 0)
         currency_res = finalized_invoice.get("currency", currency).upper()
         status = finalized_invoice.get("status", "open")
@@ -127,15 +127,15 @@ def create_and_finalize_invoice(customer_id, currency, items):
         return finalized_invoice
 
     except Exception as e:
-        # Since the invoice is a draft, we can delete it if it failed before finalization
-        # or we just report the error.
+        # Fatura taslak olduğu için, onaylama öncesi bir hata oluşursa silinebilir;
+        # ya da sadece hatayı raporlayabiliriz.
         print(f"❌ Error during invoice creation/finalization: {e}")
         raise e
 
 
 def get_local_invoices(limit=50):
     """
-    Lists finalized invoices from the local MySQL database.
+    Yerel MySQL veritabanındaki onaylanmış faturaları listeler.
     """
     try:
         sql = """
@@ -168,10 +168,10 @@ def get_local_invoices(limit=50):
 
 def get_local_invoice_pdf(invoice_id):
     """
-    Reads the downloaded PDF file for a given invoice ID from the local disk.
+    Belirli bir fatura kimliği için yerelde indirilen PDF dosyasını okur.
     """
     try:
-        # Search the database for the path
+        # Veritabanında yol için arama yap
         sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s"
         with get_db() as cursor:
             cursor.execute(sql, (invoice_id,))
