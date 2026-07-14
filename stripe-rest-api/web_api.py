@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request, render_template, Response
 from flask_cors import CORS
 import json
-import csv
 import time
 from services.customer_service import get_customers, create_customer
 from services.product_service import get_products, create_product
@@ -15,7 +14,7 @@ from services.payment_service import (
 from services.refund_service import create_refund, get_refunds
 from services.file_service import upload_dispute_evidence, list_uploaded_files
 from services.export_service import export_data, _fetch_all
-from database import init_pool, get_db
+from database import init_pool
 from services.import_service import (
     parse_file,
     infer_data_types,

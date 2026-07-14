@@ -1,7 +1,6 @@
 import json
 import csv
 import time
-import os
 
 from services.customer_service import create_customer
 
@@ -46,7 +45,7 @@ def import_from_json(filepath: str, delay: float = 0.3) -> dict:
                 print(f"         ✅ {customer['id']}")
                 results["success"] += 1
             else:
-                print(f"         ❌ Stripe yanıt döndürmedi.")
+                print("         ❌ Stripe yanıt döndürmedi.")
                 results["failed"] += 1
                 results["failed_list"].append(
                     {"name": name, "email": email, "reason": "Stripe yanıtsız"}
@@ -104,7 +103,7 @@ def import_from_csv(filepath: str, delay: float = 0.3) -> dict:
                 print(f"         ✅ {customer['id']}")
                 results["success"] += 1
             else:
-                print(f"         ❌ Stripe yanıt döndürmedi.")
+                print("         ❌ Stripe yanıt döndürmedi.")
                 results["failed"] += 1
                 results["failed_list"].append(
                     {"name": name, "email": email, "reason": "Stripe yanıtsız"}

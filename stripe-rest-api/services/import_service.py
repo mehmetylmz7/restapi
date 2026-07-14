@@ -2,7 +2,6 @@ import csv
 import json
 import re
 import io
-import time
 from services.customer_service import create_customer
 from services.product_service import create_product, create_price
 from services.payment_service import create_payment_intent

@@ -1,9 +1,5 @@
 from services.product_service import (
     get_products,
-    deactivate_product,
-    create_product,
-    create_price,
-    get_prices,
 )
 from utils import format_timestamp
 
