@@ -5,105 +5,44 @@ from logger import logger
 headers = {"Authorization": f"Bearer {STRIPE_SECRET_KEY}"}
 
 
-def get(endpoint, params=None):
+def _request(method: str, endpoint: str, **kwargs):
     try:
-        logger.info(f"GET istegi gonderiliyor: {endpoint}")
+        logger.info(f"{method} isteği gönderiliyor: {endpoint}")
 
-        response = requests.get(endpoint, headers=headers, params=params, timeout=10)
+        response = requests.request(method, endpoint, headers=headers, timeout=10, **kwargs)
 
-        # exception firlatilir
         response.raise_for_status()
 
-        logger.info(f"Basarili cevap: {response.status_code}")
+        logger.info(f"Başarılı cevap: {response.status_code}")
 
         return response
 
     except requests.exceptions.Timeout:
-        logger.error("sunucu zamaninda cevap vermedi. ")
+        logger.error(f"Sunucu zamanında cevap vermedi: {endpoint}")
 
     except requests.exceptions.ConnectionError:
-        logger.error("sunucuya baglanilamadi. ")
+        logger.error(f"Sunucuya bağlanılamadı: {endpoint}")
 
     except requests.exceptions.HTTPError as err:
-        logger.error(f"Http hatasi: {err}")
+        logger.error(f"HTTP hatası: {err}")
 
     except requests.exceptions.RequestException as err:
-        logger.error(f"Bilinmeyen bir hata olustu: {err}")
+        logger.error(f"Bilinmeyen hata: {err}")
 
     return None
+
+
+def get(endpoint, params=None):
+    return _request("GET", endpoint, params=params)
 
 
 def post(endpoint, data):
-    try:
-        logger.info(f"POST isteği gönderiliyor: {endpoint}")
-        response = requests.post(endpoint, headers=headers, data=data, timeout=10)
-        response.raise_for_status()
-        logger.info(f"Basarili cevap: {response.status_code}")
-        return response
-    except requests.exceptions.Timeout:
-        logger.error("Sunucu zamanında cevap vermedi.")
-
-    except requests.exceptions.ConnectionError:
-        logger.error("Sunucuya bağlanılamadı.")
-
-    except requests.exceptions.HTTPError as err:
-        logger.error(f"HTTP hatası: {err}")
-
-    except requests.exceptions.RequestException as err:
-        logger.error(f"Bilinmeyen bir hata oluştu: {err}")
-    return None
+    return _request("POST", endpoint, data=data)
 
 
 def delete(endpoint):
-    try:
-        logger.info(f"DELETE isteği gönderiliyor: {endpoint}")
-        response = requests.delete(endpoint, headers=headers, timeout=10)
-
-        response.raise_for_status()
-        logger.info(f"Başarılı cevap: {response.status_code}")
-
-        return response
-
-    except requests.exceptions.Timeout:
-        logger.error("Sunucu zamanında cevap vermedi.")
-
-    except requests.exceptions.ConnectionError:
-        logger.error("Sunucuya bağlanılamadı.")
-
-    except requests.exceptions.HTTPError as err:
-        logger.error(f"HTTP hatası: {err}")
-
-    except requests.exceptions.RequestException as err:
-        logger.error(f"Bilinmeyen bir hata oluştu: {err}")
-
-    return None
+    return _request("DELETE", endpoint)
 
 
 def update(endpoint, data=None):
-
-    if data is None:
-        data = {}
-    try:
-        logger.info(f"UPDATE isteği gönderiliyor: {endpoint}")
-
-        response = requests.post(endpoint, headers=headers, data=data, timeout=10)
-
-        response.raise_for_status()
-
-        logger.info(f"Başarılı cevap: {response.status_code}")
-
-        return response
-
-    except requests.exceptions.Timeout:
-        logger.error("Sunucu zamanında cevap vermedi.")
-
-    except requests.exceptions.ConnectionError:
-        logger.error("Sunucuya bağlanılamadı.")
-
-    except requests.exceptions.HTTPError as err:
-        logger.error(f"HTTP hatası: {err}")
-
-    except requests.exceptions.RequestException as err:
-        logger.error(f"Bilinmeyen bir hata oluştu: {err}")
-
-    return None
+    return _request("POST", endpoint, data=data or {})
