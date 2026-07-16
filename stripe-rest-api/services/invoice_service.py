@@ -1,12 +1,12 @@
-import os
 import requests
+from pathlib import Path
 from stripe_client import post, get
 from config import BASE_URL
 from database import get_db
 
 # Faturalar için dizinin mevcut olduğundan emin ol
-INVOICES_DIR = "data/invoices"
-os.makedirs(INVOICES_DIR, exist_ok=True)
+INVOICES_DIR = Path("data/invoices")
+INVOICES_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def preview_invoice(customer_id, currency, items):
@@ -98,7 +98,7 @@ def create_and_finalize_invoice(customer_id, currency, items):
             pdf_res = requests.get(pdf_url, timeout=20)
             if pdf_res.status_code == 200:
                 pdf_filename = f"invoice_{invoice_id}.pdf"
-                pdf_path = os.path.join(INVOICES_DIR, pdf_filename)
+                pdf_path = INVOICES_DIR / pdf_filename
                 with open(pdf_path, "wb") as f:
                     f.write(pdf_res.content)
                 print(f"✅ Invoice PDF downloaded: {pdf_path}")
@@ -115,7 +115,7 @@ def create_and_finalize_invoice(customer_id, currency, items):
             VALUES (%s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE status = VALUES(status), pdf_path = VALUES(pdf_path)
         """
-        values = (invoice_id, customer_id, amount_total, currency_res, status, pdf_path)
+        values = (invoice_id, customer_id, amount_total, currency_res, status, str(pdf_path) if pdf_path else "")
 
         with get_db() as cursor:
             cursor.execute(sql, values)
@@ -179,8 +179,8 @@ def get_local_invoice_pdf(invoice_id):
         if not row or not row[0]:
             return None
 
-        pdf_path = row[0]
-        if os.path.exists(pdf_path):
+        pdf_path = Path(row[0])
+        if pdf_path.exists():
             with open(pdf_path, "rb") as f:
                 return f.read()
         return None

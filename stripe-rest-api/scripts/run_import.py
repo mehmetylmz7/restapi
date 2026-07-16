@@ -13,10 +13,11 @@ Aktarılan alanlar:
 """
 
 import sys
-import os
+from pathlib import Path
 
 # Proje ana dizinini Python path'ine ekle
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(BASE_DIR))
 
 from database import init_pool
 from services.bulk_import_service import (
@@ -26,9 +27,8 @@ from services.bulk_import_service import (
 )
 
 # ── Dosya yolları ──────────────────────────────────────────────
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-JSON_PATH = os.path.join(BASE_DIR, "data", "json", "customers.json")
-CSV_PATH = os.path.join(BASE_DIR, "data", "csv", "customers.csv")
+JSON_PATH = BASE_DIR / "data" / "json" / "customers.json"
+CSV_PATH = BASE_DIR / "data" / "csv" / "customers.csv"
 
 
 def print_summary(results: dict) -> None:
@@ -79,5 +79,5 @@ if __name__ == "__main__":
 
     # Başarısız kayıtları dışa aktar
     if results["failed_list"]:
-        failed_path = os.path.join(BASE_DIR, "data", "failed_imports.csv")
-        save_failed_report(results["failed_list"], output_path=failed_path)
+        failed_path = BASE_DIR / "data" / "failed_imports.csv"
+        save_failed_report(results["failed_list"], output_path=str(failed_path))

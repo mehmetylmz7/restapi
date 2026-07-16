@@ -2,15 +2,16 @@
 
 import logging
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from mongo_log_handler import MongoDBHandler
 
 load_dotenv()
 
 # ── Dizin ve dosya ayarları ───────────────────────────────────────────────────
-current_dir = os.path.dirname(os.path.abspath(__file__))
-logs_dir = os.path.join(current_dir, "logs")
-os.makedirs(logs_dir, exist_ok=True)
+current_dir = Path(__file__).resolve().parent
+logs_dir = current_dir / "logs"
+logs_dir.mkdir(parents=True, exist_ok=True)
 
 # ── Logger oluştur ────────────────────────────────────────────────────────────
 logger = logging.getLogger("stripe_api")
@@ -19,7 +20,7 @@ logger.setLevel(logging.INFO)
 log_format = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
 # Handler 1: Dosya (mevcut, korunuyor)
-file_handler = logging.FileHandler(os.path.join(logs_dir, "stripe_api.log"))
+file_handler = logging.FileHandler(logs_dir / "stripe_api.log")
 file_handler.setFormatter(log_format)
 
 # Handler 2: MongoDB (yeni)

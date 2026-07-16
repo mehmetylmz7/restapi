@@ -1,9 +1,10 @@
 import sys
 import os
 import webbrowser
+from pathlib import Path
 
 # Proje ana dizinini Python path'ine ekle (diğer modülleri import edebilmek için)
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from database import init_pool, get_db
 
@@ -32,9 +33,7 @@ def view_pdf_from_db(payment_intent_id):
 
     # Geçici dosyaya yaz
     temp_filename = f"view_{payment_intent_id}.pdf"
-    temp_filepath = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), temp_filename
-    )
+    temp_filepath = Path(__file__).resolve().parent / temp_filename
 
     with open(temp_filepath, "wb") as f:
         f.write(pdf_bytes)
@@ -44,7 +43,7 @@ def view_pdf_from_db(payment_intent_id):
 
     # PDF'i varsayılan uygulama ile aç
     try:
-        os.startfile(temp_filepath)  # Sadece Windows'ta çalışır
+        os.startfile(str(temp_filepath))  # Sadece Windows'ta çalışır
     except AttributeError:
         webbrowser.open(f"file://{temp_filepath}")  # Mac/Linux alternatifi
     except Exception as e:
