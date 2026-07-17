@@ -1,5 +1,5 @@
 from services.payment_service import create_payment_intent
-from utils import format_timestamp
+from core.utils import format_timestamp
 
 customer_id = "cus_UnWLqlcfUCGj7z"  # yusuf kocaoglu
 

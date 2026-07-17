@@ -1,7 +1,7 @@
 from services.product_service import (
     get_products,
 )
-from utils import format_timestamp
+from core.utils import format_timestamp
 
 
 products = get_products()
