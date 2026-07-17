@@ -2,7 +2,7 @@ from core.stripe_client import get, post, delete
 from core.config import BASE_URL
 from core.database import get_db
 
-# deneme
+# deneme2
 
 
 def get_customers(limit=10, starting_after=None, created_gte=None, created_lte=None):
