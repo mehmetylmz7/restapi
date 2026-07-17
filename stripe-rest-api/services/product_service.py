@@ -1,6 +1,6 @@
-from stripe_client import get, post, update
-from config import BASE_URL
-from database import get_db
+from core.stripe_client import get, post, update
+from core.config import BASE_URL
+from core.database import get_db
 
 
 def get_products(limit=10, starting_after=None):

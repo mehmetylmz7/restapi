@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from mongo_log_handler import MongoDBHandler
+from core.mongo_log_handler import MongoDBHandler
 
 load_dotenv()
 

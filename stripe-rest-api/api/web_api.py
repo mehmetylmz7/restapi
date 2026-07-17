@@ -14,7 +14,7 @@ from services.payment_service import (
 from services.refund_service import create_refund, get_refunds
 from services.file_service import upload_dispute_evidence, list_uploaded_files
 from services.export_service import export_data, _fetch_all
-from database import init_pool
+from core.database import init_pool
 from services.import_service import (
     parse_file,
     infer_data_types,
@@ -27,9 +27,6 @@ from services.invoice_service import (
     get_local_invoices,
     get_local_invoice_pdf,
 )
-
-# Uygulama başlarken bağlantı havuzunu oluştur (bir kez çalışır)
-init_pool(pool_size=5)
 
 app = Flask(__name__)
 CORS(app)
@@ -448,5 +445,3 @@ def api_get_invoice_pdf(invoice_id):
     )
 
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)

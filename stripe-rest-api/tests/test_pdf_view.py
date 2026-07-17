@@ -6,7 +6,7 @@ from pathlib import Path
 # Proje ana dizinini Python path'ine ekle (diğer modülleri import edebilmek için)
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from database import init_pool, get_db
+from core.database import init_pool, get_db
 
 
 def view_pdf_from_db(payment_intent_id):

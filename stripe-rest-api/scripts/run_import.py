@@ -19,7 +19,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
-from database import init_pool
+from core.database import init_pool
 from services.bulk_import_service import (
     import_from_json,
     import_from_csv,

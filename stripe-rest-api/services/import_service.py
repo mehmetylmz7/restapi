@@ -111,7 +111,7 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
     existing_payments = set()
     existing_prices = set()
 
-    from database import get_db
+    from core.database import get_db
 
     if target_model == "customers":
         try:
