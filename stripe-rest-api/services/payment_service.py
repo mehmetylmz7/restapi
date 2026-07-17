@@ -47,7 +47,7 @@ def create_payment_intent(customer_id, amount, currency="usd", order_id=None):
     return payment
 
 
-def get_payment_intent(payment_intent_id):
+def get_payment_intent(payment_intent_id, customer_id=None):
     url = f"{BASE_URL}/payment_intents/{payment_intent_id}"
 
     response = get(url)
@@ -55,11 +55,17 @@ def get_payment_intent(payment_intent_id):
     if response is None:
         return None
 
-    return response.json()
+    payment = response.json()
+    
+    # Eğer customer_id belirtilmişse ve Stripe'tan dönen müşteri eşleşmiyorsa erişimi engelle
+    if customer_id and payment.get("customer") != customer_id:
+        return None
+
+    return payment
 
 
 def get_payment_intents(
-    limit=10, starting_after=None, created_gte=None, created_lte=None
+    limit=10, starting_after=None, created_gte=None, created_lte=None, customer_id=None
 ):
 
     params = {"limit": limit}
@@ -69,6 +75,8 @@ def get_payment_intents(
         params["created[gte]"] = created_gte
     if created_lte:
         params["created[lte]"] = created_lte
+    if customer_id:
+        params["customer"] = customer_id
 
     url = f"{BASE_URL}/payment_intents"
 
@@ -81,7 +89,11 @@ def get_payment_intents(
     return {"data": result["data"], "has_more": result.get("has_more", False)}
 
 
-def cancel_payment_intent(payment_intent_id, cancellation_reason=None):
+def cancel_payment_intent(payment_intent_id, cancellation_reason=None, customer_id=None):
+    # İptal etmeden önce sahipliği doğrula
+    payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
+    if not payment:
+        return None
 
     url = f"{BASE_URL}/payment_intents/{payment_intent_id}/cancel"
 
@@ -95,14 +107,25 @@ def cancel_payment_intent(payment_intent_id, cancellation_reason=None):
     return response.json()
 
 
-def pdf_exists(payment_intent_id: str) -> bool:
+def pdf_exists(payment_intent_id: str, customer_id: str = None) -> bool:
     """
     Verilen payment_intent_id için DB'de kayıtlı PDF olup olmadığını kontrol eder.
+    Giriş yapan kullanıcı kısıtlaması varsa sahipliğini de kontrol eder.
     """
     try:
-        sql = "SELECT 1 FROM payment_pdfs WHERE payment_intent_stripe_id = %s LIMIT 1"
+        if customer_id:
+            sql = """
+                SELECT 1 FROM payment_pdfs p
+                JOIN payment_intents i ON p.payment_intent_stripe_id = i.stripe_id
+                WHERE p.payment_intent_stripe_id = %s AND i.customer_stripe_id = %s LIMIT 1
+            """
+            params = (payment_intent_id, customer_id)
+        else:
+            sql = "SELECT 1 FROM payment_pdfs WHERE payment_intent_stripe_id = %s LIMIT 1"
+            params = (payment_intent_id,)
+
         with get_db() as cursor:
-            cursor.execute(sql, (payment_intent_id,))
+            cursor.execute(sql, params)
             row = cursor.fetchone()
         return row is not None
     except Exception as e:
@@ -110,23 +133,17 @@ def pdf_exists(payment_intent_id: str) -> bool:
         return False
 
 
-def create_payment_pdf(payment_intent_id: str, force: bool = False) -> bytes | None:
+def create_payment_pdf(payment_intent_id: str, force: bool = False, customer_id: str = None) -> bytes | None:
     """
     Stripe'tan ödeme detayını çeker, tek sayfalık PDF üretir ve
     MySQL payment_pdfs tablosuna LONGBLOB olarak kaydeder.
-
-    Args:
-        payment_intent_id: Stripe payment intent ID'si
-        force: True ise mevcut PDF üzerine yazar; False ise mevcut varsa None döner
-
-    Returns:
-        Üretilen PDF bytes'ı döner. Mevcut PDF varsa ve force=False ise None döner.
     """
     # Mevcut PDF var mı kontrol et
-    if not force and pdf_exists(payment_intent_id):
-        return None  # Üzerine yazma — çağıran katman zaten_var durumunu bilir
+    if not force and pdf_exists(payment_intent_id, customer_id=customer_id):
+        return None
 
-    payment = get_payment_intent(payment_intent_id)
+    # Sahiplik kontrolü get_payment_intent içinde otomatik yapılır
+    payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
     if payment is None:
         return None
 
@@ -147,15 +164,25 @@ def create_payment_pdf(payment_intent_id: str, force: bool = False) -> bytes | N
     return pdf_bytes
 
 
-def get_payment_pdf(payment_intent_id: str) -> bytes | None:
+def get_payment_pdf(payment_intent_id: str, customer_id: str = None) -> bytes | None:
     """
     Daha önce oluşturulmuş PDF'i payment_pdfs tablosundan okur.
-    Kayıt yoksa None döner.
+    Kayıt yoksa veya kullanıcı yetkisizse None döner.
     """
     try:
-        sql = "SELECT pdf_data FROM payment_pdfs WHERE payment_intent_stripe_id = %s"
+        if customer_id:
+            sql = """
+                SELECT p.pdf_data FROM payment_pdfs p
+                JOIN payment_intents i ON p.payment_intent_stripe_id = i.stripe_id
+                WHERE p.payment_intent_stripe_id = %s AND i.customer_stripe_id = %s
+            """
+            params = (payment_intent_id, customer_id)
+        else:
+            sql = "SELECT pdf_data FROM payment_pdfs WHERE payment_intent_stripe_id = %s"
+            params = (payment_intent_id,)
+
         with get_db() as cursor:
-            cursor.execute(sql, (payment_intent_id,))
+            cursor.execute(sql, params)
             row = cursor.fetchone()
         return row[0] if row else None
     except Exception as e:

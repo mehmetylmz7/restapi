@@ -130,19 +130,32 @@ def create_and_finalize_invoice(customer_id, currency, items):
         raise e
 
 
-def get_local_invoices(limit=50):
+def get_local_invoices(customer_id=None, limit=50):
     """
     Yerel MySQL veritabanındaki onaylanmış faturaları listeler.
+    Giriş yapmış olan bir kullanıcı (customer_id) varsa sadece onun faturalarını çeker.
     """
     try:
-        sql = """
-            SELECT id, stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi
-            FROM invoices
-            ORDER BY olusturma_tarihi DESC
-            LIMIT %s
-        """
+        if customer_id:
+            sql = """
+                SELECT id, stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi
+                FROM invoices
+                WHERE customer_stripe_id = %s
+                ORDER BY olusturma_tarihi DESC
+                LIMIT %s
+            """
+            params = (customer_id, limit)
+        else:
+            sql = """
+                SELECT id, stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi
+                FROM invoices
+                ORDER BY olusturma_tarihi DESC
+                LIMIT %s
+            """
+            params = (limit,)
+
         with get_db() as cursor:
-            cursor.execute(sql, (limit,))
+            cursor.execute(sql, params)
             rows = cursor.fetchall()
 
         invoices = []
@@ -165,15 +178,21 @@ def get_local_invoices(limit=50):
         return []
 
 
-def get_local_invoice_pdf(invoice_id):
+def get_local_invoice_pdf(invoice_id, customer_id=None):
     """
     Belirli bir fatura kimliği için yerelde indirilen PDF dosyasını okur.
+    Güvenlik kontrolü için isteğe bağlı customer_id filtresi uygulanır.
     """
     try:
-        # Veritabanında yol için arama yap
-        sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s"
+        if customer_id:
+            sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s AND customer_stripe_id = %s"
+            params = (invoice_id, customer_id)
+        else:
+            sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s"
+            params = (invoice_id,)
+
         with get_db() as cursor:
-            cursor.execute(sql, (invoice_id,))
+            cursor.execute(sql, params)
             row = cursor.fetchone()
 
         if not row or not row[0]:

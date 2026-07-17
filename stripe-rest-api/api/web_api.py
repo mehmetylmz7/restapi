@@ -1,5 +1,8 @@
 from flask import Flask, jsonify, request, render_template, Response
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
+from core.config import JWT_SECRET_KEY
 import json
 import time
 from services.customer_service import get_customers, create_customer
@@ -14,7 +17,7 @@ from services.payment_service import (
 from services.refund_service import create_refund, get_refunds
 from services.file_service import upload_dispute_evidence, list_uploaded_files
 from services.export_service import export_data, _fetch_all
-from core.database import init_pool
+from core.database import init_pool, get_db
 from services.import_service import (
     parse_file,
     infer_data_types,
@@ -29,6 +32,8 @@ from services.invoice_service import (
 )
 
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+jwt = JWTManager(app)
 CORS(app)
 
 
@@ -53,8 +58,97 @@ def home():
     return render_template("index.html")
 
 
+@app.route("/api/auth/register", methods=["POST"])
+def api_register():
+    data = request.get_json()
+    if not data or "email" not in data or "password" not in data:
+        return jsonify({"error": "E-posta ve şifre zorunludur."}), 400
+        
+    email = data["email"].strip().lower()
+    password = data["password"]
+    name = data.get("name", "").strip()
+    
+    # Kullanıcı zaten var mı kontrol et
+    try:
+        with get_db() as cursor:
+            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+            if cursor.fetchone():
+                return jsonify({"error": "Bu e-posta adresiyle zaten kayıtlı bir kullanıcı var."}), 400
+    except Exception as e:
+        return jsonify({"error": f"Veritabanı hatası: {str(e)}"}), 500
+
+    # Stripe üzerinde müşteri oluştur
+    try:
+        stripe_customer = create_customer(name=name or email, email=email)
+        if not stripe_customer or not stripe_customer.get("id"):
+            return jsonify({"error": "Stripe üzerinde müşteri oluşturulamadı."}), 500
+        stripe_customer_id = stripe_customer["id"]
+    except Exception as e:
+        return jsonify({"error": f"Stripe entegrasyon hatası: {str(e)}"}), 500
+
+    # Şifreyi hash'le ve DB'ye kaydet
+    password_hash = generate_password_hash(password)
+    try:
+        with get_db() as cursor:
+            cursor.execute(
+                "INSERT INTO users (email, password_hash, stripe_customer_id) VALUES (%s, %s, %s)",
+                (email, password_hash, stripe_customer_id)
+            )
+        return jsonify({"message": "Kullanıcı başarıyla kaydedildi.", "stripe_customer_id": stripe_customer_id}), 201
+    except Exception as e:
+        return jsonify({"error": f"Veritabanına kaydedilirken hata oluştu: {str(e)}"}), 500
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def api_login():
+    data = request.get_json()
+    if not data or "email" not in data or "password" not in data:
+        return jsonify({"error": "E-posta ve şifre zorunludur."}), 400
+        
+    email = data["email"].strip().lower()
+    password = data["password"]
+    
+    try:
+        with get_db() as cursor:
+            cursor.execute("SELECT password_hash, stripe_customer_id FROM users WHERE email = %s", (email,))
+            row = cursor.fetchone()
+            
+        if not row:
+            return jsonify({"error": "Geçersiz e-posta veya şifre."}), 401
+            
+        password_hash, stripe_customer_id = row[0], row[1]
+        
+        if not check_password_hash(password_hash, password):
+            return jsonify({"error": "Geçersiz e-posta veya şifre."}), 401
+            
+        # JWT access token oluştur (identity olarak stripe_customer_id kullanıyoruz)
+        access_token = create_access_token(identity=stripe_customer_id)
+        return jsonify({
+            "access_token": access_token,
+            "stripe_customer_id": stripe_customer_id,
+            "email": email
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": f"Giriş hatası: {str(e)}"}), 500
+
+
+@app.route("/api/customers/me", methods=["GET"])
+@jwt_required()
+def api_customer_me():
+    customer_id = get_jwt_identity()
+    from services.customer_service import get_customer
+    customer = get_customer(customer_id)
+    if not customer:
+        return jsonify({"error": "Müşteri profili bulunamadı."}), 404
+    return jsonify(customer)
+
+
 @app.route("/api/customers", methods=["GET"])
+@jwt_required()
 def api_customers():
+    # Güvenlik amacıyla normal müşteriler diğer müşterileri listeleyemez, sadece admin yetkilendirmesi gibi düşünülebilir
+    # Ancak basitlik için JWT zorunlu tutup listelemeyi de koruyoruz.
     limit = int(request.args.get("limit", 10))
     starting_after = request.args.get("starting_after", None)
     created_gte = request.args.get("created_gte", None)
@@ -96,18 +190,22 @@ def api_create_product():
 
 
 @app.route("/api/payments", methods=["GET"])
+@jwt_required()
 def api_payments():
+    customer_id = get_jwt_identity()
     limit = int(request.args.get("limit", 10))
     starting_after = request.args.get("starting_after", None)
-    result = get_payment_intents(limit=limit, starting_after=starting_after)
+    result = get_payment_intents(limit=limit, starting_after=starting_after, customer_id=customer_id)
     return jsonify(result)
 
 
 @app.route("/api/payments", methods=["POST"])
+@jwt_required()
 def api_create_payment():
+    customer_id = get_jwt_identity()
     data = request.get_json()
     payment = create_payment_intent(
-        customer_id=data["customer_id"],
+        customer_id=customer_id,
         amount=int(float(data["amount"]) * 100),
         currency=data.get("currency", "usd"),
         order_id=data.get("order_id"),
@@ -116,19 +214,39 @@ def api_create_payment():
 
 
 @app.route("/api/refunds", methods=["GET"])
+@jwt_required()
 def api_refunds():
+    customer_id = get_jwt_identity()
+    payment_intent_id = request.args.get("payment_intent_id")
+    if not payment_intent_id:
+        return jsonify({"error": "payment_intent_id parametresi zorunludur."}), 400
+        
+    from services.payment_service import get_payment_intent
+    payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
+    if not payment:
+        return jsonify({"error": "Yetkisiz işlem veya ödeme bulunamadı."}), 403
+
     limit = int(request.args.get("limit", 10))
     starting_after = request.args.get("starting_after", None)
-    result = get_refunds(limit=limit, starting_after=starting_after)
+    result = get_refunds(payment_intent_id=payment_intent_id, limit=limit, starting_after=starting_after)
     return jsonify(result)
 
 
 @app.route("/api/refunds", methods=["POST"])
+@jwt_required()
 def api_create_refund():
+    customer_id = get_jwt_identity()
     data = request.get_json()
+    payment_intent_id = data["payment_intent_id"]
+    
+    from services.payment_service import get_payment_intent
+    payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
+    if not payment:
+        return jsonify({"error": "Yetkisiz işlem veya ödeme bulunamadı."}), 403
+
     amount = data.get("amount")
     refund = create_refund(
-        payment_intent_id=data["payment_intent_id"],
+        payment_intent_id=payment_intent_id,
         amount=int(float(amount) * 100) if amount else None,
         reason=data.get("reason"),
     )
@@ -139,6 +257,7 @@ def api_create_refund():
 
 
 @app.route("/api/payments/<payment_id>/pdf", methods=["POST"])
+@jwt_required()
 def api_create_payment_pdf(payment_id):
     """PDF üretir ve LONGBLOB'a kaydeder.
 
@@ -146,15 +265,16 @@ def api_create_payment_pdf(payment_id):
         force=true  → Mevcut PDF varsa üzerine yazar.
         force=false (varsayılan) → Mevcut PDF varsa 409 döner.
     """
+    customer_id = get_jwt_identity()
     force = request.args.get("force", "false").lower() == "true"
 
     # Mevcut PDF var mı kontrol et (force=false ise)
-    if not force and pdf_exists(payment_id):
+    if not force and pdf_exists(payment_id, customer_id=customer_id):
         return jsonify({"already_exists": True, "payment_id": payment_id}), 409
 
-    pdf_bytes = create_payment_pdf(payment_id, force=force)
+    pdf_bytes = create_payment_pdf(payment_id, force=force, customer_id=customer_id)
     if pdf_bytes is None:
-        return jsonify({"error": "PDF oluşturulamadı. Ödeme ID'yi kontrol edin."}), 404
+        return jsonify({"error": "PDF oluşturulamadı veya yetkisiz işlem."}), 404
     return Response(
         pdf_bytes,
         mimetype="application/pdf",
@@ -163,11 +283,13 @@ def api_create_payment_pdf(payment_id):
 
 
 @app.route("/api/payments/<payment_id>/pdf", methods=["GET"])
+@jwt_required()
 def api_get_payment_pdf(payment_id):
     """Daha önce oluşturulmuş PDF'i DB'den okuyup döner."""
-    pdf_bytes = get_payment_pdf(payment_id)
+    customer_id = get_jwt_identity()
+    pdf_bytes = get_payment_pdf(payment_id, customer_id=customer_id)
     if pdf_bytes is None:
-        return jsonify({"error": "PDF bulunamadı. Önce PDF Oluştur'u kullanın."}), 404
+        return jsonify({"error": "PDF bulunamadı veya yetkisiz işlem."}), 404
     return Response(
         pdf_bytes,
         mimetype="application/pdf",
@@ -386,13 +508,15 @@ def api_import_execute():
 
 # ── Fatura (Invoice) Endpoint'leri ─────────────────────────────────────────
 @app.route("/api/invoices/preview", methods=["POST"])
+@jwt_required()
 def api_invoice_preview():
+    customer_id = get_jwt_identity()
     data = request.get_json()
-    if not data or "customer" not in data or "items" not in data:
-        return jsonify({"error": "Müşteri ve ürün bilgileri zorunludur."}), 400
+    if not data or "items" not in data:
+        return jsonify({"error": "Ürün bilgileri zorunludur."}), 400
 
     preview = preview_invoice(
-        customer_id=data["customer"],
+        customer_id=customer_id,
         currency=data.get("currency", "usd"),
         items=data["items"],
     )
@@ -406,14 +530,16 @@ def api_invoice_preview():
 
 
 @app.route("/api/invoices", methods=["POST"])
+@jwt_required()
 def api_create_invoice():
+    customer_id = get_jwt_identity()
     data = request.get_json()
-    if not data or "customer" not in data or "items" not in data:
-        return jsonify({"error": "Müşteri ve ürün bilgileri zorunludur."}), 400
+    if not data or "items" not in data:
+        return jsonify({"error": "Ürün bilgileri zorunludur."}), 400
 
     try:
         invoice = create_and_finalize_invoice(
-            customer_id=data["customer"],
+            customer_id=customer_id,
             currency=data.get("currency", "usd"),
             items=data["items"],
         )
@@ -425,18 +551,22 @@ def api_create_invoice():
 
 
 @app.route("/api/invoices", methods=["GET"])
+@jwt_required()
 def api_get_invoices():
+    customer_id = get_jwt_identity()
     limit = int(request.args.get("limit", 50))
-    invoices = get_local_invoices(limit=limit)
+    invoices = get_local_invoices(customer_id=customer_id, limit=limit)
     return jsonify({"data": invoices})
 
 
 @app.route("/api/invoices/<invoice_id>/pdf", methods=["GET"])
+@jwt_required()
 def api_get_invoice_pdf(invoice_id):
-    pdf_bytes = get_local_invoice_pdf(invoice_id)
+    customer_id = get_jwt_identity()
+    pdf_bytes = get_local_invoice_pdf(invoice_id, customer_id=customer_id)
     if pdf_bytes is None:
         return jsonify(
-            {"error": "Fatura PDF'i bulunamadı veya diskten okunamadı."}
+            {"error": "Fatura PDF'i bulunamadı veya yetkisiz işlem."}
         ), 404
     return Response(
         pdf_bytes,
