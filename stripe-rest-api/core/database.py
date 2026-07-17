@@ -1,6 +1,6 @@
 import mysql.connector
 from contextlib import contextmanager
-from config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
+from core.config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
 
 # Pool'un adı — get_connection() bu isimle havuzdan bağlantı alır
 _POOL_NAME = "stripe_pool"

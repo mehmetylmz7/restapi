@@ -1,7 +1,7 @@
 import requests
-from config import STRIPE_SECRET_KEY
-from database import get_db
-from logger import logger
+from core.config import STRIPE_SECRET_KEY
+from core.database import get_db
+from core.logger import logger
 
 FILES_BASE_URL = "https://files.stripe.com/v1/files"
 

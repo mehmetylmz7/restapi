@@ -1,5 +1,5 @@
 
-from menu import run_menu
+from cli.menu import run_menu
 
 
 if __name__ == "__main__":

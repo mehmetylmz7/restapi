@@ -1,6 +1,6 @@
 import requests
-from config import STRIPE_SECRET_KEY
-from logger import logger
+from core.config import STRIPE_SECRET_KEY
+from core.logger import logger
 
 headers = {"Authorization": f"Bearer {STRIPE_SECRET_KEY}"}
 
