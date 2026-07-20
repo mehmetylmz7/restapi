@@ -19,6 +19,7 @@
             <li><a href="#" onclick="showSection('invoices-sec'); loadInvoicesTab();"><i class="fas fa-file-invoice-dollar"></i> Faturalar</a></li>
             <li><a href="#" onclick="showSection('dispute-sec'); loadUploadedFiles();"><i class="fas fa-shield-alt"></i> İtiraz Belgesi</a></li>
             <li><a href="#" onclick="showSection('fileops-sec');"><i class="fas fa-folder-open"></i> Dosya İşlemleri</a></li>
+            <li><a href="#" onclick="showSection('user-portal-sec'); initUserPortal();"><i class="fas fa-user-circle"></i> Kullanıcı Paneli</a></li>
         </ul>
         <div class="footer-credit">
             <p>Developed by Mehmet Yılmaz</p>
@@ -487,6 +488,143 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <!-- ── KULLANICI PANELI (USER PORTAL) SEKSİYONU ─────────────────────────── -->
+        <section id="user-portal-sec" class="content-section" style="display: none;">
+            <div id="user-portal-auth-container">
+                <div class="form-container" style="max-width: 500px; margin: 2rem auto; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h2 id="auth-title" style="margin-bottom: 0.5rem;"><i class="fas fa-lock" style="color: var(--accent-color);"></i> Giriş Yap</h2>
+                        <p id="auth-subtitle" style="color: var(--text-muted); font-size: 0.9rem;">Müşteri hesabınıza erişin</p>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form id="user-login-form">
+                        <div style="margin-bottom: 1.2rem;">
+                            <label for="login-email" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">E-posta Adresi</label>
+                            <input type="email" id="login-email" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="ornek@email.com" required>
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="login-password" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Şifre</label>
+                            <input type="password" id="login-password" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%; padding: 0.9rem; font-size: 1rem;"><i class="fas fa-sign-in-alt"></i> Giriş Yap</button>
+                    </form>
+
+                    <!-- Register Form (Initially Hidden) -->
+                    <form id="user-register-form" style="display: none;">
+                        <div style="margin-bottom: 1.2rem;">
+                            <label for="register-name" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Ad Soyad</label>
+                            <input type="text" id="register-name" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="Ahmet Yılmaz" required>
+                        </div>
+                        <div style="margin-bottom: 1.2rem;">
+                            <label for="register-email" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">E-posta Adresi</label>
+                            <input type="email" id="register-email" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="ornek@email.com" required>
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label for="register-password" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Şifre</label>
+                            <input type="password" id="register-password" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%; padding: 0.9rem; font-size: 1rem; background-color: var(--success);"><i class="fas fa-user-plus"></i> Kaydol</button>
+                    </form>
+
+                    <div id="auth-msg" class="form-message" style="margin-top: 1.2rem;"></div>
+
+                    <div style="text-align: center; margin-top: 1.8rem; border-top: 1px solid var(--border-color); padding-top: 1.2rem; font-size: 0.9rem;">
+                        <span id="toggle-auth-text" style="color: var(--text-muted);">Hesabınız yok mu?</span>
+                        <a href="#" id="toggle-auth-link" style="color: var(--accent-color); font-weight: 600; text-decoration: none; margin-left: 0.3rem;" onclick="toggleAuth(event)">Kayıt Ol</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logged In Dashboard View -->
+            <div id="user-portal-dashboard-container" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <div>
+                        <h1 style="margin: 0;">Müşteri Portalı</h1>
+                        <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.95rem;">
+                            Hoş geldiniz, <strong id="portal-user-name" style="color: #fff;">-</strong> | <span id="portal-user-email">-</span>
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 0.8rem; align-items: center;">
+                        <span style="font-size: 0.85rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-family: monospace; color: var(--accent-color);" id="portal-user-stripe-id">-</span>
+                        <button class="btn" onclick="userLogout()" style="background-color: var(--warning);"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                    <button class="btn" id="btn-portal-payments" onclick="showPortalTab('payments')" style="background: var(--accent-color); color: #fff; font-weight: 600;">Ödemelerim</button>
+                    <button class="btn" id="btn-portal-invoices" onclick="showPortalTab('invoices')" style="background: transparent; color: var(--text-muted); font-weight: 600; box-shadow: none;">Faturalarım</button>
+                    <button class="btn" id="btn-portal-pay" onclick="showPortalTab('pay')" style="background: transparent; color: var(--text-muted); font-weight: 600; box-shadow: none;">Ödeme Yap</button>
+                </div>
+
+                <!-- Tab 1: Payments -->
+                <div id="portal-payments-tab" class="portal-tab-content">
+                    <h3>Ödemelerim</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ödeme ID</th>
+                                <th>Tutar</th>
+                                <th>Para Birimi</th>
+                                <th>Durum</th>
+                                <th>Fatura PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portal-payments-tbody">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tab 2: Invoices -->
+                <div id="portal-invoices-tab" class="portal-tab-content" style="display: none;">
+                    <h3>Faturalarım</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fatura ID</th>
+                                <th>Tutar</th>
+                                <th>Para Birimi</th>
+                                <th>Durum</th>
+                                <th>Fatura PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portal-invoices-tbody">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tab 3: Pay Form -->
+                <div id="portal-pay-tab" class="portal-tab-content" style="display: none;">
+                    <div class="form-container" style="max-width: 600px; margin: 0;">
+                        <h3>Yeni Ödeme Oluştur</h3>
+                        <form id="portal-pay-form">
+                            <div style="margin-bottom: 1.2rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Tutar</label>
+                                <input type="number" id="portal-pay-amount" placeholder="Örn: 99.90" step="0.01" min="1" required style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff;">
+                            </div>
+                            <div style="margin-bottom: 1.2rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Para Birimi</label>
+                                <select id="portal-pay-currency" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff;">
+                                    <option value="usd">USD ($)</option>
+                                    <option value="eur">EUR (€)</option>
+                                    <option value="try">TRY (₺)</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Sipariş Açıklaması</label>
+                                <input type="text" id="portal-pay-order-id" placeholder="Örn: siparis_1002" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff;">
+                            </div>
+                            <button type="submit" class="btn" style="width: auto; padding: 0.8rem 2rem;"><i class="fas fa-credit-card"></i> Ödeme Başlat</button>
+                        </form>
+                        <div id="portal-pay-msg" class="form-message" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
