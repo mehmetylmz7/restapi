@@ -328,10 +328,18 @@
         <section id="invoices-sec" class="content-section" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h1 style="margin: 0;"><i class="fas fa-file-invoice-dollar"></i> Fatura Yönetimi</h1>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-invoice-create-view" class="btn" onclick="showInvoiceSubTab('create')" style="background: var(--accent-color); color: #fff; border: none; padding: 0.6rem 1.2rem; font-weight: 500;">
+                        <i class="fas fa-plus-circle"></i> Fatura Oluştur
+                    </button>
+                    <button id="btn-invoice-list-view" class="btn" onclick="showInvoiceSubTab('list')" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); padding: 0.6rem 1.2rem; font-weight: 500;">
+                        <i class="fas fa-list"></i> Faturaları Görüntüle
+                    </button>
+                </div>
             </div>
 
-            <!-- İki Panelli Düzen -->
-            <div class="invoice-workspace">
+            <!-- TAB 1: Fatura Oluşturma (İki Panelli Düzen) -->
+            <div id="invoice-create-container" class="invoice-workspace">
                 <!-- SOL PANEL: Veri Girişi -->
                 <div class="invoice-left-panel">
                     <div class="form-container" style="margin-bottom: 1.5rem;">
@@ -466,10 +474,10 @@
                 </div>
             </div>
 
-            <!-- Fatura Geçmişi Tablosu -->
-            <div class="form-container" style="margin-top: 2rem;">
-                <h3><i class="fas fa-history"></i> Fatura Geçmişi (MySQL & Stripe)</h3>
-                <p class="section-desc">MySQL veritabanına kaydedilen ve local diske indirilen PDF faturaları listeler.</p>
+            <!-- TAB 2: Fatura Geçmişi Tablosu -->
+            <div id="invoice-list-container" class="form-container" style="display: none;">
+                <h3><i class="fas fa-history"></i> Fatura Geçmişi</h3>
+                <p class="section-desc">Stripe REST API üzerindeki tüm faturaları listeler.</p>
                 <table style="margin-top: 1rem;">
                     <thead>
                         <tr>
@@ -488,6 +496,11 @@
                         </tr>
                     </tbody>
                 </table>
+                <div class="pagination-controls" style="margin-top: 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                    <button id="invoices-prev-btn" class="pagination-btn" onclick="prevPage('invoices')" disabled>&#8592; Önceki</button>
+                    <span id="invoices-page-info" style="font-weight: 500;">Sayfa 1</span>
+                    <button id="invoices-next-btn" class="pagination-btn" onclick="nextPage('invoices')" disabled>Sonraki &#8594;</button>
+                </div>
             </div>
         </section>
 
@@ -597,6 +610,11 @@
                             <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>
                         </tbody>
                     </table>
+                    <div class="pagination-controls" style="margin-top: 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                        <button id="portalInvoices-prev-btn" class="pagination-btn" onclick="prevPage('portalInvoices')" disabled>&#8592; Önceki</button>
+                        <span id="portalInvoices-page-info" style="font-weight: 500;">Sayfa 1</span>
+                        <button id="portalInvoices-next-btn" class="pagination-btn" onclick="nextPage('portalInvoices')" disabled>Sonraki &#8594;</button>
+                    </div>
                 </div>
 
                 <!-- Tab 3: Pay Form -->

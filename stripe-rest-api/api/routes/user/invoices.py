@@ -49,9 +49,10 @@ def api_user_create_invoice():
 @jwt_required()
 def api_user_get_invoices():
     customer_id = get_jwt_identity()
-    limit = int(request.args.get("limit", 50))
-    invoices = get_local_invoices(customer_id=customer_id, limit=limit)
-    return jsonify({"data": invoices})
+    limit = int(request.args.get("limit", 10))
+    starting_after = request.args.get("starting_after")
+    result = get_local_invoices(customer_id=customer_id, limit=limit, starting_after=starting_after)
+    return jsonify(result)
 
 
 @user_invoices_bp.route("/<invoice_id>/pdf", methods=["GET"])

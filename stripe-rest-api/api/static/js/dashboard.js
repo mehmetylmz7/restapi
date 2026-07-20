@@ -36,7 +36,9 @@ const paginationState = {
     customers: { cursorHistory: [null], currentPage: 0, limit: 10 },
     products:  { cursorHistory: [null], currentPage: 0, limit: 10 },
     payments:  { cursorHistory: [null], currentPage: 0, limit: 10 },
-    refunds:   { cursorHistory: [null], currentPage: 0, limit: 10 }
+    refunds:   { cursorHistory: [null], currentPage: 0, limit: 10 },
+    invoices:  { cursorHistory: [null], currentPage: 0, limit: 10 },
+    portalInvoices: { cursorHistory: [null], currentPage: 0, limit: 10 }
 };
 
 function updatePaginationUI(resource, hasMore) {
@@ -152,6 +154,8 @@ function loadByResource(resource) {
     else if (resource === 'products') loadProducts();
     else if (resource === 'payments') loadPayments();
     else if (resource === 'refunds') loadRefunds();
+    else if (resource === 'invoices') loadLocalInvoicesList();
+    else if (resource === 'portalInvoices') loadPortalInvoices();
 }
 
 document.getElementById('add-customer-form').addEventListener('submit', function(e) {
@@ -1303,15 +1307,51 @@ async function submitCustomExport() {
 let invoiceCart = [];
 let previewTimeout = null;
 
+function showInvoiceSubTab(subTab) {
+    const createContainer = document.getElementById("invoice-create-container");
+    const listContainer = document.getElementById("invoice-list-container");
+    const btnCreate = document.getElementById("btn-invoice-create-view");
+    const btnList = document.getElementById("btn-invoice-list-view");
+
+    if (!createContainer || !listContainer) return;
+
+    if (subTab === 'list') {
+        createContainer.style.display = "none";
+        listContainer.style.display = "block";
+        
+        btnCreate.style.background = "transparent";
+        btnCreate.style.color = "var(--text-muted)";
+        btnCreate.style.border = "1px solid var(--border-color)";
+        
+        btnList.style.background = "var(--accent-color)";
+        btnList.style.color = "#fff";
+        btnList.style.border = "none";
+        
+        paginationState.invoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
+        loadLocalInvoicesList();
+    } else {
+        createContainer.style.display = "flex";
+        listContainer.style.display = "none";
+        
+        btnList.style.background = "transparent";
+        btnList.style.color = "var(--text-muted)";
+        btnList.style.border = "1px solid var(--border-color)";
+        
+        btnCreate.style.background = "var(--accent-color)";
+        btnCreate.style.color = "#fff";
+        btnCreate.style.border = "none";
+    }
+}
+
 function loadInvoicesTab() {
     invoiceCart = [];
+    showInvoiceSubTab('create');
     updateCartUI();
     clearPreviewSheet();
     
     // Dropdown'ları ve fatura listesini yükle
     loadInvoiceCustomers();
     loadInvoiceProducts();
-    loadLocalInvoicesList();
 }
 
 function formatInvoiceCurrency(amountCents, currencyCode) {
@@ -1661,8 +1701,10 @@ function submitFinalizeInvoice() {
         invoiceCart = [];
         updateCartUI();
         clearPreviewSheet();
-        loadLocalInvoicesList();
         loadDashboardStats();
+        setTimeout(() => {
+            showInvoiceSubTab('list');
+        }, 1200);
     })
     .catch(err => {
         console.error("Invoice finalization error:", err);
@@ -1675,10 +1717,15 @@ function submitFinalizeInvoice() {
 }
 
 function loadLocalInvoicesList() {
+    const state = paginationState.invoices;
+    const cursor = state.cursorHistory[state.currentPage];
+    let url = `${API_BASE_URL}/invoices?limit=${state.limit}`;
+    if (cursor) url += `&starting_after=${cursor}`;
+
     const tbody = document.getElementById("invoices-tbody-list");
     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Yükleniyor...</td></tr>';
     
-    fetch(`${API_BASE_URL}/invoices`)
+    fetch(url)
         .then(res => res.json())
         .then(result => {
             tbody.innerHTML = "";
@@ -1703,13 +1750,22 @@ function loadLocalInvoicesList() {
                     `;
                     tbody.appendChild(tr);
                 });
+
+                if (result.has_more && result.data.length > 0) {
+                    const lastId = result.data[result.data.length - 1].id;
+                    if (state.cursorHistory.length === state.currentPage + 1) {
+                        state.cursorHistory.push(lastId);
+                    }
+                }
             } else {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Kayıtlı fatura bulunamadı.</td></tr>';
             }
+            updatePaginationUI('invoices', result ? result.has_more : false);
         })
         .catch(err => {
             console.error("Error loading local invoices:", err);
             tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
+            updatePaginationUI('invoices', false);
         });
 }
 
@@ -1822,6 +1878,7 @@ function showPortalTab(tabName) {
     if (tabName === 'payments') {
         loadPortalPayments();
     } else if (tabName === 'invoices') {
+        paginationState.portalInvoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
         loadPortalInvoices();
     }
 }
@@ -1893,10 +1950,15 @@ function generateOrViewPortalPDF(paymentId) {
 
 function loadPortalInvoices() {
     const token = localStorage.getItem("user_access_token");
+    const state = paginationState.portalInvoices;
+    const cursor = state.cursorHistory[state.currentPage];
+    let url = `${API_BASE_URL}/user/invoices?limit=${state.limit}`;
+    if (cursor) url += `&starting_after=${cursor}`;
+
     const tbody = document.getElementById("portal-invoices-tbody");
     tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>';
 
-    fetch(`${API_BASE_URL}/user/invoices?limit=50`, {
+    fetch(url, {
         headers: { "Authorization": `Bearer ${token}` }
     })
     .then(res => res.json())
@@ -1919,13 +1981,22 @@ function loadPortalInvoices() {
                     </tr>
                 `;
             });
+
+            if (result.has_more && result.data.length > 0) {
+                const lastId = result.data[result.data.length - 1].id;
+                if (state.cursorHistory.length === state.currentPage + 1) {
+                    state.cursorHistory.push(lastId);
+                }
+            }
         } else {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
         }
+        updatePaginationUI('portalInvoices', result ? result.has_more : false);
     })
     .catch(err => {
         console.error("Portal invoices load error:", err);
         tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
+        updatePaginationUI('portalInvoices', false);
     });
 }
 

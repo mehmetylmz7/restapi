@@ -50,9 +50,10 @@ def api_create_invoice():
 
 @admin_invoices_bp.route("", methods=["GET"])
 def api_get_invoices():
-    limit = int(request.args.get("limit", 50))
-    invoices = get_local_invoices(limit=limit)
-    return jsonify({"data": invoices})
+    limit = int(request.args.get("limit", 10))
+    starting_after = request.args.get("starting_after")
+    result = get_local_invoices(limit=limit, starting_after=starting_after)
+    return jsonify(result)
 
 
 @admin_invoices_bp.route("/<invoice_id>/pdf", methods=["GET"])
@@ -60,7 +61,7 @@ def api_get_invoice_pdf(invoice_id):
     pdf_bytes = get_local_invoice_pdf(invoice_id)
     if pdf_bytes is None:
         return jsonify(
-            {"error": "Fatura PDF'i bulunamadı veya diskten okunamadı."}
+            {"error": "Fatura PDF'i bulunamadı veya Stripe API'den okunamadı."}
         ), 404
     return Response(
         pdf_bytes,

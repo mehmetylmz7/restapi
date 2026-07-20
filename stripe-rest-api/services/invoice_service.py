@@ -91,35 +91,34 @@ def create_and_finalize_invoice(customer_id, currency, items):
 
         finalized_invoice = res_finalize.json()
 
-        # Adım 4: PDF İndir
-        pdf_url = finalized_invoice.get("invoice_pdf")
-        pdf_path = ""
-        if pdf_url:
-            pdf_res = requests.get(pdf_url, timeout=20)
-            if pdf_res.status_code == 200:
-                pdf_filename = f"invoice_{invoice_id}.pdf"
-                pdf_path = INVOICES_DIR / pdf_filename
-                with open(pdf_path, "wb") as f:
-                    f.write(pdf_res.content)
-                print(f"✅ Invoice PDF downloaded: {pdf_path}")
-            else:
-                print(f"⚠️ Warning: Could not download PDF from {pdf_url}")
-
-        # Adım 5: MySQL Veritabanına Kaydet
-        amount_total = finalized_invoice.get("total", 0)
-        currency_res = finalized_invoice.get("currency", currency).upper()
-        status = finalized_invoice.get("status", "open")
-
-        sql = """
-            INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE status = VALUES(status), pdf_path = VALUES(pdf_path)
-        """
-        values = (invoice_id, customer_id, amount_total, currency_res, status, str(pdf_path) if pdf_path else "")
-
-        with get_db() as cursor:
-            cursor.execute(sql, values)
-        print(f"✅ Invoice stored in database: {invoice_id}")
+        # # [DEPRECATED - LOCAL DISK & MYSQL OPTION]
+        # pdf_url = finalized_invoice.get("invoice_pdf")
+        # pdf_path = ""
+        # if pdf_url:
+        #     pdf_res = requests.get(pdf_url, timeout=20)
+        #     if pdf_res.status_code == 200:
+        #         pdf_filename = f"invoice_{invoice_id}.pdf"
+        #         pdf_path = INVOICES_DIR / pdf_filename
+        #         with open(pdf_path, "wb") as f:
+        #             f.write(pdf_res.content)
+        #         print(f"✅ Invoice PDF downloaded: {pdf_path}")
+        #     else:
+        #         print(f"⚠️ Warning: Could not download PDF from {pdf_url}")
+        # 
+        # amount_total = finalized_invoice.get("total", 0)
+        # currency_res = finalized_invoice.get("currency", currency).upper()
+        # status = finalized_invoice.get("status", "open")
+        # 
+        # sql = """
+        #     INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path)
+        #     VALUES (%s, %s, %s, %s, %s, %s)
+        #     ON DUPLICATE KEY UPDATE status = VALUES(status), pdf_path = VALUES(pdf_path)
+        # """
+        # values = (invoice_id, customer_id, amount_total, currency_res, status, str(pdf_path) if pdf_path else "")
+        # 
+        # with get_db() as cursor:
+        #     cursor.execute(sql, values)
+        # print(f"✅ Invoice stored in database: {invoice_id}")
 
         return finalized_invoice
 
@@ -130,79 +129,151 @@ def create_and_finalize_invoice(customer_id, currency, items):
         raise e
 
 
-def get_local_invoices(customer_id=None, limit=50):
+def get_local_invoices(customer_id=None, limit=10, starting_after=None):
     """
-    Yerel MySQL veritabanındaki onaylanmış faturaları listeler.
-    Giriş yapmış olan bir kullanıcı (customer_id) varsa sadece onun faturalarını çeker.
+    Stripe REST API'den onaylanmış/tüm faturaları canlı olarak çeker.
+    Sayfalama (pagination) için limit ve starting_after parametrelerini destekler.
+    (Eski MySQL veritabanı sorgusu yorum satırına alınmıştır).
     """
-    try:
-        if customer_id:
-            sql = """
-                SELECT id, stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi
-                FROM invoices
-                WHERE customer_stripe_id = %s
-                ORDER BY olusturma_tarihi DESC
-                LIMIT %s
-            """
-            params = (customer_id, limit)
-        else:
-            sql = """
-                SELECT id, stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi
-                FROM invoices
-                ORDER BY olusturma_tarihi DESC
-                LIMIT %s
-            """
-            params = (limit,)
+    # # [DEPRECATED - MYSQL DATABASE OPTION]
+    # try:
+    #     if customer_id:
+    #         sql = """
+    #             SELECT id, stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi
+    #             FROM invoices
+    #             WHERE customer_stripe_id = %s
+    #             ORDER BY olusturma_tarihi DESC
+    #             LIMIT %s
+    #         """
+    #         params = (customer_id, limit)
+    #     else:
+    #         sql = """
+    #             SELECT id, stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi
+    #             FROM invoices
+    #             ORDER BY olusturma_tarihi DESC
+    #             LIMIT %s
+    #         """
+    #         params = (limit,)
+    # 
+    #     with get_db() as cursor:
+    #         cursor.execute(sql, params)
+    #         rows = cursor.fetchall()
+    # 
+    #     invoices = []
+    #     for r in rows:
+    #         invoices.append(
+    #             {
+    #                 "id": r[0],
+    #                 "stripe_invoice_id": r[1],
+    #                 "customer_stripe_id": r[2],
+    #                 "amount": r[3],
+    #                 "currency": r[4],
+    #                 "status": r[5],
+    #                 "pdf_path": r[6],
+    #                 "olusturma_tarihi": str(r[7]),
+    #             }
+    #         )
+    #     return {"data": invoices, "has_more": False}
+    # except Exception as e:
+    #     print(f"❌ Database error fetching local invoices: {e}")
+    #     return {"data": [], "has_more": False}
 
-        with get_db() as cursor:
-            cursor.execute(sql, params)
-            rows = cursor.fetchall()
+    try:
+        url = f"{BASE_URL}/invoices"
+        params = {"limit": limit}
+        if starting_after:
+            params["starting_after"] = starting_after
+        if customer_id:
+            params["customer"] = customer_id
+
+        response = get(url, params=params)
+        if response is None:
+            return {"data": [], "has_more": False}
+
+        res_json = response.json()
+        data = res_json.get("data", [])
+        has_more = res_json.get("has_more", False)
 
         invoices = []
-        for r in rows:
+        for inv in data:
+            created_ts = inv.get("created")
+            if created_ts:
+                from datetime import datetime, timezone
+                dt_str = datetime.fromtimestamp(created_ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+            else:
+                dt_str = ""
+
             invoices.append(
                 {
-                    "id": r[0],
-                    "stripe_invoice_id": r[1],
-                    "customer_stripe_id": r[2],
-                    "amount": r[3],
-                    "currency": r[4],
-                    "status": r[5],
-                    "pdf_path": r[6],
-                    "olusturma_tarihi": str(r[7]),
+                    "id": inv.get("id"),
+                    "stripe_invoice_id": inv.get("id"),
+                    "customer_stripe_id": inv.get("customer"),
+                    "amount": inv.get("total", inv.get("amount_due", 0)),
+                    "currency": inv.get("currency", "usd"),
+                    "status": inv.get("status", "open"),
+                    "pdf_path": inv.get("invoice_pdf", ""),
+                    "olusturma_tarihi": dt_str,
                 }
             )
-        return invoices
+        return {"data": invoices, "has_more": has_more}
     except Exception as e:
-        print(f"❌ Database error fetching local invoices: {e}")
-        return []
+        print(f"❌ Stripe API error fetching invoices: {e}")
+        return {"data": [], "has_more": False}
 
 
 def get_local_invoice_pdf(invoice_id, customer_id=None):
     """
-    Belirli bir fatura kimliği için yerelde indirilen PDF dosyasını okur.
+    Belirli bir fatura kimliği için Stripe API'den canlı PDF verisini okur.
+    (Eski yerel disk okuma mantığı yorum satırına alınmıştır).
     Güvenlik kontrolü için isteğe bağlı customer_id filtresi uygulanır.
     """
+    # # [DEPRECATED - LOCAL DISK & MYSQL OPTION]
+    # try:
+    #     if customer_id:
+    #         sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s AND customer_stripe_id = %s"
+    #         params = (invoice_id, customer_id)
+    #     else:
+    #         sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s"
+    #         params = (invoice_id,)
+    # 
+    #     with get_db() as cursor:
+    #         cursor.execute(sql, params)
+    #         row = cursor.fetchone()
+    # 
+    #     if not row or not row[0]:
+    #         return None
+    # 
+    #     pdf_path = Path(row[0])
+    #     if pdf_path.exists():
+    #         with open(pdf_path, "rb") as f:
+    #             return f.read()
+    #     return None
+    # except Exception as e:
+    #     print(f"❌ Error reading local invoice PDF: {e}")
+    #     return None
+
     try:
-        if customer_id:
-            sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s AND customer_stripe_id = %s"
-            params = (invoice_id, customer_id)
-        else:
-            sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s"
-            params = (invoice_id,)
-
-        with get_db() as cursor:
-            cursor.execute(sql, params)
-            row = cursor.fetchone()
-
-        if not row or not row[0]:
+        url = f"{BASE_URL}/invoices/{invoice_id}"
+        response = get(url)
+        if response is None:
             return None
 
-        pdf_path = Path(row[0])
-        if pdf_path.exists():
-            with open(pdf_path, "rb") as f:
-                return f.read()
+        invoice_data = response.json()
+        
+        # Müşteri güvenlik kontrolü (eğer customer_id belirtilmişse)
+        if customer_id and invoice_data.get("customer") != customer_id:
+            print(f"⚠️ Security warning: Customer {customer_id} tried to access invoice belonging to {invoice_data.get('customer')}")
+            return None
+
+        pdf_url = invoice_data.get("invoice_pdf")
+        if not pdf_url:
+            return None
+
+        pdf_res = requests.get(pdf_url, timeout=20)
+        if pdf_res.status_code == 200:
+            return pdf_res.content
         return None
     except Exception as e:
-        print(f"❌ Error reading local invoice PDF: {e}")
+        print(f"❌ Error fetching invoice PDF from Stripe API: {e}")
         return None
+
