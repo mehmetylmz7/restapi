@@ -107,6 +107,31 @@ def cancel_payment_intent(payment_intent_id, cancellation_reason=None, customer_
     return response.json()
 
 
+def _sync_payment_intent_to_db(payment: dict):
+    """
+    Stripe'tan gelen payment intent nesnesini yerel payment_intents tablosuna kaydeder/günceller.
+    """
+    if not payment or "id" not in payment:
+        return
+    try:
+        sql = """
+            INSERT INTO payment_intents (stripe_id, customer_stripe_id, amount, currency, status)
+            VALUES (%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE customer_stripe_id = VALUES(customer_stripe_id), status = VALUES(status)
+        """
+        values = (
+            payment["id"],
+            payment.get("customer"),
+            payment.get("amount"),
+            payment.get("currency"),
+            payment.get("status"),
+        )
+        with get_db() as cursor:
+            cursor.execute(sql, values)
+    except Exception as e:
+        print(f"❌ Payment intent DB senkronizasyon hatası: {e}")
+
+
 def pdf_exists(payment_intent_id: str, customer_id: str = None) -> bool:
     """
     Verilen payment_intent_id için DB'de kayıtlı PDF olup olmadığını kontrol eder.
@@ -119,15 +144,31 @@ def pdf_exists(payment_intent_id: str, customer_id: str = None) -> bool:
                 JOIN payment_intents i ON p.payment_intent_stripe_id = i.stripe_id
                 WHERE p.payment_intent_stripe_id = %s AND i.customer_stripe_id = %s LIMIT 1
             """
-            params = (payment_intent_id, customer_id)
+            with get_db() as cursor:
+                cursor.execute(sql, (payment_intent_id, customer_id))
+                row = cursor.fetchone()
+            if row is not None:
+                return True
+
+            # Eğer JOIN ile bulunamadıysa ama payment_pdfs tablosunda varsa, Stripe API ile sahiplik doğrula
+            sql_pdf = "SELECT 1 FROM payment_pdfs WHERE payment_intent_stripe_id = %s LIMIT 1"
+            with get_db() as cursor:
+                cursor.execute(sql_pdf, (payment_intent_id,))
+                has_pdf = cursor.fetchone() is not None
+
+            if has_pdf:
+                payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
+                if payment:
+                    _sync_payment_intent_to_db(payment)
+                    return True
+            return False
         else:
             sql = "SELECT 1 FROM payment_pdfs WHERE payment_intent_stripe_id = %s LIMIT 1"
             params = (payment_intent_id,)
-
-        with get_db() as cursor:
-            cursor.execute(sql, params)
-            row = cursor.fetchone()
-        return row is not None
+            with get_db() as cursor:
+                cursor.execute(sql, params)
+                row = cursor.fetchone()
+            return row is not None
     except Exception as e:
         print(f"❌ PDF kontrol hatası: {e}")
         return False
@@ -150,6 +191,10 @@ def create_payment_pdf(payment_intent_id: str, force: bool = False, customer_id:
     pdf_bytes = generate_payment_pdf(payment)
 
     try:
+        # 1. Önce payment_intents tablosunu senkronize et
+        _sync_payment_intent_to_db(payment)
+
+        # 2. PDF verisini kaydet
         sql = """
             INSERT INTO payment_pdfs (payment_intent_stripe_id, pdf_data)
             VALUES (%s, %s)
@@ -176,15 +221,40 @@ def get_payment_pdf(payment_intent_id: str, customer_id: str = None) -> bytes | 
                 JOIN payment_intents i ON p.payment_intent_stripe_id = i.stripe_id
                 WHERE p.payment_intent_stripe_id = %s AND i.customer_stripe_id = %s
             """
-            params = (payment_intent_id, customer_id)
+            with get_db() as cursor:
+                cursor.execute(sql, (payment_intent_id, customer_id))
+                row = cursor.fetchone()
+
+            if row:
+                return row[0]
+
+            # Eğer JOIN ile bulunamadıysa (yerel payment_intents kaydı eksikse):
+            # 1. PDF yerel veritabanında var mı bak
+            sql_pdf = "SELECT pdf_data FROM payment_pdfs WHERE payment_intent_stripe_id = %s"
+            with get_db() as cursor:
+                cursor.execute(sql_pdf, (payment_intent_id,))
+                pdf_row = cursor.fetchone()
+
+            if not pdf_row:
+                return None
+
+            # 2. PDF var, Stripe API üzerinden kullanıcının bu ödemeye erişim yetkisini doğrula
+            payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
+            if not payment:
+                return None  # Yetkisiz işlem veya ödeme bu müşteriye ait değil
+
+            # 3. Yetkili: Yerel payment_intents veritabanını senkronize et ve PDF verisini döndür
+            _sync_payment_intent_to_db(payment)
+            return pdf_row[0]
+
         else:
             sql = "SELECT pdf_data FROM payment_pdfs WHERE payment_intent_stripe_id = %s"
-            params = (payment_intent_id,)
+            with get_db() as cursor:
+                cursor.execute(sql, (payment_intent_id,))
+                row = cursor.fetchone()
+            return row[0] if row else None
 
-        with get_db() as cursor:
-            cursor.execute(sql, params)
-            row = cursor.fetchone()
-        return row[0] if row else None
     except Exception as e:
         print(f"❌ PDF DB okuma hatası: {e}")
         return None
+

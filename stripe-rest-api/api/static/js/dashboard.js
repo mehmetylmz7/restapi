@@ -34,9 +34,9 @@ function showSection(sectionId) {
 // =====================
 const paginationState = {
     customers: { cursorHistory: [null], currentPage: 0, limit: 10 },
-    products: { cursorHistory: [null], currentPage: 0, limit: 10 },
-    payments: { cursorHistory: [null], currentPage: 0, limit: 10 },
-    refunds: { cursorHistory: [null], currentPage: 0, limit: 10 }
+    products:  { cursorHistory: [null], currentPage: 0, limit: 10 },
+    payments:  { cursorHistory: [null], currentPage: 0, limit: 10 },
+    refunds:   { cursorHistory: [null], currentPage: 0, limit: 10 }
 };
 
 function updatePaginationUI(resource, hasMore) {
@@ -154,7 +154,7 @@ function loadByResource(resource) {
     else if (resource === 'refunds') loadRefunds();
 }
 
-document.getElementById('add-customer-form').addEventListener('submit', function (e) {
+document.getElementById('add-customer-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const name = document.getElementById('cust-name').value;
     const email = document.getElementById('cust-email').value;
@@ -164,19 +164,19 @@ document.getElementById('add-customer-form').addEventListener('submit', function
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email })
     })
-        .then(response => {
-            if (!response.ok) throw new Error('Sunucu hatası');
-            return response.json();
-        })
-        .then(data => {
-            showMessage('customer-msg', `✅ Müşteri eklendi: ${data.id}`);
-            document.getElementById('add-customer-form').reset();
-            // Sıfırdan yükle (ilk sayfaya dön)
-            paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
-            loadCustomers();
-            loadDashboardStats();
-        })
-        .catch(() => showMessage('customer-msg', '❌ Müşteri eklenirken hata oluştu.', 'error'));
+    .then(response => {
+        if (!response.ok) throw new Error('Sunucu hatası');
+        return response.json();
+    })
+    .then(data => {
+        showMessage('customer-msg', `✅ Müşteri eklendi: ${data.id}`);
+        document.getElementById('add-customer-form').reset();
+        // Sıfırdan yükle (ilk sayfaya dön)
+        paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
+        loadCustomers();
+        loadDashboardStats();
+    })
+    .catch(() => showMessage('customer-msg', '❌ Müşteri eklenirken hata oluştu.', 'error'));
 });
 
 // =====================
@@ -198,7 +198,7 @@ function loadProducts() {
                 result.data.forEach(product => {
                     const sc = product.active ? 'status-succeeded' : 'status-canceled';
                     const st = product.active ? 'Aktif' : 'Pasif';
-
+                    
                     let priceText = '-';
                     if (product.default_price) {
                         const amount = (product.default_price.unit_amount / 100).toFixed(2);
@@ -231,7 +231,7 @@ function loadProducts() {
         });
 }
 
-document.getElementById('add-product-form').addEventListener('submit', function (e) {
+document.getElementById('add-product-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const name = document.getElementById('prod-name').value;
     const description = document.getElementById('prod-desc').value;
@@ -242,17 +242,17 @@ document.getElementById('add-product-form').addEventListener('submit', function 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, description, price })
     })
-        .then(response => {
-            if (!response.ok) throw new Error('Sunucu hatası');
-            return response.json();
-        })
-        .then(data => {
-            showMessage('product-msg', `✅ Ürün eklendi: ${data.id}`);
-            document.getElementById('add-product-form').reset();
-            paginationState.products = { cursorHistory: [null], currentPage: 0, limit: 10 };
-            loadProducts();
-        })
-        .catch(() => showMessage('product-msg', '❌ Ürün eklenirken hata oluştu.', 'error'));
+    .then(response => {
+        if (!response.ok) throw new Error('Sunucu hatası');
+        return response.json();
+    })
+    .then(data => {
+        showMessage('product-msg', `✅ Ürün eklendi: ${data.id}`);
+        document.getElementById('add-product-form').reset();
+        paginationState.products = { cursorHistory: [null], currentPage: 0, limit: 10 };
+        loadProducts();
+    })
+    .catch(() => showMessage('product-msg', '❌ Ürün eklenirken hata oluştu.', 'error'));
 });
 
 // =====================
@@ -306,30 +306,30 @@ function loadPayments() {
         });
 }
 
-document.getElementById('add-payment-form').addEventListener('submit', function (e) {
+document.getElementById('add-payment-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const customer_id = document.getElementById('pay-customer-id').value.trim();
-    const amount = document.getElementById('pay-amount').value;
-    const currency = document.getElementById('pay-currency').value;
-    const order_id = document.getElementById('pay-order-id').value.trim() || null;
+    const amount      = document.getElementById('pay-amount').value;
+    const currency    = document.getElementById('pay-currency').value;
+    const order_id    = document.getElementById('pay-order-id').value.trim() || null;
 
     fetch(`${API_BASE_URL}/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customer_id, amount, currency, order_id })
     })
-        .then(response => {
-            if (!response.ok) throw new Error('Sunucu hatası');
-            return response.json();
-        })
-        .then(data => {
-            showMessage('payment-msg', `✅ Ödeme oluşturuldu: ${data.id} — Durum: ${data.status}`);
-            document.getElementById('add-payment-form').reset();
-            paginationState.payments = { cursorHistory: [null], currentPage: 0, limit: 10 };
-            loadPayments();
-            loadDashboardStats();
-        })
-        .catch(() => showMessage('payment-msg', "❌ Ödeme oluşturulurken hata oluştu. Müşteri ID'yi kontrol et.", 'error'));
+    .then(response => {
+        if (!response.ok) throw new Error('Sunucu hatası');
+        return response.json();
+    })
+    .then(data => {
+        showMessage('payment-msg', `✅ Ödeme oluşturuldu: ${data.id} — Durum: ${data.status}`);
+        document.getElementById('add-payment-form').reset();
+        paginationState.payments = { cursorHistory: [null], currentPage: 0, limit: 10 };
+        loadPayments();
+        loadDashboardStats();
+    })
+    .catch(() => showMessage('payment-msg', "❌ Ödeme oluşturulurken hata oluştu. Müşteri ID'yi kontrol et.", 'error'));
 });
 
 // =====================
@@ -436,7 +436,7 @@ async function pdfConfirmYes() {
             return;
         }
         const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
+        const url  = URL.createObjectURL(blob);
         window.open(url, '_blank');
     } catch (e) {
         alert('❌ Sunucu hatası: ' + e.message);
@@ -480,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Dispute form submit
-document.getElementById('upload-dispute-form').addEventListener('submit', async function (e) {
+document.getElementById('upload-dispute-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const paymentId = document.getElementById('dispute-payment-id').value.trim();
     const fileInput = document.getElementById('dispute-file');
@@ -529,7 +529,7 @@ function loadUploadedFiles() {
     fetch(`${API_BASE_URL}/files`)
         .then(r => r.json())
         .then(result => {
-            const tbody = document.getElementById('files-tbody');
+            const tbody  = document.getElementById('files-tbody');
             const emptyP = document.getElementById('files-empty-msg');
             tbody.innerHTML = '';
 
@@ -542,7 +542,7 @@ function loadUploadedFiles() {
 
             files.forEach(f => {
                 const sizeKb = f.file_size ? (f.file_size / 1024).toFixed(1) + ' KB' : '-';
-                const date = f.olusturma_tarihi
+                const date   = f.olusturma_tarihi
                     ? new Date(f.olusturma_tarihi).toLocaleString('tr-TR')
                     : '-';
                 tbody.innerHTML += `
@@ -573,13 +573,13 @@ function loadUploadedFiles() {
  */
 async function runExport() {
     const formatEl = document.querySelector('input[name="export-format"]:checked');
-    const limitEl = document.querySelector('input[name="export-limit"]:checked');
+    const limitEl  = document.querySelector('input[name="export-limit"]:checked');
     const selectEl = document.getElementById('export-select');
 
     if (!formatEl || !limitEl || !selectEl) return;
 
-    const format = formatEl.value;            // 'json' veya 'csv'
-    const limitVal = limitEl.value;             // '100' veya 'all'
+    const format    = formatEl.value;            // 'json' veya 'csv'
+    const limitVal  = limitEl.value;             // '100' veya 'all'
     const resources = Array.from(selectEl.selectedOptions).map(opt => opt.value).filter(val => val !== "");
 
     if (resources.length === 0) {
@@ -608,11 +608,11 @@ async function runExport() {
             }
 
             // Dosyayı blob olarak al ve tarayıcıya indir
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${resource}.${format}`;
+            const blob     = await res.blob();
+            const url      = URL.createObjectURL(blob);
+            const a        = document.createElement('a');
+            a.href         = url;
+            a.download     = `${resource}.${format}`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -804,7 +804,7 @@ function onWizardModelChanged() {
         // En iyi eşleşen sütunu bulmaya çalışalım (isim benzerliğine göre)
         let bestMatch = "";
         const fKey = field.key.toLowerCase();
-
+        
         wizardColumns.forEach(col => {
             const cLower = col.toLowerCase();
             if (cLower === fKey || cLower.includes(fKey) || fKey.includes(cLower)) {
@@ -817,7 +817,7 @@ function onWizardModelChanged() {
         wizardColumns.forEach(col => {
             const isSelected = col === bestMatch ? "selected" : "";
             const inferred = wizardInferredTypes[col] ? ` (${wizardInferredTypes[col]})` : "";
-
+            
             // Örnek veri gösterimi
             let sampleText = "";
             if (wizardPreviewData.length > 0 && wizardPreviewData[0][col] !== undefined) {
@@ -898,7 +898,7 @@ async function wizardPreviewMapping() {
 
         // Geçerli tabloyu çiz
         renderWizardPreviewValid(model, data.valid);
-
+        
         // Mevcut tabloyu çiz
         renderWizardPreviewExisting(model, data.existing);
 
@@ -920,7 +920,7 @@ async function wizardPreviewMapping() {
 function renderWizardPreviewValid(model, validRecords) {
     const thead = document.getElementById("wizard-preview-valid-thead");
     const tbody = document.getElementById("wizard-preview-valid-tbody");
-
+    
     thead.innerHTML = "";
     tbody.innerHTML = "";
 
@@ -953,7 +953,7 @@ function renderWizardPreviewValid(model, validRecords) {
 function renderWizardPreviewExisting(model, existingRecords) {
     const thead = document.getElementById("wizard-preview-existing-thead");
     const tbody = document.getElementById("wizard-preview-existing-tbody");
-
+    
     thead.innerHTML = "";
     tbody.innerHTML = "";
 
@@ -1161,14 +1161,14 @@ const resourceExportFields = {
 
 function openExportModal(resource) {
     activeExportResource = resource;
-
+    
     // Başlığı belirle
     const titles = {
         customers: "Müşteri Verilerini Dışa Aktar",
         products: "Ürün Verilerini Dışa Aktar",
         payments: "Ödeme Verilerini Dışa Aktar"
     };
-    document.getElementById("export-modal-title").innerHTML =
+    document.getElementById("export-modal-title").innerHTML = 
         `<i class="fas fa-file-export" style="color: var(--accent-color); margin-right: 0.5rem;"></i> ${titles[resource] || 'Veri Dışa Aktar'}`;
 
     // Varsayılan format ve aralıkları sıfırla
@@ -1183,7 +1183,7 @@ function openExportModal(resource) {
     // Alan seçim listesini oluştur
     const fieldsContainer = document.getElementById("custom-export-fields");
     fieldsContainer.innerHTML = "";
-
+    
     const fields = resourceExportFields[resource] || [];
     fields.forEach(f => {
         fieldsContainer.innerHTML += `
@@ -1210,7 +1210,7 @@ function toggleExportDateRange(show) {
 function toggleAllExportFields() {
     const checkboxes = document.querySelectorAll('input[name="custom-export-field-checkbox"]');
     if (checkboxes.length === 0) return;
-
+    
     // Herhangi biri unchecked ise tümünü check et, hepsi check ise tümünü uncheck et
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
     checkboxes.forEach(cb => cb.checked = !allChecked);
@@ -1221,7 +1221,7 @@ async function submitCustomExport() {
 
     const formatEl = document.querySelector('input[name="custom-export-format"]:checked');
     const limitEl = document.querySelector('input[name="custom-export-limit"]:checked');
-
+    
     const format = formatEl ? formatEl.value : "json";
     const limit = limitEl ? limitEl.value : "100";
 
@@ -1307,7 +1307,7 @@ function loadInvoicesTab() {
     invoiceCart = [];
     updateCartUI();
     clearPreviewSheet();
-
+    
     // Dropdown'ları ve fatura listesini yükle
     loadInvoiceCustomers();
     loadInvoiceProducts();
@@ -1317,7 +1317,7 @@ function loadInvoicesTab() {
 function formatInvoiceCurrency(amountCents, currencyCode) {
     const amount = amountCents / 100;
     const code = currencyCode.toLowerCase();
-
+    
     if (code === 'try') {
         return amount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
     } else if (code === 'eur') {
@@ -1325,14 +1325,14 @@ function formatInvoiceCurrency(amountCents, currencyCode) {
     } else if (code === 'gbp') {
         return amount.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' });
     }
-
+    
     return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 }
 
 function loadInvoiceCustomers() {
     const select = document.getElementById("invoice-customer-select");
     select.innerHTML = '<option value="">Müşteri Seçin...</option>';
-
+    
     fetch(`${API_BASE_URL}/customers?limit=100`)
         .then(res => res.json())
         .then(result => {
@@ -1353,7 +1353,7 @@ function loadInvoiceCustomers() {
 function loadInvoiceProducts() {
     const select = document.getElementById("invoice-product-select");
     select.innerHTML = '<option value="">Ürün Seçin...</option>';
-
+    
     fetch(`${API_BASE_URL}/products?limit=100`)
         .then(res => res.json())
         .then(result => {
@@ -1363,7 +1363,7 @@ function loadInvoiceProducts() {
                 activeProducts.forEach(prod => {
                     const price = prod.default_price;
                     const amountFormatted = formatInvoiceCurrency(price.unit_amount, price.currency);
-
+                    
                     const option = document.createElement("option");
                     option.value = prod.id;
                     option.textContent = `${prod.name} (${amountFormatted})`;
@@ -1381,32 +1381,32 @@ function loadInvoiceProducts() {
 function addInvoiceItemToList() {
     const select = document.getElementById("invoice-product-select");
     const qtyInput = document.getElementById("invoice-product-qty");
-
+    
     if (!select.value) {
         alert("Lütfen önce bir ürün seçin.");
         return;
     }
-
+    
     const qty = parseInt(qtyInput.value);
     if (isNaN(qty) || qty < 1) {
         alert("Lütfen geçerli bir adet girin.");
         return;
     }
-
+    
     const selectedOption = select.options[select.selectedIndex];
     const productId = select.value;
     const priceId = selectedOption.dataset.priceId;
     const priceAmount = parseInt(selectedOption.dataset.priceAmount);
     const currency = selectedOption.dataset.currency;
     const name = selectedOption.dataset.name;
-
+    
     // Fatura para birimi eşleşme kontrolü
     const chosenCurrency = document.getElementById("invoice-currency-select").value.toLowerCase();
     if (currency.toLowerCase() !== chosenCurrency) {
         alert(`Seçilen ürün para birimi (${currency.toUpperCase()}), fatura para birimi (${chosenCurrency.toUpperCase()}) ile eşleşmelidir.`);
         return;
     }
-
+    
     // Sepet kontrolü
     const existingItem = invoiceCart.find(item => item.productId === productId);
     if (existingItem) {
@@ -1421,7 +1421,7 @@ function addInvoiceItemToList() {
             quantity: qty
         });
     }
-
+    
     qtyInput.value = 1;
     updateCartUI();
     debouncePreview();
@@ -1431,18 +1431,18 @@ function updateCartUI() {
     const tbody = document.getElementById("invoice-cart-tbody");
     const emptyMsg = document.getElementById("invoice-cart-empty");
     tbody.innerHTML = "";
-
+    
     if (invoiceCart.length === 0) {
         emptyMsg.style.display = "block";
         return;
     }
     emptyMsg.style.display = "none";
-
+    
     invoiceCart.forEach((item, index) => {
         const itemTotal = item.priceAmount * item.quantity;
         const priceFormatted = formatInvoiceCurrency(item.priceAmount, item.currency);
         const totalFormatted = formatInvoiceCurrency(itemTotal, item.currency);
-
+        
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${item.name}</td>
@@ -1507,7 +1507,7 @@ function clearPreviewSheet() {
     document.getElementById("preview-discount").textContent = "-$0.00";
     document.getElementById("preview-tax").textContent = "$0.00";
     document.getElementById("preview-total").textContent = "$0.00";
-
+    
     const tbody = document.getElementById("preview-table-tbody");
     tbody.innerHTML = `
         <tr>
@@ -1520,25 +1520,25 @@ function fetchInvoicePreview() {
     const customerSelect = document.getElementById("invoice-customer-select");
     const currencySelect = document.getElementById("invoice-currency-select");
     const badge = document.querySelector(".invoice-preview-badge");
-
+    
     const customerId = customerSelect.value;
     const currency = currencySelect.value;
-
+    
     if (!customerId || invoiceCart.length === 0) {
         clearPreviewSheet();
         return;
     }
-
+    
     badge.textContent = "ANLIK ÖNİZLEME (Güncelleniyor...)";
     badge.style.background = "rgba(245, 158, 11, 0.15)";
     badge.style.color = "#f59e0b";
     badge.style.borderColor = "rgba(245, 158, 11, 0.3)";
-
+    
     const items = invoiceCart.map(item => ({
         price: item.priceId,
         quantity: item.quantity
     }));
-
+    
     fetch(`${API_BASE_URL}/invoices/preview`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1548,78 +1548,78 @@ function fetchInvoicePreview() {
             items: items
         })
     })
-        .then(res => {
-            if (!res.ok) throw new Error("Önizleme çekilemedi.");
-            return res.json();
-        })
-        .then(preview => {
-            const now = new Date();
-            document.getElementById("preview-date").textContent = now.toLocaleDateString("tr-TR");
-
-            const opt = customerSelect.options[customerSelect.selectedIndex];
-            document.getElementById("preview-customer-name").textContent = opt.dataset.name || "-";
-            document.getElementById("preview-customer-email").textContent = opt.dataset.email || "-";
-            document.getElementById("preview-customer-id").textContent = customerId;
-
-            const tbody = document.getElementById("preview-table-tbody");
-            tbody.innerHTML = "";
-
-            if (preview.lines && preview.lines.data) {
-                preview.lines.data.forEach(line => {
-                    const tr = document.createElement("tr");
-                    const desc = line.description || "Ürün Tanımı";
-                    const unitFormatted = formatInvoiceCurrency(line.price ? line.price.unit_amount : line.amount / line.quantity, preview.currency);
-                    const totalFormatted = formatInvoiceCurrency(line.amount, preview.currency);
-
-                    tr.innerHTML = `
+    .then(res => {
+        if (!res.ok) throw new Error("Önizleme çekilemedi.");
+        return res.json();
+    })
+    .then(preview => {
+        const now = new Date();
+        document.getElementById("preview-date").textContent = now.toLocaleDateString("tr-TR");
+        
+        const opt = customerSelect.options[customerSelect.selectedIndex];
+        document.getElementById("preview-customer-name").textContent = opt.dataset.name || "-";
+        document.getElementById("preview-customer-email").textContent = opt.dataset.email || "-";
+        document.getElementById("preview-customer-id").textContent = customerId;
+        
+        const tbody = document.getElementById("preview-table-tbody");
+        tbody.innerHTML = "";
+        
+        if (preview.lines && preview.lines.data) {
+            preview.lines.data.forEach(line => {
+                const tr = document.createElement("tr");
+                const desc = line.description || "Ürün Tanımı";
+                const unitFormatted = formatInvoiceCurrency(line.price ? line.price.unit_amount : line.amount / line.quantity, preview.currency);
+                const totalFormatted = formatInvoiceCurrency(line.amount, preview.currency);
+                
+                tr.innerHTML = `
                     <td style="padding: 10px 5px; color: #30313d;">${desc}</td>
                     <td style="padding: 10px 5px; text-align: right; color: #30313d;">${unitFormatted}</td>
                     <td style="padding: 10px 5px; text-align: center; color: #30313d;">${line.quantity}</td>
                     <td style="padding: 10px 5px; text-align: right; color: #30313d;">${totalFormatted}</td>
                 `;
-                    tbody.appendChild(tr);
-                });
-            }
-
-            const previewSubtotal = preview.subtotal || 0;
-            const previewTax = preview.tax || 0;
-            const previewTotal = preview.total || 0;
-            const previewCurrency = preview.currency;
-
-            document.getElementById("preview-subtotal").textContent = formatInvoiceCurrency(previewSubtotal, previewCurrency);
-            document.getElementById("preview-tax").textContent = formatInvoiceCurrency(previewTax, previewCurrency);
-            document.getElementById("preview-total").textContent = formatInvoiceCurrency(previewTotal, previewCurrency);
-
-            const diff = (previewSubtotal + previewTax) - previewTotal;
-            const discountRow = document.getElementById("preview-discount-row");
-            if (diff > 0) {
-                discountRow.style.display = "flex";
-                document.getElementById("preview-discount").textContent = "-" + formatInvoiceCurrency(diff, previewCurrency);
-            } else {
-                discountRow.style.display = "none";
-            }
-
-            badge.textContent = "ANLIK ÖNİZLEME";
-            badge.style.background = "rgba(99, 91, 255, 0.15)";
-            badge.style.color = "#a5b4fc";
-            badge.style.borderColor = "rgba(99, 91, 255, 0.3)";
-        })
-        .catch(err => {
-            console.error("Preview fetch error:", err);
-            badge.textContent = "HATA (Müşteri Para Birimi Uyuşmazlığı)";
-            badge.style.background = "rgba(239, 68, 68, 0.15)";
-            badge.style.color = "#ef4444";
-            badge.style.borderColor = "rgba(239, 68, 68, 0.3)";
-        });
+                tbody.appendChild(tr);
+            });
+        }
+        
+        const previewSubtotal = preview.subtotal || 0;
+        const previewTax = preview.tax || 0;
+        const previewTotal = preview.total || 0;
+        const previewCurrency = preview.currency;
+        
+        document.getElementById("preview-subtotal").textContent = formatInvoiceCurrency(previewSubtotal, previewCurrency);
+        document.getElementById("preview-tax").textContent = formatInvoiceCurrency(previewTax, previewCurrency);
+        document.getElementById("preview-total").textContent = formatInvoiceCurrency(previewTotal, previewCurrency);
+        
+        const diff = (previewSubtotal + previewTax) - previewTotal;
+        const discountRow = document.getElementById("preview-discount-row");
+        if (diff > 0) {
+            discountRow.style.display = "flex";
+            document.getElementById("preview-discount").textContent = "-" + formatInvoiceCurrency(diff, previewCurrency);
+        } else {
+            discountRow.style.display = "none";
+        }
+        
+        badge.textContent = "ANLIK ÖNİZLEME";
+        badge.style.background = "rgba(99, 91, 255, 0.15)";
+        badge.style.color = "#a5b4fc";
+        badge.style.borderColor = "rgba(99, 91, 255, 0.3)";
+    })
+    .catch(err => {
+        console.error("Preview fetch error:", err);
+        badge.textContent = "HATA (Müşteri Para Birimi Uyuşmazlığı)";
+        badge.style.background = "rgba(239, 68, 68, 0.15)";
+        badge.style.color = "#ef4444";
+        badge.style.borderColor = "rgba(239, 68, 68, 0.3)";
+    });
 }
 
 function submitFinalizeInvoice() {
     const customerSelect = document.getElementById("invoice-customer-select");
     const currencySelect = document.getElementById("invoice-currency-select");
-
+    
     const customerId = customerSelect.value;
     const currency = currencySelect.value;
-
+    
     if (!customerId) {
         alert("Lütfen önce bir müşteri seçin.");
         return;
@@ -1628,20 +1628,20 @@ function submitFinalizeInvoice() {
         alert("Lütfen faturaya en az bir ürün ekleyin.");
         return;
     }
-
+    
     const confirmAction = confirm("Faturayı kesinleştirmek ve Stripe üzerinden oluşturmak istediğinizden emin misiniz?");
     if (!confirmAction) return;
-
+    
     const btn = document.querySelector(".invoice-left-panel button[onclick='submitFinalizeInvoice()']");
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fatura Kesiliyor...';
-
+    
     const items = invoiceCart.map(item => ({
         price: item.priceId,
         quantity: item.quantity
     }));
-
+    
     fetch(`${API_BASE_URL}/invoices`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1651,33 +1651,33 @@ function submitFinalizeInvoice() {
             items: items
         })
     })
-        .then(async res => {
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Fatura oluşturulamadı.");
-            return data;
-        })
-        .then(invoice => {
-            showMessage("invoice-action-msg", `✅ Fatura başarıyla oluşturuldu: ${invoice.id}`);
-            invoiceCart = [];
-            updateCartUI();
-            clearPreviewSheet();
-            loadLocalInvoicesList();
-            loadDashboardStats();
-        })
-        .catch(err => {
-            console.error("Invoice finalization error:", err);
-            showMessage("invoice-action-msg", `❌ Hata: ${err.message}`, "error");
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        });
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Fatura oluşturulamadı.");
+        return data;
+    })
+    .then(invoice => {
+        showMessage("invoice-action-msg", `✅ Fatura başarıyla oluşturuldu: ${invoice.id}`);
+        invoiceCart = [];
+        updateCartUI();
+        clearPreviewSheet();
+        loadLocalInvoicesList();
+        loadDashboardStats();
+    })
+    .catch(err => {
+        console.error("Invoice finalization error:", err);
+        showMessage("invoice-action-msg", `❌ Hata: ${err.message}`, "error");
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
 }
 
 function loadLocalInvoicesList() {
     const tbody = document.getElementById("invoices-tbody-list");
     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Yükleniyor...</td></tr>';
-
+    
     fetch(`${API_BASE_URL}/invoices`)
         .then(res => res.json())
         .then(result => {
@@ -1686,7 +1686,7 @@ function loadLocalInvoicesList() {
                 result.data.forEach(inv => {
                     const date = inv.olusturma_tarihi ? new Date(inv.olusturma_tarihi).toLocaleString('tr-TR') : '-';
                     const amountFormatted = formatInvoiceCurrency(inv.amount, inv.currency);
-
+                    
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
                         <td>${inv.stripe_invoice_id}</td>
@@ -1766,29 +1766,29 @@ function initUserPortal() {
     fetch(`${API_BASE_URL}/user/me`, {
         headers: { "Authorization": `Bearer ${token}` }
     })
-        .then(res => {
-            if (res.status === 401) {
-                // Token geçersiz veya süresi dolmuş
-                localStorage.removeItem("user_access_token");
-                initUserPortal();
-                throw new Error("Token expired");
-            }
-            return res.json();
-        })
-        .then(customer => {
-            authContainer.style.display = "none";
-            dashboardContainer.style.display = "block";
+    .then(res => {
+        if (res.status === 401) {
+            // Token geçersiz veya süresi dolmuş
+            localStorage.removeItem("user_access_token");
+            initUserPortal();
+            throw new Error("Token expired");
+        }
+        return res.json();
+    })
+    .then(customer => {
+        authContainer.style.display = "none";
+        dashboardContainer.style.display = "block";
+        
+        document.getElementById("portal-user-name").textContent = customer.name || "Bilinmeyen Müşteri";
+        document.getElementById("portal-user-email").textContent = customer.email || "";
+        document.getElementById("portal-user-stripe-id").textContent = customer.id;
 
-            document.getElementById("portal-user-name").textContent = customer.name || "Bilinmeyen Müşteri";
-            document.getElementById("portal-user-email").textContent = customer.email || "";
-            document.getElementById("portal-user-stripe-id").textContent = customer.id;
-
-            // Varsayılan sekmeyi aç
-            showPortalTab('payments');
-        })
-        .catch(err => {
-            console.error("Portal initialization error:", err);
-        });
+        // Varsayılan sekmeyi aç
+        showPortalTab('payments');
+    })
+    .catch(err => {
+        console.error("Portal initialization error:", err);
+    });
 }
 
 function userLogout() {
@@ -1834,13 +1834,13 @@ function loadPortalPayments() {
     fetch(`${API_BASE_URL}/user/payments?limit=50`, {
         headers: { "Authorization": `Bearer ${token}` }
     })
-        .then(res => res.json())
-        .then(result => {
-            tbody.innerHTML = "";
-            if (result && result.data && result.data.length > 0) {
-                result.data.forEach(p => {
-                    const amountFormatted = (p.amount / 100).toFixed(2);
-                    tbody.innerHTML += `
+    .then(res => res.json())
+    .then(result => {
+        tbody.innerHTML = "";
+        if (result && result.data && result.data.length > 0) {
+            result.data.forEach(p => {
+                const amountFormatted = (p.amount / 100).toFixed(2);
+                tbody.innerHTML += `
                     <tr>
                         <td>${p.id}</td>
                         <td>${amountFormatted}</td>
@@ -1853,42 +1853,42 @@ function loadPortalPayments() {
                         </td>
                     </tr>
                 `;
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Ödeme kaydınız bulunmuyor.</td></tr>';
-            }
-        })
-        .catch(err => {
-            console.error("Portal payments load error:", err);
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
-        });
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Ödeme kaydınız bulunmuyor.</td></tr>';
+        }
+    })
+    .catch(err => {
+        console.error("Portal payments load error:", err);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
+    });
 }
 
 function generateOrViewPortalPDF(paymentId) {
     const token = localStorage.getItem("user_access_token");
-
+    
     // PDF var mı kontrol et
     fetch(`${API_BASE_URL}/user/payments/${paymentId}/pdf`, {
         headers: { "Authorization": `Bearer ${token}` }
     })
-        .then(res => {
-            if (res.status === 200) {
-                // PDF zaten var, direkt aç
-                window.open(`${API_BASE_URL}/user/payments/${paymentId}/pdf?jwt=${token}`, '_blank');
-            } else if (res.status === 409 || res.status === 404) {
-                // PDF yok, oluştur (POST isteği)
-                return fetch(`${API_BASE_URL}/user/payments/${paymentId}/pdf`, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-            }
-        })
-        .then(res => {
-            if (res && res.status === 200) {
-                window.open(`${API_BASE_URL}/user/payments/${paymentId}/pdf?jwt=${token}`, '_blank');
-            }
-        })
-        .catch(err => console.error("Portal PDF error:", err));
+    .then(res => {
+        if (res.status === 200) {
+            // PDF zaten var, direkt aç
+            window.open(`${API_BASE_URL}/user/payments/${paymentId}/pdf?jwt=${token}`, '_blank');
+        } else if (res.status === 409 || res.status === 404) {
+            // PDF yok, oluştur (POST isteği)
+            return fetch(`${API_BASE_URL}/user/payments/${paymentId}/pdf`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+        }
+    })
+    .then(res => {
+        if (res && res.status === 200) {
+            window.open(`${API_BASE_URL}/user/payments/${paymentId}/pdf?jwt=${token}`, '_blank');
+        }
+    })
+    .catch(err => console.error("Portal PDF error:", err));
 }
 
 function loadPortalInvoices() {
@@ -1899,13 +1899,13 @@ function loadPortalInvoices() {
     fetch(`${API_BASE_URL}/user/invoices?limit=50`, {
         headers: { "Authorization": `Bearer ${token}` }
     })
-        .then(res => res.json())
-        .then(result => {
-            tbody.innerHTML = "";
-            if (result && result.data && result.data.length > 0) {
-                result.data.forEach(inv => {
-                    const amountFormatted = (inv.amount / 100).toFixed(2);
-                    tbody.innerHTML += `
+    .then(res => res.json())
+    .then(result => {
+        tbody.innerHTML = "";
+        if (result && result.data && result.data.length > 0) {
+            result.data.forEach(inv => {
+                const amountFormatted = (inv.amount / 100).toFixed(2);
+                tbody.innerHTML += `
                     <tr>
                         <td>${inv.stripe_invoice_id}</td>
                         <td>${amountFormatted}</td>
@@ -1918,15 +1918,15 @@ function loadPortalInvoices() {
                         </td>
                     </tr>
                 `;
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
-            }
-        })
-        .catch(err => {
-            console.error("Portal invoices load error:", err);
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
-        });
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
+        }
+    })
+    .catch(err => {
+        console.error("Portal invoices load error:", err);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
+    });
 }
 
 // Form Submit Handlers
@@ -1945,26 +1945,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password })
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        msgEl.textContent = data.error;
-                        msgEl.className = "form-message error";
-                    } else {
-                        localStorage.setItem("user_access_token", data.access_token);
-                        msgEl.textContent = "Giriş başarılı! Yönlendiriliyorsunuz...";
-                        msgEl.className = "form-message success";
-                        setTimeout(() => {
-                            initUserPortal();
-                            msgEl.textContent = "";
-                        }, 1000);
-                    }
-                })
-                .catch(err => {
-                    console.error("Login error:", err);
-                    msgEl.textContent = "Giriş yapılırken sistem hatası oluştu.";
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    msgEl.textContent = data.error;
                     msgEl.className = "form-message error";
-                });
+                } else {
+                    localStorage.setItem("user_access_token", data.access_token);
+                    msgEl.textContent = "Giriş başarılı! Yönlendiriliyorsunuz...";
+                    msgEl.className = "form-message success";
+                    setTimeout(() => {
+                        initUserPortal();
+                        msgEl.textContent = "";
+                    }, 1000);
+                }
+            })
+            .catch(err => {
+                console.error("Login error:", err);
+                msgEl.textContent = "Giriş yapılırken sistem hatası oluştu.";
+                msgEl.className = "form-message error";
+            });
         });
     }
 
@@ -1983,25 +1983,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password })
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        msgEl.textContent = data.error;
-                        msgEl.className = "form-message error";
-                    } else {
-                        msgEl.textContent = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
-                        msgEl.className = "form-message success";
-                        setTimeout(() => {
-                            toggleAuth();
-                            document.getElementById("login-email").value = email;
-                        }, 1500);
-                    }
-                })
-                .catch(err => {
-                    console.error("Register error:", err);
-                    msgEl.textContent = "Kayıt olurken sistem hatası oluştu.";
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    msgEl.textContent = data.error;
                     msgEl.className = "form-message error";
-                });
+                } else {
+                    msgEl.textContent = "Kayıt başarılı! Şimdi giriş yapabilirsiniz.";
+                    msgEl.className = "form-message success";
+                    setTimeout(() => {
+                        toggleAuth();
+                        document.getElementById("login-email").value = email;
+                    }, 1500);
+                }
+            })
+            .catch(err => {
+                console.error("Register error:", err);
+                msgEl.textContent = "Kayıt olurken sistem hatası oluştu.";
+                msgEl.className = "form-message error";
+            });
         });
     }
 
@@ -2018,32 +2018,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
             fetch(`${API_BASE_URL}/user/payments`, {
                 method: "POST",
-                headers: {
+                headers: { 
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({ amount, currency, order_id: orderId })
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        msgEl.textContent = data.error;
-                        msgEl.className = "form-message error";
-                    } else {
-                        msgEl.textContent = "Ödeme başarıyla başlatıldı!";
-                        msgEl.className = "form-message success";
-                        payForm.reset();
-                        setTimeout(() => {
-                            showPortalTab('payments');
-                            msgEl.textContent = "";
-                        }, 1500);
-                    }
-                })
-                .catch(err => {
-                    console.error("Portal payment error:", err);
-                    msgEl.textContent = "Ödeme oluşturulurken hata oluştu.";
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    msgEl.textContent = data.error;
                     msgEl.className = "form-message error";
-                });
+                } else {
+                    msgEl.textContent = "Ödeme başarıyla başlatıldı!";
+                    msgEl.className = "form-message success";
+                    payForm.reset();
+                    setTimeout(() => {
+                        showPortalTab('payments');
+                        msgEl.textContent = "";
+                    }, 1500);
+                }
+            })
+            .catch(err => {
+                console.error("Portal payment error:", err);
+                msgEl.textContent = "Ödeme oluşturulurken hata oluştu.";
+                msgEl.className = "form-message error";
+            });
         });
     }
 });
