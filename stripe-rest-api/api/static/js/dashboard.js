@@ -1878,6 +1878,7 @@ function showPortalTab(tabName) {
     if (tabName === 'payments') {
         loadPortalPayments();
     } else if (tabName === 'invoices') {
+        isPortalInvoiceFilterApplied = false;
         paginationState.portalInvoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
         loadPortalInvoices();
     }
@@ -2005,12 +2006,17 @@ function onPortalInvoiceFilterTypeChange() {
     }
 }
 
+// State flag to ensure "Veritabanına Kaydet" button is only displayed after filtering
+let isPortalInvoiceFilterApplied = false;
+
 function applyPortalInvoiceFilter() {
+    isPortalInvoiceFilterApplied = true;
     paginationState.portalInvoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
     loadPortalInvoices();
 }
 
 function clearPortalInvoiceFilter() {
+    isPortalInvoiceFilterApplied = false;
     const filterTypeEl = document.getElementById("portal-inv-filter-type");
     if (filterTypeEl) filterTypeEl.value = "all";
 
@@ -2018,6 +2024,9 @@ function clearPortalInvoiceFilter() {
     const endDateEl = document.getElementById("portal-inv-end-date");
     if (startDateEl) startDateEl.value = "";
     if (endDateEl) endDateEl.value = "";
+
+    const saveMsg = document.getElementById("portal-invoices-save-msg");
+    if (saveMsg) saveMsg.textContent = "";
 
     onPortalInvoiceFilterTypeChange();
     paginationState.portalInvoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
@@ -2073,6 +2082,8 @@ function loadPortalInvoices() {
     const tbody = document.getElementById("portal-invoices-tbody");
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>';
 
+    const saveBtn = document.getElementById("btn-portal-save-db");
+
     fetch(url, {
         headers: { "Authorization": `Bearer ${token}` }
     })
@@ -2080,6 +2091,9 @@ function loadPortalInvoices() {
     .then(result => {
         tbody.innerHTML = "";
         if (result && result.data && result.data.length > 0) {
+            if (saveBtn) {
+                saveBtn.style.display = isPortalInvoiceFilterApplied ? "inline-flex" : "none";
+            }
             result.data.forEach(inv => {
                 const amountFormatted = (inv.amount / 100).toFixed(2);
                 let date = '-';
@@ -2112,14 +2126,82 @@ function loadPortalInvoices() {
                 }
             }
         } else {
+            if (saveBtn) saveBtn.style.display = "none";
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
         }
         updatePaginationUI('portalInvoices', result ? result.has_more : false);
     })
     .catch(err => {
         console.error("Portal invoices load error:", err);
+        if (saveBtn) saveBtn.style.display = "none";
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
         updatePaginationUI('portalInvoices', false);
+    });
+}
+
+function savePortalInvoicesToDb() {
+    const token = localStorage.getItem("user_access_token");
+    const btn = document.getElementById("btn-portal-save-db");
+
+    if (!btn) return;
+    btn.disabled = true;
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+
+    // Mevcut filtre değerlerini al
+    const filterTypeEl = document.getElementById("portal-inv-filter-type");
+    let createdGte = null;
+    let createdLte = null;
+
+    if (filterTypeEl) {
+        const filterType = filterTypeEl.value;
+        if (filterType === "range") {
+            const startDate = document.getElementById("portal-inv-start-date").value;
+            const endDate = document.getElementById("portal-inv-end-date").value;
+            if (startDate) createdGte = Math.floor(new Date(startDate + "T00:00:00").getTime() / 1000);
+            if (endDate) createdLte = Math.floor(new Date(endDate + "T23:59:59").getTime() / 1000);
+        } else if (filterType === "month") {
+            const month = parseInt(document.getElementById("portal-inv-month-select").value);
+            const year = parseInt(document.getElementById("portal-inv-year-select").value);
+            if (!isNaN(month) && !isNaN(year)) {
+                createdGte = Math.floor(new Date(year, month - 1, 1, 0, 0, 0).getTime() / 1000);
+                createdLte = Math.floor(new Date(year, month, 0, 23, 59, 59).getTime() / 1000);
+            }
+        } else if (filterType === "year") {
+            const year = parseInt(document.getElementById("portal-inv-only-year-select").value);
+            if (!isNaN(year)) {
+                createdGte = Math.floor(new Date(year, 0, 1, 0, 0, 0).getTime() / 1000);
+                createdLte = Math.floor(new Date(year, 11, 31, 23, 59, 59).getTime() / 1000);
+            }
+        }
+    }
+
+    fetch(`${API_BASE_URL}/user/invoices/save_to_db`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            created_gte: createdGte,
+            created_lte: createdLte
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            showMessage("portal-invoices-save-msg", `❌ Hata: ${data.error}`, "error");
+        } else {
+            showMessage("portal-invoices-save-msg", `✅ ${data.message}`, "success");
+        }
+    })
+    .catch(err => {
+        console.error("Save invoices to DB error:", err);
+        showMessage("portal-invoices-save-msg", `❌ Sistem hatası: ${err.message}`, "error");
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
     });
 }
 

@@ -682,11 +682,17 @@
                             <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>
                         </tbody>
                     </table>
-                    <div class="pagination-controls" style="margin-top: 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
-                        <button id="portalInvoices-prev-btn" class="pagination-btn" onclick="prevPage('portalInvoices')" disabled>&#8592; Önceki</button>
-                        <span id="portalInvoices-page-info" style="font-weight: 500;">Sayfa 1</span>
-                        <button id="portalInvoices-next-btn" class="pagination-btn" onclick="nextPage('portalInvoices')" disabled>Sonraki &#8594;</button>
+                    <div class="pagination-controls" style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <button id="btn-portal-save-db" class="btn" onclick="savePortalInvoicesToDb()" style="background-color: var(--success); display: none;">
+                            <i class="fas fa-database"></i> Veritabanına Kaydet
+                        </button>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
+                            <button id="portalInvoices-prev-btn" class="pagination-btn" onclick="prevPage('portalInvoices')" disabled>&#8592; Önceki</button>
+                            <span id="portalInvoices-page-info" style="font-weight: 500;">Sayfa 1</span>
+                            <button id="portalInvoices-next-btn" class="pagination-btn" onclick="nextPage('portalInvoices')" disabled>Sonraki &#8594;</button>
+                        </div>
                     </div>
+                    <div id="portal-invoices-save-msg" class="form-message" style="margin-top: 1rem;"></div>
                 </div>
 
                 <!-- Tab 3: Pay Form -->

@@ -5,9 +5,11 @@ from services.invoice_service import (
     create_and_finalize_invoice,
     get_local_invoices,
     get_local_invoice_pdf,
+    save_invoices_to_db,
 )
 
 user_invoices_bp = Blueprint("user_invoices", __name__, url_prefix="/api/user/invoices")
+
 
 
 @user_invoices_bp.route("/preview", methods=["POST"])
@@ -75,3 +77,18 @@ def api_user_get_invoice_pdf(invoice_id):
         mimetype="application/pdf",
         headers={"Content-Disposition": f"inline; filename=fatura_{invoice_id}.pdf"},
     )
+
+
+@user_invoices_bp.route("/save_to_db", methods=["POST"])
+@jwt_required()
+def api_user_save_invoices_to_db():
+    customer_id = get_jwt_identity()
+    data = request.get_json(silent=True) or {}
+    created_gte = data.get("created_gte") or request.args.get("created_gte")
+    created_lte = data.get("created_lte") or request.args.get("created_lte")
+    result = save_invoices_to_db(
+        customer_id=customer_id,
+        created_gte=created_gte,
+        created_lte=created_lte,
+    )
+    return jsonify(result)

@@ -245,3 +245,101 @@ def get_local_invoice_pdf(invoice_id, customer_id=None):
         print(f"❌ Error fetching invoice PDF from Stripe API: {e}")
         return None
 
+
+def save_invoices_to_db(customer_id, created_gte=None, created_lte=None):
+    """
+    Stripe API'den müşteriye ait canlı faturaları çeker,
+    MySQL 'invoices' tablosuna kaydeder ve kaç verinin kaydedildiği/zaten var olduğu bilgisini döner.
+    """
+    # 1. Tablonun varlığından emin ol
+    create_table_sql = """
+    CREATE TABLE IF NOT EXISTS invoices (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        stripe_invoice_id VARCHAR(255) NOT NULL UNIQUE,
+        customer_stripe_id VARCHAR(255) NOT NULL,
+        amount INT NOT NULL,
+        currency VARCHAR(10) NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        pdf_path VARCHAR(255),
+        olusturma_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    """
+    try:
+        with get_db() as cursor:
+            cursor.execute(create_table_sql)
+    except Exception as e:
+        print(f"❌ invoices tablosu kontrol edilirken hata: {e}")
+
+    # 2. Stripe API'den faturaları çek
+    try:
+        url = f"{BASE_URL}/invoices"
+        params = {"limit": 100, "customer": customer_id}
+        if created_gte:
+            params["created[gte]"] = int(created_gte)
+        if created_lte:
+            params["created[lte]"] = int(created_lte)
+
+        response = get(url, params=params)
+        if response is None:
+            return {
+                "total_fetched": 0,
+                "saved_count": 0,
+                "existing_count": 0,
+                "message": "Stripe API'den fatura çekilemedi.",
+            }
+
+        res_json = response.json()
+        stripe_invoices = res_json.get("data", [])
+    except Exception as e:
+        print(f"❌ Stripe API error during save_invoices_to_db: {e}")
+        return {
+            "total_fetched": 0,
+            "saved_count": 0,
+            "existing_count": 0,
+            "message": f"Fatura çekilirken hata oluştu: {e}",
+        }
+
+    total_fetched = len(stripe_invoices)
+    saved_count = 0
+    existing_count = 0
+
+    # 3. Veritabanına kaydet / kontrol et
+    for inv in stripe_invoices:
+        inv_id = inv.get("id")
+        amount = inv.get("total", inv.get("amount_due", 0))
+        currency = inv.get("currency", "usd")
+        status = inv.get("status", "open")
+        pdf_path = inv.get("invoice_pdf", "") or ""
+
+        try:
+            with get_db() as cursor:
+                # Zaten var mı kontrol et
+                cursor.execute(
+                    "SELECT 1 FROM invoices WHERE stripe_invoice_id = %s LIMIT 1",
+                    (inv_id,),
+                )
+                row = cursor.fetchone()
+
+                if row:
+                    existing_count += 1
+                else:
+                    insert_sql = """
+                        INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(
+                        insert_sql,
+                        (inv_id, customer_id, amount, currency, status, pdf_path),
+                    )
+                    saved_count += 1
+        except Exception as err:
+            print(f"❌ Fatura DB kayıt hatası ({inv_id}): {err}")
+
+    message = f"{total_fetched} veri çekildi, {saved_count}'i veritabanına kaydedildi, {existing_count} tanesi zaten mevcut."
+    return {
+        "total_fetched": total_fetched,
+        "saved_count": saved_count,
+        "existing_count": existing_count,
+        "message": message,
+    }
+
