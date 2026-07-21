@@ -129,55 +129,18 @@ def create_and_finalize_invoice(customer_id, currency, items):
         raise e
 
 
-def get_local_invoices(customer_id=None, limit=10, starting_after=None):
+def get_local_invoices(
+    customer_id=None,
+    limit=10,
+    starting_after=None,
+    created_gte=None,
+    created_lte=None,
+):
     """
     Stripe REST API'den onaylanmış/tüm faturaları canlı olarak çeker.
     Sayfalama (pagination) için limit ve starting_after parametrelerini destekler.
-    (Eski MySQL veritabanı sorgusu yorum satırına alınmıştır).
+    Tarih filtreleme için created_gte ve created_lte destekler.
     """
-    # # [DEPRECATED - MYSQL DATABASE OPTION]
-    # try:
-    #     if customer_id:
-    #         sql = """
-    #             SELECT id, stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi
-    #             FROM invoices
-    #             WHERE customer_stripe_id = %s
-    #             ORDER BY olusturma_tarihi DESC
-    #             LIMIT %s
-    #         """
-    #         params = (customer_id, limit)
-    #     else:
-    #         sql = """
-    #             SELECT id, stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi
-    #             FROM invoices
-    #             ORDER BY olusturma_tarihi DESC
-    #             LIMIT %s
-    #         """
-    #         params = (limit,)
-    # 
-    #     with get_db() as cursor:
-    #         cursor.execute(sql, params)
-    #         rows = cursor.fetchall()
-    # 
-    #     invoices = []
-    #     for r in rows:
-    #         invoices.append(
-    #             {
-    #                 "id": r[0],
-    #                 "stripe_invoice_id": r[1],
-    #                 "customer_stripe_id": r[2],
-    #                 "amount": r[3],
-    #                 "currency": r[4],
-    #                 "status": r[5],
-    #                 "pdf_path": r[6],
-    #                 "olusturma_tarihi": str(r[7]),
-    #             }
-    #         )
-    #     return {"data": invoices, "has_more": False}
-    # except Exception as e:
-    #     print(f"❌ Database error fetching local invoices: {e}")
-    #     return {"data": [], "has_more": False}
-
     try:
         url = f"{BASE_URL}/invoices"
         params = {"limit": limit}
@@ -185,6 +148,10 @@ def get_local_invoices(customer_id=None, limit=10, starting_after=None):
             params["starting_after"] = starting_after
         if customer_id:
             params["customer"] = customer_id
+        if created_gte:
+            params["created[gte]"] = int(created_gte)
+        if created_lte:
+            params["created[lte]"] = int(created_lte)
 
         response = get(url, params=params)
         if response is None:
@@ -213,6 +180,7 @@ def get_local_invoices(customer_id=None, limit=10, starting_after=None):
                     "status": inv.get("status", "open"),
                     "pdf_path": inv.get("invoice_pdf", ""),
                     "olusturma_tarihi": dt_str,
+                    "created": created_ts,
                 }
             )
         return {"data": invoices, "has_more": has_more}

@@ -1886,7 +1886,7 @@ function showPortalTab(tabName) {
 function loadPortalPayments() {
     const token = localStorage.getItem("user_access_token");
     const tbody = document.getElementById("portal-payments-tbody");
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>';
 
     fetch(`${API_BASE_URL}/user/payments?limit=50`, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -1897,12 +1897,14 @@ function loadPortalPayments() {
         if (result && result.data && result.data.length > 0) {
             result.data.forEach(p => {
                 const amountFormatted = (p.amount / 100).toFixed(2);
+                const date = p.created ? new Date(p.created * 1000).toLocaleString('tr-TR') : '-';
                 tbody.innerHTML += `
                     <tr>
                         <td>${p.id}</td>
                         <td>${amountFormatted}</td>
                         <td style="text-transform: uppercase;">${p.currency}</td>
                         <td><span class="status-badge ${statusClass(p.status)}">${p.status.toUpperCase()}</span></td>
+                        <td>${date}</td>
                         <td class="action-cell">
                             <button class="btn-sm btn-view" onclick="generateOrViewPortalPDF('${p.id}')">
                                 <i class="fas fa-file-pdf"></i> PDF Fatura
@@ -1912,12 +1914,12 @@ function loadPortalPayments() {
                 `;
             });
         } else {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Ödeme kaydınız bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Ödeme kaydınız bulunmuyor.</td></tr>';
         }
     })
     .catch(err => {
         console.error("Portal payments load error:", err);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
     });
 }
 
@@ -1948,6 +1950,80 @@ function generateOrViewPortalPDF(paymentId) {
     .catch(err => console.error("Portal PDF error:", err));
 }
 
+// --- Customer Portal Fatura Filtreleme Yardımcıları ---
+function initPortalInvoiceYearDropdowns() {
+    const yearSelect = document.getElementById("portal-inv-year-select");
+    const onlyYearSelect = document.getElementById("portal-inv-only-year-select");
+    const monthSelect = document.getElementById("portal-inv-month-select");
+
+    if (!yearSelect || yearSelect.options.length > 0) return;
+
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    if (monthSelect) {
+        monthSelect.value = currentMonth.toString();
+    }
+
+    for (let y = currentYear; y >= 2020; y--) {
+        const opt1 = document.createElement("option");
+        opt1.value = y;
+        opt1.textContent = y;
+        yearSelect.appendChild(opt1);
+
+        const opt2 = document.createElement("option");
+        opt2.value = y;
+        opt2.textContent = y;
+        onlyYearSelect.appendChild(opt2);
+    }
+}
+
+function togglePortalInvoiceFilters() {
+    const container = document.getElementById("portal-invoice-filters-container");
+    if (!container) return;
+
+    if (container.style.display === "none" || container.style.display === "") {
+        container.style.display = "block";
+        initPortalInvoiceYearDropdowns();
+    } else {
+        container.style.display = "none";
+    }
+}
+
+function onPortalInvoiceFilterTypeChange() {
+    const filterType = document.getElementById("portal-inv-filter-type").value;
+    const rangeGroup = document.getElementById("portal-inv-range-group");
+    const monthGroup = document.getElementById("portal-inv-month-group");
+    const yearOnlyGroup = document.getElementById("portal-inv-year-only-group");
+
+    if (rangeGroup) rangeGroup.style.display = filterType === "range" ? "flex" : "none";
+    if (monthGroup) monthGroup.style.display = filterType === "month" ? "flex" : "none";
+    if (yearOnlyGroup) yearOnlyGroup.style.display = filterType === "year" ? "block" : "none";
+
+    if (filterType === "month" || filterType === "year") {
+        initPortalInvoiceYearDropdowns();
+    }
+}
+
+function applyPortalInvoiceFilter() {
+    paginationState.portalInvoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
+    loadPortalInvoices();
+}
+
+function clearPortalInvoiceFilter() {
+    const filterTypeEl = document.getElementById("portal-inv-filter-type");
+    if (filterTypeEl) filterTypeEl.value = "all";
+
+    const startDateEl = document.getElementById("portal-inv-start-date");
+    const endDateEl = document.getElementById("portal-inv-end-date");
+    if (startDateEl) startDateEl.value = "";
+    if (endDateEl) endDateEl.value = "";
+
+    onPortalInvoiceFilterTypeChange();
+    paginationState.portalInvoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
+    loadPortalInvoices();
+}
+
 function loadPortalInvoices() {
     const token = localStorage.getItem("user_access_token");
     const state = paginationState.portalInvoices;
@@ -1955,8 +2031,47 @@ function loadPortalInvoices() {
     let url = `${API_BASE_URL}/user/invoices?limit=${state.limit}`;
     if (cursor) url += `&starting_after=${cursor}`;
 
+    // Tarih filtre parametrelerini hesapla
+    const filterTypeEl = document.getElementById("portal-inv-filter-type");
+    if (filterTypeEl) {
+        const filterType = filterTypeEl.value;
+        let createdGte = null;
+        let createdLte = null;
+
+        if (filterType === "range") {
+            const startDate = document.getElementById("portal-inv-start-date").value;
+            const endDate = document.getElementById("portal-inv-end-date").value;
+            if (startDate) {
+                createdGte = Math.floor(new Date(startDate + "T00:00:00").getTime() / 1000);
+            }
+            if (endDate) {
+                createdLte = Math.floor(new Date(endDate + "T23:59:59").getTime() / 1000);
+            }
+        } else if (filterType === "month") {
+            const month = parseInt(document.getElementById("portal-inv-month-select").value);
+            const year = parseInt(document.getElementById("portal-inv-year-select").value);
+            if (!isNaN(month) && !isNaN(year)) {
+                const startDateObj = new Date(year, month - 1, 1, 0, 0, 0);
+                const endDateObj = new Date(year, month, 0, 23, 59, 59);
+                createdGte = Math.floor(startDateObj.getTime() / 1000);
+                createdLte = Math.floor(endDateObj.getTime() / 1000);
+            }
+        } else if (filterType === "year") {
+            const year = parseInt(document.getElementById("portal-inv-only-year-select").value);
+            if (!isNaN(year)) {
+                const startDateObj = new Date(year, 0, 1, 0, 0, 0);
+                const endDateObj = new Date(year, 11, 31, 23, 59, 59);
+                createdGte = Math.floor(startDateObj.getTime() / 1000);
+                createdLte = Math.floor(endDateObj.getTime() / 1000);
+            }
+        }
+
+        if (createdGte && !isNaN(createdGte)) url += `&created_gte=${createdGte}`;
+        if (createdLte && !isNaN(createdLte)) url += `&created_lte=${createdLte}`;
+    }
+
     const tbody = document.getElementById("portal-invoices-tbody");
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>';
 
     fetch(url, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -1967,12 +2082,20 @@ function loadPortalInvoices() {
         if (result && result.data && result.data.length > 0) {
             result.data.forEach(inv => {
                 const amountFormatted = (inv.amount / 100).toFixed(2);
+                let date = '-';
+                if (inv.created) {
+                    date = new Date(inv.created * 1000).toLocaleString('tr-TR');
+                } else if (inv.olusturma_tarihi) {
+                    const parsedDate = new Date(inv.olusturma_tarihi);
+                    date = isNaN(parsedDate.getTime()) ? inv.olusturma_tarihi : parsedDate.toLocaleString('tr-TR');
+                }
                 tbody.innerHTML += `
                     <tr>
                         <td>${inv.stripe_invoice_id}</td>
                         <td>${amountFormatted}</td>
                         <td style="text-transform: uppercase;">${inv.currency}</td>
                         <td><span class="status-badge ${statusClass(inv.status)}">${inv.status.toUpperCase()}</span></td>
+                        <td>${date}</td>
                         <td class="action-cell">
                             <a href="${API_BASE_URL}/user/invoices/${inv.stripe_invoice_id}/pdf?jwt=${token}" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">
                                 <i class="fas fa-file-pdf"></i> PDF İndir
@@ -1989,13 +2112,13 @@ function loadPortalInvoices() {
                 }
             }
         } else {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
         }
         updatePaginationUI('portalInvoices', result ? result.has_more : false);
     })
     .catch(err => {
         console.error("Portal invoices load error:", err);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
         updatePaginationUI('portalInvoices', false);
     });
 }

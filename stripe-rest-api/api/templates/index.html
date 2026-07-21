@@ -584,18 +584,89 @@
                                 <th>Tutar</th>
                                 <th>Para Birimi</th>
                                 <th>Durum</th>
+                                <th>Tarih</th>
                                 <th>Fatura PDF</th>
                             </tr>
                         </thead>
                         <tbody id="portal-payments-tbody">
-                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Tab 2: Invoices -->
                 <div id="portal-invoices-tab" class="portal-tab-content" style="display: none;">
-                    <h3>Faturalarım</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0;">Faturalarım</h3>
+                        <button type="button" class="btn" onclick="togglePortalInvoiceFilters()" style="background: var(--accent-color); color: #fff;">
+                            <i class="fas fa-file-invoice"></i> Faturaları Getir
+                        </button>
+                    </div>
+
+                    <!-- Fatura Filtreleme / Getir Paneli -->
+                    <div id="portal-invoice-filters-container" class="form-container" style="margin-bottom: 1.5rem; display: none;">
+                        <h4 style="margin: 0 0 1rem 0; font-size: 1rem; color: #fff;"><i class="fas fa-filter"></i> Tarih Filtresi & Fatura Getir</h4>
+                        <div class="form-row" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+                            <div style="flex: 1; min-width: 160px;">
+                                <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Filtre Seçeneği:</label>
+                                <select id="portal-inv-filter-type" class="form-select" style="width: 100%;" onchange="onPortalInvoiceFilterTypeChange()">
+                                    <option value="all">Tüm Tarihler</option>
+                                    <option value="range">Tarih Aralığı (Başlangıç - Bitiş)</option>
+                                    <option value="month">Ay ve Yıl Seçimi</option>
+                                    <option value="year">Sadece Yıl Seçimi</option>
+                                </select>
+                            </div>
+
+                            <!-- Tarih Aralığı Girişi -->
+                            <div id="portal-inv-range-group" style="display: none; gap: 0.8rem; flex: 2; min-width: 250px;">
+                                <div style="flex: 1;">
+                                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Başlangıç Tarihi:</label>
+                                    <input type="date" id="portal-inv-start-date" class="form-select" style="width: 100%;" onclick="this.showPicker()">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Bitiş Tarihi:</label>
+                                    <input type="date" id="portal-inv-end-date" class="form-select" style="width: 100%;" onclick="this.showPicker()">
+                                </div>
+                            </div>
+
+                            <!-- Ay & Yıl Seçimi Girişi -->
+                            <div id="portal-inv-month-group" style="display: none; gap: 0.8rem; flex: 2; min-width: 250px;">
+                                <div style="flex: 1;">
+                                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Ay Seçin:</label>
+                                    <select id="portal-inv-month-select" class="form-select" style="width: 100%;">
+                                        <option value="1">Ocak</option>
+                                        <option value="2">Şubat</option>
+                                        <option value="3">Mart</option>
+                                        <option value="4">Nisan</option>
+                                        <option value="5">Mayıs</option>
+                                        <option value="6">Haziran</option>
+                                        <option value="7">Temmuz</option>
+                                        <option value="8">Ağustos</option>
+                                        <option value="9">Eylül</option>
+                                        <option value="10">Ekim</option>
+                                        <option value="11">Kasım</option>
+                                        <option value="12">Aralık</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Yıl Seçin:</label>
+                                    <select id="portal-inv-year-select" class="form-select" style="width: 100%;"></select>
+                                </div>
+                            </div>
+
+                            <!-- Sadece Yıl Seçimi Girişi -->
+                            <div id="portal-inv-year-only-group" style="display: none; flex: 1; min-width: 150px;">
+                                <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Yıl Seçin:</label>
+                                <select id="portal-inv-only-year-select" class="form-select" style="width: 100%;"></select>
+                            </div>
+
+                            <!-- İşlem Butonları -->
+                            <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+                                <button type="button" class="btn" onclick="applyPortalInvoiceFilter()" style="background-color: var(--success);"><i class="fas fa-search"></i> Faturaları Getir</button>
+                                <button type="button" class="btn" onclick="clearPortalInvoiceFilter()" style="background: #e0e0e0; color: #333;"><i class="fas fa-times"></i> Temizle</button>
+                            </div>
+                        </div>
+                    </div>
                     <table>
                         <thead>
                             <tr>
@@ -603,11 +674,12 @@
                                 <th>Tutar</th>
                                 <th>Para Birimi</th>
                                 <th>Durum</th>
+                                <th>Tarih</th>
                                 <th>Fatura PDF</th>
                             </tr>
                         </thead>
                         <tbody id="portal-invoices-tbody">
-                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>
                         </tbody>
                     </table>
                     <div class="pagination-controls" style="margin-top: 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">

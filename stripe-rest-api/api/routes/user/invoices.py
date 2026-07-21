@@ -51,7 +51,15 @@ def api_user_get_invoices():
     customer_id = get_jwt_identity()
     limit = int(request.args.get("limit", 10))
     starting_after = request.args.get("starting_after")
-    result = get_local_invoices(customer_id=customer_id, limit=limit, starting_after=starting_after)
+    created_gte = request.args.get("created_gte")
+    created_lte = request.args.get("created_lte")
+    result = get_local_invoices(
+        customer_id=customer_id,
+        limit=limit,
+        starting_after=starting_after,
+        created_gte=created_gte,
+        created_lte=created_lte,
+    )
     return jsonify(result)
 
 
