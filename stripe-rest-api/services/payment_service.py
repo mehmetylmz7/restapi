@@ -1,6 +1,6 @@
 from core.stripe_client import post, get
 from core.config import BASE_URL
-from core.database import get_db
+from core.database import get_db, get_tidb
 from services.pdf_service import generate_payment_pdf
 
 
@@ -134,41 +134,27 @@ def _sync_payment_intent_to_db(payment: dict):
 
 def pdf_exists(payment_intent_id: str, customer_id: str = None) -> bool:
     """
-    Verilen payment_intent_id için DB'de kayıtlı PDF olup olmadığını kontrol eder.
-    Giriş yapan kullanıcı kısıtlaması varsa sahipliğini de kontrol eder.
+    Verilen payment_intent_id için TiDB'de kayıtlı PDF olup olmadığını kontrol eder.
+    Sahiplik kontrolü için Stripe API kullanılır (JOIN yerine).
     """
     try:
-        if customer_id:
-            sql = """
-                SELECT 1 FROM payment_pdfs p
-                JOIN payment_intents i ON p.payment_intent_stripe_id = i.stripe_id
-                WHERE p.payment_intent_stripe_id = %s AND i.customer_stripe_id = %s LIMIT 1
-            """
-            with get_db() as cursor:
-                cursor.execute(sql, (payment_intent_id, customer_id))
-                row = cursor.fetchone()
-            if row is not None:
-                return True
+        # 1. TiDB'de PDF kaydı var mı?
+        with get_tidb() as cursor:
+            cursor.execute(
+                "SELECT 1 FROM payment_pdfs WHERE payment_intent_stripe_id = %s LIMIT 1",
+                (payment_intent_id,),
+            )
+            has_pdf = cursor.fetchone() is not None
 
-            # Eğer JOIN ile bulunamadıysa ama payment_pdfs tablosunda varsa, Stripe API ile sahiplik doğrula
-            sql_pdf = "SELECT 1 FROM payment_pdfs WHERE payment_intent_stripe_id = %s LIMIT 1"
-            with get_db() as cursor:
-                cursor.execute(sql_pdf, (payment_intent_id,))
-                has_pdf = cursor.fetchone() is not None
-
-            if has_pdf:
-                payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
-                if payment:
-                    _sync_payment_intent_to_db(payment)
-                    return True
+        if not has_pdf:
             return False
-        else:
-            sql = "SELECT 1 FROM payment_pdfs WHERE payment_intent_stripe_id = %s LIMIT 1"
-            params = (payment_intent_id,)
-            with get_db() as cursor:
-                cursor.execute(sql, params)
-                row = cursor.fetchone()
-            return row is not None
+
+        # 2. Sahiplik kontrolü: Stripe API üzerinden doğrula
+        if customer_id:
+            payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
+            return payment is not None  # None ise bu müşteriye ait değil
+
+        return True
     except Exception as e:
         print(f"❌ PDF kontrol hatası: {e}")
         return False
@@ -177,7 +163,7 @@ def pdf_exists(payment_intent_id: str, customer_id: str = None) -> bool:
 def create_payment_pdf(payment_intent_id: str, force: bool = False, customer_id: str = None) -> bytes | None:
     """
     Stripe'tan ödeme detayını çeker, tek sayfalık PDF üretir ve
-    MySQL payment_pdfs tablosuna LONGBLOB olarak kaydeder.
+    TiDB Cloud payment_pdfs tablosuna LONGBLOB olarak kaydeder.
     """
     # Mevcut PDF var mı kontrol et
     if not force and pdf_exists(payment_intent_id, customer_id=customer_id):
@@ -191,70 +177,47 @@ def create_payment_pdf(payment_intent_id: str, force: bool = False, customer_id:
     pdf_bytes = generate_payment_pdf(payment)
 
     try:
-        # 1. Önce payment_intents tablosunu senkronize et
+        # 1. Yerel MySQL payment_intents tablosunu senkronize et
         _sync_payment_intent_to_db(payment)
 
-        # 2. PDF verisini kaydet
+        # 2. PDF verisini TiDB Cloud'a kaydet
         sql = """
             INSERT INTO payment_pdfs (payment_intent_stripe_id, pdf_data)
             VALUES (%s, %s)
             ON DUPLICATE KEY UPDATE pdf_data = VALUES(pdf_data)
         """
-        with get_db() as cursor:
+        with get_tidb() as cursor:
             cursor.execute(sql, (payment_intent_id, pdf_bytes))
-        print(f"✅ PDF veritabanına kaydedildi: {payment_intent_id}")
+        print(f"✅ PDF TiDB'ye kaydedildi: {payment_intent_id}")
     except Exception as e:
-        print(f"❌ PDF DB kayıt hatası: {e}")
+        print(f"❌ TiDB PDF kayıt hatası: {e}")
 
     return pdf_bytes
 
 
 def get_payment_pdf(payment_intent_id: str, customer_id: str = None) -> bytes | None:
     """
-    Daha önce oluşturulmuş PDF'i payment_pdfs tablosundan okur.
+    Daha önce oluşturulmuş PDF'i TiDB Cloud payment_pdfs tablosundan okur.
+    Sahiplik kontrolü Stripe API üzerinden yapılır (JOIN yerine).
     Kayıt yoksa veya kullanıcı yetkisizse None döner.
     """
     try:
+        # 1. Sahiplik kontrolü: Stripe API üzerinden doğrula
         if customer_id:
-            sql = """
-                SELECT p.pdf_data FROM payment_pdfs p
-                JOIN payment_intents i ON p.payment_intent_stripe_id = i.stripe_id
-                WHERE p.payment_intent_stripe_id = %s AND i.customer_stripe_id = %s
-            """
-            with get_db() as cursor:
-                cursor.execute(sql, (payment_intent_id, customer_id))
-                row = cursor.fetchone()
-
-            if row:
-                return row[0]
-
-            # Eğer JOIN ile bulunamadıysa (yerel payment_intents kaydı eksikse):
-            # 1. PDF yerel veritabanında var mı bak
-            sql_pdf = "SELECT pdf_data FROM payment_pdfs WHERE payment_intent_stripe_id = %s"
-            with get_db() as cursor:
-                cursor.execute(sql_pdf, (payment_intent_id,))
-                pdf_row = cursor.fetchone()
-
-            if not pdf_row:
-                return None
-
-            # 2. PDF var, Stripe API üzerinden kullanıcının bu ödemeye erişim yetkisini doğrula
             payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
             if not payment:
                 return None  # Yetkisiz işlem veya ödeme bu müşteriye ait değil
 
-            # 3. Yetkili: Yerel payment_intents veritabanını senkronize et ve PDF verisini döndür
-            _sync_payment_intent_to_db(payment)
-            return pdf_row[0]
-
-        else:
-            sql = "SELECT pdf_data FROM payment_pdfs WHERE payment_intent_stripe_id = %s"
-            with get_db() as cursor:
-                cursor.execute(sql, (payment_intent_id,))
-                row = cursor.fetchone()
-            return row[0] if row else None
+        # 2. TiDB'den PDF verisini oku
+        with get_tidb() as cursor:
+            cursor.execute(
+                "SELECT pdf_data FROM payment_pdfs WHERE payment_intent_stripe_id = %s",
+                (payment_intent_id,),
+            )
+            row = cursor.fetchone()
+        return row[0] if row else None
 
     except Exception as e:
-        print(f"❌ PDF DB okuma hatası: {e}")
+        print(f"❌ TiDB PDF okuma hatası: {e}")
         return None
 

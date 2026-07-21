@@ -1,9 +1,13 @@
 import mysql.connector
 from contextlib import contextmanager
-from core.config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
+from core.config import (
+    DB_HOST, DB_USER, DB_PASSWORD, DB_NAME,
+    TIDB_HOST, TIDB_PORT, TIDB_USER, TIDB_PASSWORD, TIDB_NAME, TIDB_CA_PATH,
+)
 
 # Pool'un adı — get_connection() bu isimle havuzdan bağlantı alır
 _POOL_NAME = "stripe_pool"
+_TIDB_POOL_NAME = "tidb_pool"
 
 
 def init_pool(pool_size=5):
@@ -24,6 +28,29 @@ def init_pool(pool_size=5):
     )
 
 
+def init_tidb_pool(pool_size=5):
+    """
+    TiDB Cloud için bağlantı havuzu. payment_pdfs tablosuna erişim için kullanılır.
+    SSL/TLS zorunludur; CA sertifikası TIDB_CA_PATH değişkeninden okunur.
+    """
+    mysql.connector.connect(
+        pool_name=_TIDB_POOL_NAME,
+        pool_size=pool_size,
+        host=TIDB_HOST,
+        port=TIDB_PORT,
+        user=TIDB_USER,
+        password=TIDB_PASSWORD,
+        database=TIDB_NAME,
+        ssl_ca=TIDB_CA_PATH,
+        ssl_verify_cert=True,
+        ssl_verify_identity=True,
+        use_pure=True,  # Windows'ta C extension SSL uyumsuzlugunu onler
+    )
+    print(
+        f"✅ TiDB bağlantı havuzu oluşturuldu (pool_name='{_TIDB_POOL_NAME}', host='{TIDB_HOST}')"
+    )
+
+
 def get_connection():
     """
     Pool'dan hazır bir bağlantı kiralar.
@@ -37,10 +64,19 @@ def get_connection():
         return None
 
 
+def _get_tidb_connection():
+    """TiDB havuzundan bir bağlantı kiralar."""
+    try:
+        return mysql.connector.connect(pool_name=_TIDB_POOL_NAME)
+    except mysql.connector.Error as err:
+        print(f"❌ TiDB pool'dan bağlantı alınamadı: {err}")
+        return None
+
+
 @contextmanager
 def get_db():
     """
-    Veritabanı bağlantısını güvenli şekilde yöneten context manager.
+    Yerel MySQL veritabanı bağlantısını güvenli şekilde yöneten context manager.
 
     Kullanım:
         with get_db() as cursor:
@@ -64,3 +100,29 @@ def get_db():
     finally:
         cursor.close()  # her koşulda kapat
         conn.close()  # pool'a iade eder, gerçekten kapatmaz
+
+
+@contextmanager
+def get_tidb():
+    """
+    TiDB Cloud bağlantısını güvenli şekilde yöneten context manager.
+    payment_pdfs tablosuna okuma/yazma işlemleri için kullanılır.
+
+    Kullanım:
+        with get_tidb() as cursor:
+            cursor.execute(sql, values)
+    """
+    conn = _get_tidb_connection()
+    if conn is None:
+        raise RuntimeError("❌ TiDB bağlantısı kurulamadı.")
+
+    cursor = conn.cursor()
+    try:
+        yield cursor
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
