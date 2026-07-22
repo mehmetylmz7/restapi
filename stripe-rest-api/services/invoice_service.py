@@ -191,35 +191,47 @@ def get_local_invoices(
 
 def get_local_invoice_pdf(invoice_id, customer_id=None):
     """
-    Belirli bir fatura kimliği için Stripe API'den canlı PDF verisini okur.
-    (Eski yerel disk okuma mantığı yorum satırına alınmıştır).
-    Güvenlik kontrolü için isteğe bağlı customer_id filtresi uygulanır.
+    Belirli bir fatura kimliği için öncelikle yerel diskteki (data/invoices) PDF dosyasını açmaya çalışır.
+    Yerel dosya bulunamazsa veya açılırken hata alınırsa Stripe API üzerinden canlı PDF çekilir,
+    yerel yola kaydedilir ve veritabanındaki pdf_path yerel yol olarak güncellenir.
     """
-    # # [DEPRECATED - LOCAL DISK & MYSQL OPTION]
-    # try:
-    #     if customer_id:
-    #         sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s AND customer_stripe_id = %s"
-    #         params = (invoice_id, customer_id)
-    #     else:
-    #         sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s"
-    #         params = (invoice_id,)
-    # 
-    #     with get_db() as cursor:
-    #         cursor.execute(sql, params)
-    #         row = cursor.fetchone()
-    # 
-    #     if not row or not row[0]:
-    #         return None
-    # 
-    #     pdf_path = Path(row[0])
-    #     if pdf_path.exists():
-    #         with open(pdf_path, "rb") as f:
-    #             return f.read()
-    #     return None
-    # except Exception as e:
-    #     print(f"❌ Error reading local invoice PDF: {e}")
-    #     return None
+    # 1. Veritabanındaki pdf_path kaydı kontrolü
+    db_local_path = None
+    try:
+        if customer_id:
+            sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s AND customer_stripe_id = %s"
+            params = (invoice_id, customer_id)
+        else:
+            sql = "SELECT pdf_path FROM invoices WHERE stripe_invoice_id = %s"
+            params = (invoice_id,)
 
+        with get_db() as cursor:
+            cursor.execute(sql, params)
+            row = cursor.fetchone()
+
+        if row and row[0]:
+            db_local_path = row[0]
+    except Exception as e:
+        print(f"⚠️ Veritabanı PDF yolu sorgu hatası ({invoice_id}): {e}")
+
+    # 2. Yerel dosya adaylarını sırayla dene ve aç
+    candidate_paths = []
+    if db_local_path:
+        candidate_paths.append(Path(db_local_path))
+    candidate_paths.append(INVOICES_DIR / f"invoice_{invoice_id}.pdf")
+    candidate_paths.append(INVOICES_DIR / f"{invoice_id}.pdf")
+
+    for path in candidate_paths:
+        if path.exists() and path.is_file():
+            try:
+                with open(path, "rb") as f:
+                    print(f"✅ PDF yerel dosyadan açıldı: {path}")
+                    return f.read()
+            except Exception as file_err:
+                print(f"⚠️ Yerel PDF okunurken hata ({path}): {file_err}")
+
+    # 3. Yerel dosya yoksa Stripe API Fallback -> İndir, Yerele Kaydet, DB Güncelle
+    print(f"ℹ️ Yerel PDF bulunamadı ({invoice_id}). Stripe API'den indirilip yerel dizine kaydedilecek...")
     try:
         url = f"{BASE_URL}/invoices/{invoice_id}"
         response = get(url)
@@ -230,7 +242,7 @@ def get_local_invoice_pdf(invoice_id, customer_id=None):
         
         # Müşteri güvenlik kontrolü (eğer customer_id belirtilmişse)
         if customer_id and invoice_data.get("customer") != customer_id:
-            print(f"⚠️ Security warning: Customer {customer_id} tried to access invoice belonging to {invoice_data.get('customer')}")
+            print(f"⚠️ Güvenlik uyarısı: Müşteri {customer_id}, başka müşterinin ({invoice_data.get('customer')}) faturasına erişmeye çalıştı")
             return None
 
         pdf_url = invoice_data.get("invoice_pdf")
@@ -239,17 +251,49 @@ def get_local_invoice_pdf(invoice_id, customer_id=None):
 
         pdf_res = requests.get(pdf_url, timeout=20)
         if pdf_res.status_code == 200:
+            target_local_path = INVOICES_DIR / f"invoice_{invoice_id}.pdf"
+            try:
+                with open(target_local_path, "wb") as f:
+                    f.write(pdf_res.content)
+                saved_local_path_str = str(target_local_path).replace("\\", "/")
+                print(f"✅ PDF Stripe'tan indirildi ve yerel yola kaydedildi: {saved_local_path_str}")
+
+                # Veritabanındaki pdf_path'i yerel yol olarak güncelle / ekle
+                with get_db() as cursor:
+                    cursor.execute(
+                        "SELECT id FROM invoices WHERE stripe_invoice_id = %s LIMIT 1",
+                        (invoice_id,),
+                    )
+                    r = cursor.fetchone()
+                    if r:
+                        cursor.execute(
+                            "UPDATE invoices SET pdf_path = %s WHERE stripe_invoice_id = %s",
+                            (saved_local_path_str, invoice_id),
+                        )
+                    else:
+                        amount = invoice_data.get("total", invoice_data.get("amount_due", 0))
+                        currency = invoice_data.get("currency", "usd")
+                        status = invoice_data.get("status", "open")
+                        cust_id = invoice_data.get("customer", customer_id or "")
+                        cursor.execute(
+                            "INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path) VALUES (%s, %s, %s, %s, %s, %s)",
+                            (invoice_id, cust_id, amount, currency, status, saved_local_path_str),
+                        )
+            except Exception as save_err:
+                print(f"⚠️ Yerel kayıt / DB güncelleme hatası: {save_err}")
+
             return pdf_res.content
         return None
     except Exception as e:
-        print(f"❌ Error fetching invoice PDF from Stripe API: {e}")
+        print(f"❌ Stripe API üzerinden PDF çekilirken hata: {e}")
         return None
 
 
 def save_invoices_to_db(customer_id, created_gte=None, created_lte=None):
     """
     Stripe API'den müşteriye ait canlı faturaları çeker,
-    MySQL 'invoices' tablosuna kaydeder ve kaç verinin kaydedildiği/zaten var olduğu bilgisini döner.
+    PDF'lerini yerel 'data/invoices' dizinine indirir,
+    MySQL 'invoices' tablosuna yerel pdf_path ile kaydeder ve günceller.
     """
     # 1. Tablonun varlığından emin ol
     create_table_sql = """
@@ -301,27 +345,56 @@ def save_invoices_to_db(customer_id, created_gte=None, created_lte=None):
 
     total_fetched = len(stripe_invoices)
     saved_count = 0
-    existing_count = 0
+    updated_count = 0
 
-    # 3. Veritabanına kaydet / kontrol et
+    # 3. PDF'leri indir ve yerel pdf_path ile Veritabanına kaydet / güncelle
     for inv in stripe_invoices:
         inv_id = inv.get("id")
         amount = inv.get("total", inv.get("amount_due", 0))
         currency = inv.get("currency", "usd")
         status = inv.get("status", "open")
-        pdf_path = inv.get("invoice_pdf", "") or ""
+        pdf_url = inv.get("invoice_pdf", "") or ""
+
+        local_pdf_path_str = ""
+        if pdf_url:
+            pdf_filename = f"invoice_{inv_id}.pdf"
+            file_path = INVOICES_DIR / pdf_filename
+            try:
+                if not file_path.exists():
+                    pdf_res = requests.get(pdf_url, timeout=20)
+                    if pdf_res.status_code == 200:
+                        with open(file_path, "wb") as f:
+                            f.write(pdf_res.content)
+                        print(f"✅ Invoice PDF downloaded locally: {file_path}")
+                        local_pdf_path_str = str(file_path).replace("\\", "/")
+                    else:
+                        print(f"⚠️ Could not download PDF from {pdf_url} (HTTP {pdf_res.status_code})")
+                else:
+                    local_pdf_path_str = str(file_path).replace("\\", "/")
+            except Exception as download_err:
+                print(f"⚠️ Error downloading PDF for {inv_id}: {download_err}")
+
+        saved_pdf_path = local_pdf_path_str if local_pdf_path_str else pdf_url
 
         try:
             with get_db() as cursor:
-                # Zaten var mı kontrol et
                 cursor.execute(
-                    "SELECT 1 FROM invoices WHERE stripe_invoice_id = %s LIMIT 1",
+                    "SELECT id FROM invoices WHERE stripe_invoice_id = %s LIMIT 1",
                     (inv_id,),
                 )
                 row = cursor.fetchone()
 
                 if row:
-                    existing_count += 1
+                    update_sql = """
+                        UPDATE invoices
+                        SET pdf_path = %s, status = %s, amount = %s, currency = %s
+                        WHERE stripe_invoice_id = %s
+                    """
+                    cursor.execute(
+                        update_sql,
+                        (saved_pdf_path, status, amount, currency, inv_id),
+                    )
+                    updated_count += 1
                 else:
                     insert_sql = """
                         INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path)
@@ -329,17 +402,17 @@ def save_invoices_to_db(customer_id, created_gte=None, created_lte=None):
                     """
                     cursor.execute(
                         insert_sql,
-                        (inv_id, customer_id, amount, currency, status, pdf_path),
+                        (inv_id, customer_id, amount, currency, status, saved_pdf_path),
                     )
                     saved_count += 1
         except Exception as err:
             print(f"❌ Fatura DB kayıt hatası ({inv_id}): {err}")
 
-    message = f"{total_fetched} veri çekildi, {saved_count}'i veritabanına kaydedildi, {existing_count} tanesi zaten mevcut."
+    message = f"{total_fetched} fatura işlendi ({saved_count} yeni kaydedildi, {updated_count} güncellendi). PDF'ler yerel diske indirildi ve yolları kaydedildi."
     return {
         "total_fetched": total_fetched,
         "saved_count": saved_count,
-        "existing_count": existing_count,
+        "updated_count": updated_count,
         "message": message,
     }
 

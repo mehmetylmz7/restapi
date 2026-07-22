@@ -1,14 +1,18 @@
 const API_BASE_URL = "http://127.0.0.1:5000/api";
 
 // --- Yardımcı: Inline mesaj göster ---
-function showMessage(elementId, text, type = 'success') {
+function showMessage(elementId, text, type = 'success', timeout = 6000) {
     const el = document.getElementById(elementId);
+    if (!el) return;
     el.textContent = text;
     el.className = `form-message ${type}`;
-    setTimeout(() => {
-        el.className = 'form-message';
-        el.textContent = '';
-    }, 4000);
+    if (el._msgTimer) clearTimeout(el._msgTimer);
+    if (timeout > 0) {
+        el._msgTimer = setTimeout(() => {
+            el.className = 'form-message';
+            el.textContent = '';
+        }, timeout);
+    }
 }
 
 // --- Yardımcı: Status badge class ---
@@ -1878,9 +1882,17 @@ function showPortalTab(tabName) {
     if (tabName === 'payments') {
         loadPortalPayments();
     } else if (tabName === 'invoices') {
+        initPortalInvoiceYearDropdowns();
+        const filterTypeEl = document.getElementById("portal-inv-filter-type");
+        if (filterTypeEl) filterTypeEl.value = "";
+        onPortalInvoiceFilterTypeChange();
         isPortalInvoiceFilterApplied = false;
         paginationState.portalInvoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
-        loadPortalInvoices();
+        const tbody = document.getElementById("portal-invoices-tbody");
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Faturaları listelemek için "Faturaları Getir" butonuna tıklayınız.</td></tr>';
+        }
+        updatePaginationUI('portalInvoices', false);
     }
 }
 
@@ -2018,7 +2030,7 @@ function applyPortalInvoiceFilter() {
 function clearPortalInvoiceFilter() {
     isPortalInvoiceFilterApplied = false;
     const filterTypeEl = document.getElementById("portal-inv-filter-type");
-    if (filterTypeEl) filterTypeEl.value = "all";
+    if (filterTypeEl) filterTypeEl.value = "";
 
     const startDateEl = document.getElementById("portal-inv-start-date");
     const endDateEl = document.getElementById("portal-inv-end-date");
@@ -2030,7 +2042,11 @@ function clearPortalInvoiceFilter() {
 
     onPortalInvoiceFilterTypeChange();
     paginationState.portalInvoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
-    loadPortalInvoices();
+    const tbody = document.getElementById("portal-invoices-tbody");
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Faturaları listelemek için "Faturaları Getir" butonuna tıklayınız.</td></tr>';
+    }
+    updatePaginationUI('portalInvoices', false);
 }
 
 function loadPortalInvoices() {
@@ -2044,6 +2060,14 @@ function loadPortalInvoices() {
     const filterTypeEl = document.getElementById("portal-inv-filter-type");
     if (filterTypeEl) {
         const filterType = filterTypeEl.value;
+        if (!filterType) {
+            const tbody = document.getElementById("portal-invoices-tbody");
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--warning);">Lütfen bir filtre seçeneği seçiniz.</td></tr>';
+            }
+            updatePaginationUI('portalInvoices', false);
+            return;
+        }
         let createdGte = null;
         let createdLte = null;
 
@@ -2087,7 +2111,14 @@ function loadPortalInvoices() {
     fetch(url, {
         headers: { "Authorization": `Bearer ${token}` }
     })
-    .then(res => res.json())
+    .then(res => {
+        if (res.status === 401) {
+            localStorage.removeItem("user_access_token");
+            initUserPortal();
+            throw new Error("Oturum süreniz doldu, lütfen tekrar giriş yapın.");
+        }
+        return res.json();
+    })
     .then(result => {
         tbody.innerHTML = "";
         if (result && result.data && result.data.length > 0) {
@@ -2112,7 +2143,7 @@ function loadPortalInvoices() {
                         <td>${date}</td>
                         <td class="action-cell">
                             <a href="${API_BASE_URL}/user/invoices/${inv.stripe_invoice_id}/pdf?jwt=${token}" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">
-                                <i class="fas fa-file-pdf"></i> PDF İndir
+                                <i class="fas fa-file-pdf"></i> PDF Görüntüle
                             </a>
                         </td>
                     </tr>
@@ -2125,15 +2156,23 @@ function loadPortalInvoices() {
                     state.cursorHistory.push(lastId);
                 }
             }
+
+            // Faturalar geldikten sonra otomatik veritabanına kaydetmeyi tetikle
+            if (isPortalInvoiceFilterApplied) {
+                const saveMsgEl = document.getElementById("portal-invoices-save-msg");
+                if (saveMsgEl) {
+                    saveMsgEl.textContent = "⏳ Tüm faturalar getirildi şimdi veritabanına kaydediliyor...";
+                    saveMsgEl.className = "form-message info";
+                }
+                savePortalInvoicesToDb();
+            }
         } else {
-            if (saveBtn) saveBtn.style.display = "none";
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
         }
         updatePaginationUI('portalInvoices', result ? result.has_more : false);
     })
     .catch(err => {
         console.error("Portal invoices load error:", err);
-        if (saveBtn) saveBtn.style.display = "none";
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
         updatePaginationUI('portalInvoices', false);
     });
@@ -2141,12 +2180,12 @@ function loadPortalInvoices() {
 
 function savePortalInvoicesToDb() {
     const token = localStorage.getItem("user_access_token");
-    const btn = document.getElementById("btn-portal-save-db");
+    const saveMsgEl = document.getElementById("portal-invoices-save-msg");
 
-    if (!btn) return;
-    btn.disabled = true;
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+    if (saveMsgEl && !saveMsgEl.textContent.includes("veritabanına kaydediliyor")) {
+        saveMsgEl.textContent = "⏳ Tüm faturalar getirildi şimdi veritabanına kaydediliyor...";
+        saveMsgEl.className = "form-message info";
+    }
 
     // Mevcut filtre değerlerini al
     const filterTypeEl = document.getElementById("portal-inv-filter-type");
@@ -2187,21 +2226,26 @@ function savePortalInvoicesToDb() {
             created_lte: createdLte
         })
     })
-    .then(res => res.json())
+    .then(res => {
+        if (res.status === 401) {
+            localStorage.removeItem("user_access_token");
+            initUserPortal();
+            throw new Error("Oturum süreniz doldu, lütfen tekrar giriş yapın.");
+        }
+        return res.json();
+    })
     .then(data => {
-        if (data.error) {
-            showMessage("portal-invoices-save-msg", `❌ Hata: ${data.error}`, "error");
+        const errorMsg = data ? (data.error || data.msg) : null;
+        if (errorMsg) {
+            showMessage("portal-invoices-save-msg", `❌ Hata: ${errorMsg}`, "error");
         } else {
-            showMessage("portal-invoices-save-msg", `✅ ${data.message}`, "success");
+            const successMsg = data ? (data.message || "Faturalar başarıyla kaydedildi.") : "İşlem tamamlandı.";
+            showMessage("portal-invoices-save-msg", `✅ ${successMsg}`, "success");
         }
     })
     .catch(err => {
         console.error("Save invoices to DB error:", err);
-        showMessage("portal-invoices-save-msg", `❌ Sistem hatası: ${err.message}`, "error");
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = originalContent;
+        showMessage("portal-invoices-save-msg", `❌ ${err.message || 'Sistem hatası oluştu.'}`, "error");
     });
 }
 
