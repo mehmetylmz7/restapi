@@ -2466,3 +2466,57 @@
 2026-07-23 10:53:47,611 - INFO - Baþarýlý cevap: 200
 2026-07-23 10:53:47,905 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/invoices
 2026-07-23 10:53:49,864 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:28:25,827 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:28:26,767 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:16,488 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/invoices
+2026-07-23 12:29:17,455 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:17,458 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/invoiceitems
+2026-07-23 12:29:18,888 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:18,891 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/invoices/in_1TwIwKKBkUL9vnMVZb86Cw2O/finalize
+2026-07-23 12:29:20,741 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:20,801 - INFO - Import Ýþlemi Tamamlandý: Baþlýksýz e-tablo - Sayfa1 (3).csv -> invoices (Baþarýlý: 1, Baþarýsýz: 0)
+2026-07-23 12:29:20,814 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:29:20,814 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:29:20,818 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-23 12:29:20,821 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-23 12:29:22,271 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:22,356 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:22,486 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:23,088 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:23,096 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:29:24,925 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:24,929 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:29:25,771 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:25,774 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-23 12:29:27,345 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:27,348 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/refunds
+2026-07-23 12:29:29,130 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:29:29,132 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-23 12:29:29,847 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:31:10,960 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:31:11,642 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:45,719 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/invoices
+2026-07-23 12:34:46,609 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:46,612 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/invoiceitems
+2026-07-23 12:34:47,278 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:47,281 - INFO - POST isteði gönderiliyor: https://api.stripe.com/v1/invoices/in_1TwJ1dKBkUL9vnMVcr3sr8LO/finalize
+2026-07-23 12:34:48,981 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:49,027 - INFO - Import Ýþlemi Tamamlandý: Baþlýksýz e-tablo - Sayfa1 (4).csv -> invoices (Baþarýlý: 1, Baþarýsýz: 0)
+2026-07-23 12:34:49,135 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:34:49,152 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:34:49,170 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-23 12:34:49,184 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-23 12:34:49,757 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:49,780 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:50,063 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:50,733 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:50,737 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:34:52,074 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:52,077 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/customers
+2026-07-23 12:34:53,212 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:53,215 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/payment_intents
+2026-07-23 12:34:54,461 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:54,465 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/refunds
+2026-07-23 12:34:54,971 - INFO - Baþarýlý cevap: 200
+2026-07-23 12:34:54,974 - INFO - GET isteði gönderiliyor: https://api.stripe.com/v1/products
+2026-07-23 12:34:55,681 - INFO - Baþarýlý cevap: 200
