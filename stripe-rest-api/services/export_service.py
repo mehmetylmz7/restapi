@@ -7,6 +7,7 @@ from services.customer_service import get_customers
 from services.product_service import get_products
 from services.payment_service import get_payment_intents
 from services.refund_service import get_refunds
+from services.invoice_service import get_local_invoices
 
 # ── Kaynak → Stripe fetcher eşleşmesi ─────────────────────────
 _FETCHERS = {
@@ -14,6 +15,7 @@ _FETCHERS = {
     "products": get_products,
     "payments": get_payment_intents,
     "refunds": get_refunds,
+    "invoices": get_local_invoices,
 }
 
 _DEFAULT_FIELDS = {
@@ -21,6 +23,7 @@ _DEFAULT_FIELDS = {
     "products": ["id", "name", "description", "active", "price", "created"],
     "payments": ["id", "customer", "amount", "currency", "status", "created"],
     "refunds": ["id", "payment_intent", "amount", "currency", "status", "created"],
+    "invoices": ["stripe_invoice_id", "customer_stripe_id", "amount", "currency", "status", "olusturma_tarihi"],
 }
 
 
@@ -40,6 +43,15 @@ def map_record_fields(record: dict, resource: str, fields: list) -> dict:
             else:
                 row["price"] = "-"
         elif f == "amount" and resource in ("payments", "refunds"):
+            val = record.get("amount")
+            if val is not None:
+                try:
+                    row["amount"] = float(val) / 100
+                except (TypeError, ValueError):
+                    row["amount"] = val
+            else:
+                row["amount"] = "-"
+        elif f == "amount" and resource == "invoices":
             val = record.get("amount")
             if val is not None:
                 try:
@@ -70,7 +82,7 @@ def _fetch_all(resource: str, created_gte=None, created_lte=None) -> list:
     cursor = None
 
     kwargs = {}
-    if resource in ("customers", "payments") and (created_gte or created_lte):
+    if resource in ("customers", "payments", "invoices") and (created_gte or created_lte):
         if created_gte:
             kwargs["created_gte"] = created_gte
         if created_lte:
@@ -109,7 +121,7 @@ def _fetch_limited(
     """
     fetcher = _FETCHERS[resource]
     kwargs = {}
-    if resource in ("customers", "payments") and (created_gte or created_lte):
+    if resource in ("customers", "payments", "invoices") and (created_gte or created_lte):
         if created_gte:
             kwargs["created_gte"] = created_gte
         if created_lte:

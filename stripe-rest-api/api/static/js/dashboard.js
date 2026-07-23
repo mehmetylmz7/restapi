@@ -692,8 +692,23 @@ const wizardModelFields = {
         { key: "product_id", label: "Ürün ID (product_id)", required: true, desc: "Stripe Ürün ID'si (prod_...)" },
         { key: "amount", label: "Tutar (amount)", required: true, desc: "Fiyat tutarı (Sayısal)" },
         { key: "currency", label: "Para Birimi (currency)", required: false, desc: "Varsayılan 'usd' (usd, eur, try vb.)" }
+    ],
+    invoices: [
+        { key: "customer_stripe_id", label: "Müşteri ID (customer_stripe_id)", required: true, desc: "Stripe Müşteri ID'si (cus_...)" },
+        { key: "amount", label: "Tutar (amount)", required: true, desc: "Fatura tutarı (Sayısal)" },
+        { key: "currency", label: "Para Birimi (currency)", required: false, desc: "Varsayılan 'usd' (usd, eur, try vb.)" },
+        { key: "status", label: "Durum (status)", required: false, desc: "Fatura durumu (draft, open vb.)" }
     ]
 };
+
+function updateSelectedModelTitleDisplay() {
+    const modelSelect = document.getElementById("wizard-target-model");
+    const titleDisplay = document.getElementById("wizard-selected-model-title");
+    if (modelSelect && titleDisplay) {
+        const selectedOpt = modelSelect.options[modelSelect.selectedIndex];
+        titleDisplay.textContent = selectedOpt ? selectedOpt.text : modelSelect.value;
+    }
+}
 
 function openImportModal(resource) {
     activeImportResource = resource;
@@ -706,23 +721,25 @@ function openImportModal(resource) {
     const modelGroup = document.getElementById("wizard-target-model-group");
     const modelSelect = document.getElementById("wizard-target-model");
 
+    if (modelGroup) modelGroup.style.display = "block"; // Her zaman Step 1'de dosya/model türü seçilebilir olsun
+
     if (resource === "customers") {
         titleEl.innerHTML = `<i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Müşteri İçe Aktarma Sihirbazı`;
         modelSelect.value = "customers";
-        modelGroup.style.display = "none"; // Hedef model seçimini gizle
     } else if (resource === "products") {
         titleEl.innerHTML = `<i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Ürün İçe Aktarma Sihirbazı`;
         modelSelect.value = "products";
-        modelGroup.style.display = "none";
     } else if (resource === "payments") {
         titleEl.innerHTML = `<i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Ödeme İçe Aktarma Sihirbazı`;
         modelSelect.value = "payments";
-        modelGroup.style.display = "none";
+    } else if (resource === "invoices") {
+        titleEl.innerHTML = `<i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Fatura İçe Aktarma Sihirbazı`;
+        modelSelect.value = "invoices";
     } else {
         titleEl.innerHTML = `<i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> İçe Aktarma Sihirbazı`;
         modelSelect.value = "customers";
-        modelGroup.style.display = "block"; // Seçimi göster
     }
+    updateSelectedModelTitleDisplay();
 }
 
 function closeImportModal() {
@@ -803,9 +820,11 @@ async function wizardAnalyzeFile() {
 }
 
 function onWizardModelChanged() {
+    updateSelectedModelTitleDisplay();
     const model = document.getElementById("wizard-target-model").value;
     const fields = wizardModelFields[model] || [];
     const container = document.getElementById("wizard-mapping-container");
+    if (!container) return;
     container.innerHTML = "";
 
     fields.forEach(field => {
@@ -1164,6 +1183,14 @@ const resourceExportFields = {
         { key: "currency", label: "Para Birimi" },
         { key: "status", label: "Durum" },
         { key: "created", label: "Kayıt Tarihi" }
+    ],
+    invoices: [
+        { key: "stripe_invoice_id", label: "Fatura ID" },
+        { key: "customer_stripe_id", label: "Müşteri ID" },
+        { key: "amount", label: "Tutar" },
+        { key: "currency", label: "Para Birimi" },
+        { key: "status", label: "Durum" },
+        { key: "olusturma_tarihi", label: "Oluşturma Tarihi" }
     ]
 };
 
@@ -1174,7 +1201,8 @@ function openExportModal(resource) {
     const titles = {
         customers: "Müşteri Verilerini Dışa Aktar",
         products: "Ürün Verilerini Dışa Aktar",
-        payments: "Ödeme Verilerini Dışa Aktar"
+        payments: "Ödeme Verilerini Dışa Aktar",
+        invoices: "Fatura Verilerini Dışa Aktar"
     };
     document.getElementById("export-modal-title").innerHTML = 
         `<i class="fas fa-file-export" style="color: var(--accent-color); margin-right: 0.5rem;"></i> ${titles[resource] || 'Veri Dışa Aktar'}`;

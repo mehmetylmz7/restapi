@@ -29,7 +29,7 @@ def api_export():
     created_lte = data.get("created_lte")
     fields = data.get("fields")
 
-    valid_resources = ("customers", "products", "payments", "refunds")
+    valid_resources = ("customers", "products", "payments", "refunds", "invoices")
     if resource not in valid_resources:
         return jsonify({"error": f"Geçersiz kaynak. Geçerli: {valid_resources}"}), 400
     if fmt not in ("json", "csv"):
@@ -153,6 +153,7 @@ def api_import_execute():
         valid_records = validation["valid"]
 
         results = {"success": 0, "failed": 0, "failed_list": []}
+        successful_items = []
 
         for item in valid_records:
             time.sleep(0.3)  # Rate limit koruması
@@ -161,6 +162,14 @@ def api_import_execute():
 
             if res["success"]:
                 results["success"] += 1
+                successful_items.append(
+                    {
+                        "row_index": item["row_index"],
+                        "invoice_id": res.get("id"),
+                        "stripe_id": res.get("id"),
+                        "mapped": mapped_data,
+                    }
+                )
             else:
                 results["failed"] += 1
                 results["failed_list"].append(
@@ -181,6 +190,32 @@ def api_import_execute():
                     "reason": f"Doğrulama Hatası: {item['reason']}",
                 }
             )
+
+        # MongoDB 'import_invoice_logs' koleksiyonuna detaylı kayıt ve genel loglama
+        try:
+            from core.mongo_log_handler import log_import_invoice_to_mongo
+            from core.logger import logger
+
+            log_import_invoice_to_mongo(
+                {
+                    "filename": file.filename,
+                    "target_model": target_model,
+                    "total_records": len(records),
+                    "valid_count": len(validation["valid"]),
+                    "invalid_count": len(validation["invalid"]),
+                    "existing_count": len(validation["existing"]),
+                    "success_count": results["success"],
+                    "failed_count": results["failed"],
+                    "successful_items": successful_items,
+                    "failed_items": results["failed_list"],
+                    "mapping": mapping,
+                }
+            )
+            logger.info(
+                f"Import İşlemi Tamamlandı: {file.filename} -> {target_model} (Başarılı: {results['success']}, Başarısız: {results['failed']})"
+            )
+        except Exception as log_err:
+            print(f"⚠️ Import loglama hatası: {log_err}")
 
         return jsonify({"message": "Aktarım tamamlandı.", "stats": results})
     except Exception as e:

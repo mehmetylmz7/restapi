@@ -48,6 +48,46 @@ def preview_invoice(customer_id, currency, items):
     return response.json()
 
 
+def create_invoice_with_amount(customer_id: str, amount: int, currency: str = "usd", status: str = "open") -> dict:
+    """
+    Tutar (kuruş/cent cinsinden) vererek Stripe üzerinde taslak fatura ve kalemi oluşturur.
+    status 'draft' değilse faturayı finalize eder.
+    """
+    invoice_url = f"{BASE_URL}/invoices"
+    invoice_data = {"customer": customer_id, "currency": currency.lower()}
+
+    response_invoice = post(invoice_url, data=invoice_data)
+    if not response_invoice:
+        raise RuntimeError("Draft invoice creation failed on Stripe.")
+
+    invoice = response_invoice.json()
+    invoice_id = invoice["id"]
+
+    try:
+        item_url = f"{BASE_URL}/invoiceitems"
+        item_data = {
+            "customer": customer_id,
+            "amount": int(amount),
+            "currency": currency.lower(),
+            "invoice": invoice_id,
+            "description": "Fatura Kalemi",
+        }
+        res_item = post(item_url, data=item_data)
+        if not res_item:
+            raise RuntimeError(f"Adding invoice item with amount {amount} failed.")
+
+        if str(status).lower() != "draft":
+            finalize_url = f"{BASE_URL}/invoices/{invoice_id}/finalize"
+            res_finalize = post(finalize_url, data={})
+            if res_finalize:
+                return res_finalize.json()
+
+        return invoice
+    except Exception as e:
+        print(f"❌ Error during invoice creation with amount: {e}")
+        raise e
+
+
 def create_and_finalize_invoice(customer_id, currency, items):
     """
     1. Taslak fatura oluşturur.
@@ -314,7 +354,7 @@ def save_invoices_to_db(customer_id, created_gte=None, created_lte=None):
     except Exception as e:
         print(f"❌ invoices tablosu kontrol edilirken hata: {e}")
 
-    # 2. Stripe API'den faturaları çek
+    # 2. Stripe API'den faturaları çek (has_more döngüsü ile tüm sayfalar)
     try:
         url = f"{BASE_URL}/invoices"
         params = {"limit": 100, "customer": customer_id}
@@ -323,17 +363,26 @@ def save_invoices_to_db(customer_id, created_gte=None, created_lte=None):
         if created_lte:
             params["created[lte]"] = int(created_lte)
 
-        response = get(url, params=params)
-        if response is None:
-            return {
-                "total_fetched": 0,
-                "saved_count": 0,
-                "existing_count": 0,
-                "message": "Stripe API'den fatura çekilemedi.",
-            }
+        stripe_invoices = []
+        while True:
+            response = get(url, params=params)
+            if response is None:
+                return {
+                    "total_fetched": 0,
+                    "saved_count": 0,
+                    "existing_count": 0,
+                    "message": "Stripe API'den fatura çekilemedi.",
+                }
+            res_json = response.json()
+            page_data = res_json.get("data", [])
+            stripe_invoices.extend(page_data)
 
-        res_json = response.json()
-        stripe_invoices = res_json.get("data", [])
+            if res_json.get("has_more") and page_data:
+                params["starting_after"] = page_data[-1]["id"]
+            else:
+                break
+
+        print(f"✅ Stripe'tan toplam {len(stripe_invoices)} fatura çekildi.")
     except Exception as e:
         print(f"❌ Stripe API error during save_invoices_to_db: {e}")
         return {

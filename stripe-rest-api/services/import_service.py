@@ -110,6 +110,7 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
     existing_product_names = set()
     existing_payments = set()
     existing_prices = set()
+    existing_invoices = set()
 
     from core.database import get_db
 
@@ -165,6 +166,23 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
                     existing_prices.add((p_prod, int(p_amount), p_curr.strip().lower()))
         except Exception as e:
             print(f"Error fetching existing prices: {e}")
+
+    elif target_model == "invoices":
+        try:
+            with get_db() as cursor:
+                cursor.execute(
+                    "SELECT customer_stripe_id, amount, currency FROM invoices"
+                )
+                existing_invoices = {
+                    (
+                        row[0].strip() if row[0] else "",
+                        int(row[1]),
+                        row[2].strip().lower() if row[2] else "",
+                    )
+                    for row in cursor.fetchall()
+                }
+        except Exception as e:
+            print(f"Error fetching existing invoices: {e}")
 
     for idx, record in enumerate(records, start=1):
         mapped = {}
@@ -249,6 +267,28 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
             if not mapped.get("currency"):
                 mapped["currency"] = "usd"
 
+        elif target_model == "invoices":
+            customer_stripe_id = mapped.get("customer_stripe_id")
+            amount = mapped.get("amount")
+
+            if not customer_stripe_id:
+                errors.append("Müşteri ID (customer_stripe_id) boş olamaz.")
+            if not amount:
+                errors.append("Tutar (amount) boş olamaz.")
+            else:
+                try:
+                    amount_val = float(amount)
+                    if amount_val <= 0:
+                        errors.append("Tutar 0'dan büyük olmalıdır.")
+                    mapped["amount"] = amount_val
+                except ValueError:
+                    errors.append("Tutar geçerli bir sayı olmalıdır.")
+
+            if not mapped.get("currency"):
+                mapped["currency"] = "usd"
+            if not mapped.get("status"):
+                mapped["status"] = "open"
+
         else:
             errors.append(f"Bilinmeyen model: {target_model}")
 
@@ -289,6 +329,16 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
                 try:
                     amt_cents = int(float(amt) * 100) if amt else 0
                     if (prod_id, amt_cents, curr) in existing_prices:
+                        is_existing = True
+                except ValueError:
+                    pass
+            elif target_model == "invoices":
+                cust_id = mapped.get("customer_stripe_id", "").strip()
+                amt = mapped.get("amount")
+                curr = mapped.get("currency", "usd").strip().lower()
+                try:
+                    amt_cents = int(float(amt) * 100) if amt else 0
+                    if (cust_id, amt_cents, curr) in existing_invoices:
                         is_existing = True
                 except ValueError:
                     pass
@@ -349,5 +399,19 @@ def execute_import_record(target_model: str, mapped_data: dict) -> dict:
             return {"success": True, "id": price_obj["id"]}
         else:
             return {"success": False, "reason": "Stripe Fiyat ID'si döndürmedi."}
+
+    elif target_model == "invoices":
+        amount_cents = int(float(mapped_data["amount"]) * 100)
+        from services.invoice_service import create_invoice_with_amount
+        inv = create_invoice_with_amount(
+            customer_id=mapped_data["customer_stripe_id"],
+            amount=amount_cents,
+            currency=mapped_data["currency"],
+            status=mapped_data.get("status", "open"),
+        )
+        if inv and inv.get("id"):
+            return {"success": True, "id": inv["id"]}
+        else:
+            return {"success": False, "reason": "Stripe Fatura ID'si döndürmedi."}
 
     return {"success": False, "reason": f"Bilinmeyen model: {target_model}"}
