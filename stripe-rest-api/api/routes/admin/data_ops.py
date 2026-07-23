@@ -1,6 +1,8 @@
 import json
 import time
 from flask import Blueprint, jsonify, request, Response
+from core.stripe_client import RateLimitError
+from core.logger import logger
 from services.export_service import export_data
 from services.import_service import (
     parse_file,
@@ -155,12 +157,34 @@ def api_import_execute():
         results = {"success": 0, "failed": 0, "failed_list": []}
         successful_items = []
 
-        for item in valid_records:
-            time.sleep(0.3)  # Rate limit koruması
-            mapped_data = item["mapped"]
-            res = execute_import_record(target_model, mapped_data)
+        max_retries = 4
+        base_delay = 0.5
 
-            if res["success"]:
+        for item in valid_records:
+            mapped_data = item["mapped"]
+            res = None
+            success = False
+
+            for attempt in range(max_retries):
+                try:
+                    res = execute_import_record(target_model, mapped_data)
+                    if res and res.get("success"):
+                        success = True
+                        break
+                    else:
+                        break
+                except RateLimitError as rle:
+                    wait_time = base_delay * (2 ** attempt)
+                    logger.warning(
+                        f"Rate limit aşıldı (Kayıt #{item['row_index']}). "
+                        f"{wait_time:.1f}s bekleniyor ve tekrar deneniyor... (Deneme {attempt + 1}/{max_retries})"
+                    )
+                    time.sleep(wait_time)
+                except Exception as ex:
+                    res = {"success": False, "reason": str(ex)}
+                    break
+
+            if success and res:
                 results["success"] += 1
                 successful_items.append(
                     {
@@ -171,12 +195,13 @@ def api_import_execute():
                     }
                 )
             else:
+                reason = res.get("reason", "Maksimum deneme sayısına ulaşıldı (Rate Limit).") if res else "Maksimum deneme sayısına ulaşıldı (Rate Limit)."
                 results["failed"] += 1
                 results["failed_list"].append(
                     {
                         "row_index": item["row_index"],
                         "mapped": mapped_data,
-                        "reason": res["reason"],
+                        "reason": reason,
                     }
                 )
 

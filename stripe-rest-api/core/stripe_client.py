@@ -5,17 +5,29 @@ from core.logger import logger
 headers = {"Authorization": f"Bearer {STRIPE_SECRET_KEY}"}
 
 
+class RateLimitError(Exception):
+    """Stripe API Rate Limit (HTTP 429) durumlarında fırlatılan özel istisna."""
+    pass
+
+
 def _request(method: str, endpoint: str, **kwargs):
     try:
         logger.info(f"{method} isteği gönderiliyor: {endpoint}")
 
         response = requests.request(method, endpoint, headers=headers, timeout=10, **kwargs)
 
+        if response.status_code == 429:
+            logger.warning(f"Rate limit aşıldı (429): {endpoint}")
+            raise RateLimitError("Stripe API Rate Limit aşıldı (429)")
+
         response.raise_for_status()
 
         logger.info(f"Başarılı cevap: {response.status_code}")
 
         return response
+
+    except RateLimitError:
+        raise
 
     except requests.exceptions.Timeout:
         logger.error(f"Sunucu zamanında cevap vermedi: {endpoint}")
@@ -24,6 +36,9 @@ def _request(method: str, endpoint: str, **kwargs):
         logger.error(f"Sunucuya bağlanılamadı: {endpoint}")
 
     except requests.exceptions.HTTPError as err:
+        if err.response is not None and err.response.status_code == 429:
+            logger.warning(f"Rate limit aşıldı (429): {endpoint}")
+            raise RateLimitError("Stripe API Rate Limit aşıldı (429)")
         logger.error(f"HTTP hatası: {err}")
 
     except requests.exceptions.RequestException as err:
