@@ -1755,7 +1755,7 @@ function loadLocalInvoicesList() {
     if (cursor) url += `&starting_after=${cursor}`;
 
     const tbody = document.getElementById("invoices-tbody-list");
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">Yükleniyor...</td></tr>';
     
     fetch(url)
         .then(res => res.json())
@@ -1765,7 +1765,10 @@ function loadLocalInvoicesList() {
                 result.data.forEach(inv => {
                     const date = inv.olusturma_tarihi ? new Date(inv.olusturma_tarihi).toLocaleString('tr-TR') : '-';
                     const amountFormatted = formatInvoiceCurrency(inv.amount, inv.currency);
-                    
+                    const sourceBadge = (inv.is_imported || inv.source === "CSV/JSON")
+                        ? `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"><i class="fas fa-file-csv"></i> CSV/JSON</span>`
+                        : `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"><i class="fas fa-cloud"></i> Stripe API</span>`;
+
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
                         <td>${inv.stripe_invoice_id}</td>
@@ -1773,6 +1776,7 @@ function loadLocalInvoicesList() {
                         <td>${amountFormatted}</td>
                         <td style="text-transform: uppercase;">${inv.currency}</td>
                         <td><span class="status-badge ${statusClass(inv.status)}">${inv.status.toUpperCase()}</span></td>
+                        <td>${sourceBadge}</td>
                         <td>${date}</td>
                         <td class="action-cell">
                             <a href="${API_BASE_URL}/invoices/${inv.stripe_invoice_id}/pdf" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">
@@ -1790,13 +1794,13 @@ function loadLocalInvoicesList() {
                     }
                 }
             } else {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Kayıtlı fatura bulunamadı.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">Kayıtlı fatura bulunamadı.</td></tr>';
             }
             updatePaginationUI('invoices', result ? result.has_more : false);
         })
         .catch(err => {
             console.error("Error loading local invoices:", err);
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--warning);">Yüklenirken hata oluştu.</td></tr>';
             updatePaginationUI('invoices', false);
         });
 }
@@ -2072,7 +2076,7 @@ function clearPortalInvoiceFilter() {
     paginationState.portalInvoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
     const tbody = document.getElementById("portal-invoices-tbody");
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Faturaları listelemek için "Faturaları Getir" butonuna tıklayınız.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Faturaları listelemek için "Faturaları Getir" butonuna tıklayınız.</td></tr>';
     }
     updatePaginationUI('portalInvoices', false);
 }
@@ -2091,7 +2095,7 @@ function loadPortalInvoices() {
         if (!filterType) {
             const tbody = document.getElementById("portal-invoices-tbody");
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--warning);">Lütfen bir filtre seçeneği seçiniz.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--warning);">Lütfen bir filtre seçeneği seçiniz.</td></tr>';
             }
             updatePaginationUI('portalInvoices', false);
             return;
@@ -2132,7 +2136,7 @@ function loadPortalInvoices() {
     }
 
     const tbody = document.getElementById("portal-invoices-tbody");
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>';
 
     const saveBtn = document.getElementById("btn-portal-save-db");
 
@@ -2162,12 +2166,17 @@ function loadPortalInvoices() {
                     const parsedDate = new Date(inv.olusturma_tarihi);
                     date = isNaN(parsedDate.getTime()) ? inv.olusturma_tarihi : parsedDate.toLocaleString('tr-TR');
                 }
+                const sourceBadge = (inv.is_imported || inv.source === "CSV/JSON")
+                    ? `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"><i class="fas fa-file-csv"></i> CSV/JSON</span>`
+                    : `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"><i class="fas fa-cloud"></i> Stripe API</span>`;
+
                 tbody.innerHTML += `
                     <tr>
                         <td>${inv.stripe_invoice_id}</td>
                         <td>${amountFormatted}</td>
                         <td style="text-transform: uppercase;">${inv.currency}</td>
                         <td><span class="status-badge ${statusClass(inv.status)}">${inv.status.toUpperCase()}</span></td>
+                        <td>${sourceBadge}</td>
                         <td>${date}</td>
                         <td class="action-cell">
                             <a href="${API_BASE_URL}/user/invoices/${inv.stripe_invoice_id}/pdf?jwt=${token}" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">
@@ -2195,7 +2204,7 @@ function loadPortalInvoices() {
                 savePortalInvoicesToDb();
             }
         } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
         }
         updatePaginationUI('portalInvoices', result ? result.has_more : false);
     })

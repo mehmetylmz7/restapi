@@ -169,6 +169,59 @@ def create_and_finalize_invoice(customer_id, currency, items):
         raise e
 
 
+def check_imported_invoices(invoice_ids: list) -> set:
+    """
+    Stripe fatura ID listesini MongoDB 'stripe_logs.import_invoice_logs' koleksiyonunda sorgular.
+    MongoDB'de olan (yani CSV/JSON ile içe aktarılmış) fatura ID'lerinin set'ini döner.
+    """
+    if not invoice_ids:
+        return set()
+
+    import os
+    from pymongo import MongoClient
+
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    mongo_db_name = os.getenv("MONGO_DB_NAME", "stripe_logs")
+    collection_name = os.getenv("MONGO_IMPORT_COLLECTION", "import_invoice_logs")
+
+    try:
+        client = MongoClient(mongo_uri, serverSelectionTimeoutMS=2000)
+        db = client[mongo_db_name]
+        collection = db[collection_name]
+
+        query = {
+            "$or": [
+                {"invoice_id": {"$in": invoice_ids}},
+                {"invoice_ids": {"$in": invoice_ids}},
+                {"successful_items.invoice_id": {"$in": invoice_ids}},
+                {"successful_items.stripe_id": {"$in": invoice_ids}},
+            ]
+        }
+
+        cursor = collection.find(query, {"invoice_id": 1, "invoice_ids": 1, "successful_items": 1})
+        imported_set = set()
+
+        for doc in cursor:
+            top_id = doc.get("invoice_id")
+            if top_id and top_id in invoice_ids:
+                imported_set.add(top_id)
+
+            top_ids = doc.get("invoice_ids") or []
+            for item_id in top_ids:
+                if item_id in invoice_ids:
+                    imported_set.add(item_id)
+
+            for item in doc.get("successful_items", []):
+                s_id = item.get("invoice_id") or item.get("stripe_id")
+                if s_id and s_id in invoice_ids:
+                    imported_set.add(s_id)
+
+        return imported_set
+    except Exception as e:
+        print(f"⚠️ MongoDB check error in get_local_invoices: {e}")
+        return set()
+
+
 def get_local_invoices(
     customer_id=None,
     limit=10,
@@ -178,8 +231,9 @@ def get_local_invoices(
 ):
     """
     Stripe REST API'den onaylanmış/tüm faturaları canlı olarak çeker.
-    Sayfalama (pagination) için limit ve starting_after parametrelerini destekler.
-    Tarih filtreleme için created_gte ve created_lte destekler.
+    MongoDB import_invoice_logs koleksiyonunu kontrol ederek faturanın
+    CSV/JSON ile mi yoksa Stripe API ile mi geldiğini belirler.
+    Sayfalama (pagination) ve tarih filtreleme destekler.
     """
     try:
         url = f"{BASE_URL}/invoices"
@@ -201,8 +255,13 @@ def get_local_invoices(
         data = res_json.get("data", [])
         has_more = res_json.get("has_more", False)
 
+        # MongoDB'den bu faturaların hangilerinin içe aktarıldığını sorgula
+        raw_invoice_ids = [inv.get("id") for inv in data if inv.get("id")]
+        imported_set = check_imported_invoices(raw_invoice_ids)
+
         invoices = []
         for inv in data:
+            inv_id = inv.get("id")
             created_ts = inv.get("created")
             if created_ts:
                 from datetime import datetime, timezone
@@ -210,10 +269,13 @@ def get_local_invoices(
             else:
                 dt_str = ""
 
+            is_imported = inv_id in imported_set
+            source = "CSV/JSON" if is_imported else "Stripe API"
+
             invoices.append(
                 {
-                    "id": inv.get("id"),
-                    "stripe_invoice_id": inv.get("id"),
+                    "id": inv_id,
+                    "stripe_invoice_id": inv_id,
                     "customer_stripe_id": inv.get("customer"),
                     "amount": inv.get("total", inv.get("amount_due", 0)),
                     "currency": inv.get("currency", "usd"),
@@ -221,12 +283,15 @@ def get_local_invoices(
                     "pdf_path": inv.get("invoice_pdf", ""),
                     "olusturma_tarihi": dt_str,
                     "created": created_ts,
+                    "source": source,
+                    "is_imported": is_imported,
                 }
             )
         return {"data": invoices, "has_more": has_more}
     except Exception as e:
         print(f"❌ Stripe API error fetching invoices: {e}")
         return {"data": [], "has_more": False}
+
 
 
 def get_local_invoice_pdf(invoice_id, customer_id=None):
