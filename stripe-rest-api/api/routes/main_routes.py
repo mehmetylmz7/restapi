@@ -21,3 +21,11 @@ def api_stats():
 @main_bp.route("/")
 def home():
     return render_template("index.html")
+
+
+@main_bp.route("/test-mode")
+@main_bp.route("/test-mode/<int:mode_id>")
+def test_mode(mode_id=1):
+    if mode_id not in (1, 2, 3):
+        mode_id = 1
+    return render_template("test_mode.html", mode_id=mode_id)

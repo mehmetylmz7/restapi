@@ -25,25 +25,6 @@ def get_customers(limit=10, starting_after=None, created_gte=None, created_lte=N
     return {"data": result["data"], "has_more": result.get("has_more", False)}
 
 
-def print_customers(customers):
-
-    if not customers:
-        print("henuz musteri bulunmuyor")
-        return
-
-    print("\n--------- Customer List --------- ")
-
-    for customer in customers:
-        print(f"""
-ID    : {customer["id"]}
-Name  : {customer.get("name", "Unknown")}
-Email : {customer.get("email", "Unknown")}
------------------------------
-              
-              
-              """)
-
-
 def create_customer(name, email):
     # 1. Stripe'a istek at
     data = {"name": name, "email": email}

@@ -7,7 +7,7 @@ from services.customer_service import get_customers
 from services.product_service import get_products
 from services.payment_service import get_payment_intents
 from services.refund_service import get_refunds
-from services.invoice_service import get_local_invoices
+from services.invoice_service import get_combined_invoices
 
 # ── Kaynak → Stripe fetcher eşleşmesi ─────────────────────────
 _FETCHERS = {
@@ -15,7 +15,7 @@ _FETCHERS = {
     "products": get_products,
     "payments": get_payment_intents,
     "refunds": get_refunds,
-    "invoices": get_local_invoices,
+    "invoices": get_combined_invoices,
 }
 
 _DEFAULT_FIELDS = {

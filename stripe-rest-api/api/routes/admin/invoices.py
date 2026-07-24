@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, Response
 from services.invoice_service import (
     preview_invoice,
     create_and_finalize_invoice,
-    get_local_invoices,
+    get_combined_invoices,
     get_local_invoice_pdf,
 )
 
@@ -54,7 +54,7 @@ def api_get_invoices():
     starting_after = request.args.get("starting_after")
     created_gte = request.args.get("created_gte")
     created_lte = request.args.get("created_lte")
-    result = get_local_invoices(
+    result = get_combined_invoices(
         limit=limit,
         starting_after=starting_after,
         created_gte=created_gte,
