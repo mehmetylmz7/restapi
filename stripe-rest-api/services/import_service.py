@@ -402,16 +402,14 @@ def execute_import_record(target_model: str, mapped_data: dict) -> dict:
 
     elif target_model == "invoices":
         amount_cents = int(float(mapped_data["amount"]) * 100)
-        from services.invoice_service import create_invoice_with_amount
-        inv = create_invoice_with_amount(
+        from services.invoice_service import create_local_imported_invoice
+        res = create_local_imported_invoice(
             customer_id=mapped_data["customer_stripe_id"],
             amount=amount_cents,
             currency=mapped_data["currency"],
             status=mapped_data.get("status", "open"),
+            invoice_id=mapped_data.get("stripe_invoice_id") or mapped_data.get("invoice_id"),
         )
-        if inv and inv.get("id"):
-            return {"success": True, "id": inv["id"]}
-        else:
-            return {"success": False, "reason": "Stripe Fatura ID'si döndürmedi."}
+        return res
 
     return {"success": False, "reason": f"Bilinmeyen model: {target_model}"}

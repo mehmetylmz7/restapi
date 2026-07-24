@@ -45,7 +45,44 @@ def preview_invoice(customer_id, currency, items):
         if response is None:
             return None
 
-    return response.json()
+
+def create_local_imported_invoice(customer_id: str, amount: int, currency: str = "usd", status: str = "open", invoice_id: str = None) -> dict:
+    """
+    İthal edilen bir faturayı Stripe API'ye istek atmadan doğrudan yerel MySQL 'invoices' tablosuna kaydeder.
+    """
+    import uuid
+    if not invoice_id:
+        invoice_id = f"inv_imp_{uuid.uuid4().hex[:14]}"
+
+    create_table_sql = """
+    CREATE TABLE IF NOT EXISTS invoices (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        stripe_invoice_id VARCHAR(255) NOT NULL UNIQUE,
+        customer_stripe_id VARCHAR(255) NOT NULL,
+        amount INT NOT NULL,
+        currency VARCHAR(10) NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        pdf_path VARCHAR(255),
+        olusturma_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    """
+    try:
+        with get_db() as cursor:
+            cursor.execute(create_table_sql)
+            insert_sql = """
+                INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE status = VALUES(status), amount = VALUES(amount), currency = VALUES(currency)
+            """
+            cursor.execute(
+                insert_sql,
+                (invoice_id, customer_id, int(amount), currency.lower(), status.lower(), ""),
+            )
+        print(f"✅ Fatura doğrudan MySQL veritabanına kaydedildi: {invoice_id}")
+        return {"success": True, "id": invoice_id}
+    except Exception as e:
+        print(f"❌ MySQL'e fatura kaydetme hatası: {e}")
+        return {"success": False, "reason": str(e)}
 
 
 def create_invoice_with_amount(customer_id: str, amount: int, currency: str = "usd", status: str = "open") -> dict:
@@ -230,7 +267,7 @@ def get_local_invoices(
     created_lte=None,
 ):
     """
-    Stripe REST API'den onaylanmış/tüm faturaları canlı olarak çeker.
+    Stripe REST API'den canlı faturaları ve MySQL veritabanında saklanan yerel (ithal edilmiş) faturaları çeker.
     MongoDB import_invoice_logs koleksiyonunu kontrol ederek faturanın
     CSV/JSON ile mi yoksa Stripe API ile mi geldiğini belirler.
     Sayfalama (pagination) ve tarih filtreleme destekler.
@@ -248,18 +285,20 @@ def get_local_invoices(
             params["created[lte]"] = int(created_lte)
 
         response = get(url, params=params)
-        if response is None:
-            return {"data": [], "has_more": False}
-
-        res_json = response.json()
-        data = res_json.get("data", [])
-        has_more = res_json.get("has_more", False)
+        data = []
+        has_more = False
+        if response is not None:
+            res_json = response.json()
+            data = res_json.get("data", [])
+            has_more = res_json.get("has_more", False)
 
         # MongoDB'den bu faturaların hangilerinin içe aktarıldığını sorgula
         raw_invoice_ids = [inv.get("id") for inv in data if inv.get("id")]
         imported_set = check_imported_invoices(raw_invoice_ids)
 
         invoices = []
+        seen_ids = set()
+
         for inv in data:
             inv_id = inv.get("id")
             created_ts = inv.get("created")
@@ -287,6 +326,58 @@ def get_local_invoices(
                     "is_imported": is_imported,
                 }
             )
+            seen_ids.add(inv_id)
+
+        # Yerel MySQL veritabanında saklanan faturaları da ekle (Stripe'ta olmayan ithal faturalar)
+        try:
+            with get_db() as cursor:
+                sql = "SELECT stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi FROM invoices"
+                sql_params = []
+                if customer_id:
+                    sql += " WHERE customer_stripe_id = %s"
+                    sql_params.append(customer_id)
+                sql += " ORDER BY id DESC"
+                cursor.execute(sql, tuple(sql_params))
+                db_rows = cursor.fetchall()
+                for r in db_rows:
+                    db_inv_id = r[0]
+                    if db_inv_id not in seen_ids:
+                        dt_val = r[6]
+                        db_created_ts = None
+                        if dt_val:
+                            try:
+                                db_created_ts = int(dt_val.timestamp())
+                            except Exception:
+                                pass
+
+                        # Tarih filtrelemesi (created_gte / created_lte)
+                        if created_gte and db_created_ts and db_created_ts < int(created_gte):
+                            continue
+                        if created_lte and db_created_ts and db_created_ts > int(created_lte):
+                            continue
+
+                        invoices.append(
+                            {
+                                "id": db_inv_id,
+                                "stripe_invoice_id": db_inv_id,
+                                "customer_stripe_id": r[1],
+                                "amount": r[2],
+                                "currency": r[3],
+                                "status": r[4],
+                                "pdf_path": r[5] or "",
+                                "olusturma_tarihi": str(dt_val) if dt_val else "",
+                                "created": db_created_ts,
+                                "source": "CSV/JSON",
+                                "is_imported": True,
+                            }
+                        )
+                        seen_ids.add(db_inv_id)
+        except Exception as db_err:
+            print(f"⚠️ MySQL faturaları çekilirken hata: {db_err}")
+
+        # Tüm faturaları oluşturma tarihine (created timestamp) göre yeniden eskiye sırala
+        invoices.sort(key=lambda x: x.get("created") or 0, reverse=True)
+
         return {"data": invoices, "has_more": has_more}
     except Exception as e:
         print(f"❌ Stripe API error fetching invoices: {e}")
