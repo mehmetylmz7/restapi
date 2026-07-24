@@ -6,7 +6,7 @@ admin_customers_bp = Blueprint("admin_customers", __name__, url_prefix="/api/cus
 
 @admin_customers_bp.route("", methods=["GET"])
 def api_customers():
-    limit = int(request.args.get("limit", 10))
+    limit = int(request.args.get("limit", 25))
     starting_after = request.args.get("starting_after", None)
     created_gte = request.args.get("created_gte", None)
     created_lte = request.args.get("created_lte", None)

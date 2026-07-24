@@ -5,7 +5,7 @@ from core.database import get_db
 # deneme2
 
 
-def get_customers(limit=10, starting_after=None, created_gte=None, created_lte=None):
+def get_customers(limit=25, starting_after=None, created_gte=None, created_lte=None):
 
     params = {"limit": limit}
     if starting_after:

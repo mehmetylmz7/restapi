@@ -37,7 +37,7 @@ function showSection(sectionId) {
 // Her kaynak için cursor geçmişi tutulur (geri gidebilmek için)
 // =====================
 const paginationState = {
-    customers: { cursorHistory: [null], currentPage: 0, limit: 10 },
+    customers: { itemsCache: [], currentPage: 0, limit: 25, pageSize: 10, hasMoreAPI: false, lastCursor: null },
     products:  { cursorHistory: [null], currentPage: 0, limit: 10 },
     payments:  { cursorHistory: [null], currentPage: 0, limit: 10 },
     refunds:   { cursorHistory: [null], currentPage: 0, limit: 10 },
@@ -76,66 +76,79 @@ function loadDashboardStats() {
 // =====================
 // MÜŞTERİLER
 // =====================
-function loadCustomers() {
+async function loadCustomers() {
     const state = paginationState.customers;
-    const cursor = state.cursorHistory[state.currentPage];
-    let url = `${API_BASE_URL}/customers?limit=${state.limit}`;
-    if (cursor) url += `&starting_after=${cursor}`;
+    const pageSize = state.pageSize || 10;
+    const neededCount = (state.currentPage + 1) * pageSize;
 
     const startDate = document.getElementById('cust-filter-start').value;
     const endDate = document.getElementById('cust-filter-end').value;
 
-    if (startDate) {
-        const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
-        url += `&created_gte=${startTimestamp}`;
-    }
-    if (endDate) {
-        const endTimestamp = Math.floor(new Date(endDate + 'T23:59:59').getTime() / 1000);
-        url += `&created_lte=${endTimestamp}`;
-    }
+    // Filtre veya ilk yükleme için gereken sayıda veri yoksa API'den limit=25 ile veri çek
+    if (state.itemsCache.length < neededCount && (state.itemsCache.length === 0 || state.hasMoreAPI)) {
+        let url = `${API_BASE_URL}/customers?limit=${state.limit}`;
+        if (state.lastCursor) url += `&starting_after=${state.lastCursor}`;
 
-    fetch(url)
-        .then(response => response.json())
-        .then(result => {
-            const tbody = document.getElementById('customers-tbody');
-            tbody.innerHTML = '';
+        if (startDate) {
+            const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
+            url += `&created_gte=${startTimestamp}`;
+        }
+        if (endDate) {
+            const endTimestamp = Math.floor(new Date(endDate + 'T23:59:59').getTime() / 1000);
+            url += `&created_lte=${endTimestamp}`;
+        }
 
+        try {
+            const response = await fetch(url);
+            const result = await response.json();
             if (result && result.data) {
-                result.data.forEach(customer => {
-                    const date = customer.created ? new Date(customer.created * 1000).toLocaleString('tr-TR') : '-';
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${customer.id}</td>
-                            <td>${customer.name || 'Bilinmiyor'}</td>
-                            <td>${customer.email || '-'}</td>
-                            <td>${date}</td>
-                        </tr>
-                    `;
-                });
-
-                // Bir sonraki sayfa için cursor'ı geçmişe ekle
-                if (result.has_more && result.data.length > 0) {
-                    const lastId = result.data[result.data.length - 1].id;
-                    // Sadece yeni sayfa yükleniyorsa cursor geçmişini güncelle
-                    if (state.cursorHistory.length === state.currentPage + 1) {
-                        state.cursorHistory.push(lastId);
-                    }
+                state.itemsCache.push(...result.data);
+                state.hasMoreAPI = result.has_more || false;
+                if (result.data.length > 0) {
+                    state.lastCursor = result.data[result.data.length - 1].id;
                 }
             }
-            updatePaginationUI('customers', result ? result.has_more : false);
+        } catch (err) {
+            console.error("Customers fetch error:", err);
+        }
+    }
+
+    const tbody = document.getElementById('customers-tbody');
+    tbody.innerHTML = '';
+
+    const startIndex = state.currentPage * pageSize;
+    const pageItems = state.itemsCache.slice(startIndex, startIndex + pageSize);
+
+    if (pageItems.length > 0) {
+        pageItems.forEach(customer => {
+            const date = customer.created ? new Date(customer.created * 1000).toLocaleString('tr-TR') : '-';
+            tbody.innerHTML += `
+                <tr>
+                    <td>${customer.id}</td>
+                    <td>${customer.name || 'Bilinmiyor'}</td>
+                    <td>${customer.email || '-'}</td>
+                    <td>${date}</td>
+                </tr>
+            `;
         });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Müşteri bulunamadı.</td></tr>';
+    }
+
+    const hasMoreUI = (state.itemsCache.length > startIndex + pageSize) || state.hasMoreAPI;
+    updatePaginationUI('customers', hasMoreUI);
 }
 
 function filterCustomers() {
-    // Filtre değişince sayfalamayı sıfırlıyoruz
-    paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
+    // Filtre değişince ön bellek ve sayfalamayı sıfırlıyoruz
+    paginationState.customers = { itemsCache: [], currentPage: 0, limit: 25, pageSize: 10, hasMoreAPI: false, lastCursor: null };
     loadCustomers();
 }
 
 function clearCustomerFilter() {
     document.getElementById('cust-filter-start').value = '';
     document.getElementById('cust-filter-end').value = '';
-    paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
+    paginationState.customers = { itemsCache: [], currentPage: 0, limit: 25, pageSize: 10, hasMoreAPI: false, lastCursor: null };
     loadCustomers();
 }
 
@@ -180,7 +193,7 @@ document.getElementById('add-customer-form').addEventListener('submit', function
         showMessage('customer-msg', `✅ Müşteri eklendi: ${data.id}`);
         document.getElementById('add-customer-form').reset();
         // Sıfırdan yükle (ilk sayfaya dön)
-        paginationState.customers = { cursorHistory: [null], currentPage: 0, limit: 10 };
+        paginationState.customers = { itemsCache: [], currentPage: 0, limit: 25, pageSize: 10, hasMoreAPI: false, lastCursor: null };
         loadCustomers();
         loadDashboardStats();
     })
