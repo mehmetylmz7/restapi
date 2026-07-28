@@ -1,0 +1,8 @@
+stripe_invoice_id,customer_stripe_id,amount,currency,status,olusturma_tarihi
+in_1TvtwIKBkUL9vnMV1amXQSWS,cus_Uu0jKN86a5Br32,200.0,usd,open,2026-07-22 06:47:34
+in_1TvZpHKBkUL9vnMVks0VNMHR,cus_Uu0jKN86a5Br32,175.0,usd,open,2026-07-21 09:18:59
+in_1TvKiVKBkUL9vnMVepdnWF0a,cus_UqdJP2PTXb7fmq,130.0,usd,open,2026-07-20 17:10:59
+in_1TvKhvKBkUL9vnMVTyvAMb8A,cus_UqdJkDalgpMmzr,150.0,usd,open,2026-07-20 17:10:23
+in_1TvHHtKBkUL9vnMV0rbNb5Ow,cus_Uu0jKN86a5Br32,250.0,usd,open,2026-07-20 13:31:17
+in_1TvBaNKBkUL9vnMV9mWST8Ks,cus_Uu0jKN86a5Br32,100.0,usd,open,2026-07-20 07:25:59
+in_1TuHtZKBkUL9vnMVh2v8wl1t,cus_Uu0jKN86a5Br32,150.0,usd,open,2026-07-17 19:58:05

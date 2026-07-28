@@ -406,6 +406,7 @@ def execute_import_record(target_model: str, mapped_data: dict) -> dict:
             currency=mapped_data["currency"],
             status=mapped_data.get("status", "open"),
             invoice_id=mapped_data.get("stripe_invoice_id") or mapped_data.get("invoice_id"),
+            olusturma_tarihi=mapped_data.get("olusturma_tarihi") or mapped_data.get("created_at"),
         )
         return res
 

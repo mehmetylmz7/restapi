@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,19 +8,29 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="sidebar">
         <h2><i class="fab fa-stripe"></i> Dashboard</h2>
         <ul>
-            <li><a href="#" onclick="showSection('dashboard-sec')"><i class="fas fa-chart-line"></i> Genel Bakış</a></li>
-            <li><a href="#" onclick="showSection('customers-sec'); loadCustomers();"><i class="fas fa-users"></i> Müşteriler</a></li>
-            <li><a href="#" onclick="showSection('products-sec'); loadProducts();"><i class="fas fa-box"></i> Ürünler</a></li>
-            <li><a href="#" onclick="showSection('payments-sec'); loadPayments();"><i class="fas fa-credit-card"></i> Ödemeler</a></li>
-            <li><a href="#" onclick="showSection('refunds-sec'); loadRefunds();"><i class="fas fa-undo"></i> İadeler</a></li>
-            <li><a href="#" onclick="showSection('invoices-sec'); loadInvoicesTab();"><i class="fas fa-file-invoice-dollar"></i> Faturalar</a></li>
-            <li><a href="#" onclick="showSection('dispute-sec'); loadUploadedFiles();"><i class="fas fa-shield-alt"></i> İtiraz Belgesi</a></li>
-            <li><a href="#" onclick="showSection('fileops-sec');"><i class="fas fa-folder-open"></i> Dosya İşlemleri</a></li>
-            <li><a href="#" onclick="showSection('user-portal-sec'); initUserPortal();"><i class="fas fa-user-circle"></i> Kullanıcı Paneli</a></li>
+            <li><a href="#" onclick="showSection('dashboard-sec')"><i class="fas fa-chart-line"></i> Genel Bakış</a>
+            </li>
+            <li><a href="#" onclick="showSection('customers-sec'); loadCustomers();"><i class="fas fa-users"></i>
+                    Müşteriler</a></li>
+            <li><a href="#" onclick="showSection('products-sec'); loadProducts();"><i class="fas fa-box"></i>
+                    Ürünler</a></li>
+            <li><a href="#" onclick="showSection('payments-sec'); loadPayments();"><i class="fas fa-credit-card"></i>
+                    Ödemeler</a></li>
+            <li><a href="#" onclick="showSection('refunds-sec'); loadRefunds();"><i class="fas fa-undo"></i> İadeler</a>
+            </li>
+            <li><a href="#" onclick="showSection('invoices-sec'); loadInvoicesTab();"><i
+                        class="fas fa-file-invoice-dollar"></i> Faturalar</a></li>
+            <li><a href="#" onclick="showSection('dispute-sec'); loadUploadedFiles();"><i class="fas fa-shield-alt"></i>
+                    İtiraz Belgesi</a></li>
+            <li><a href="#" onclick="showSection('fileops-sec');"><i class="fas fa-folder-open"></i> Dosya İşlemleri</a>
+            </li>
+            <li><a href="#" onclick="showSection('user-portal-sec'); initUserPortal();"><i
+                        class="fas fa-user-circle"></i> Kullanıcı Paneli</a></li>
         </ul>
         <div class="footer-credit">
             <p>Developed by Mehmet Yılmaz</p>
@@ -65,8 +76,11 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <h1 style="margin: 0;">Müşteri Yönetimi</h1>
                 <div style="display: flex; gap: 0.8rem;">
-                    <button class="btn" onclick="openImportModal('customers')" style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
-                    <button class="btn" onclick="openExportModal('customers')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                    <button class="btn" onclick="openImportModal('customers')"
+                        style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
+                    <button class="btn" onclick="openExportModal('customers')"
+                        style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa
+                        Aktar</button>
                 </div>
             </div>
             <div class="form-container">
@@ -92,8 +106,10 @@
                         <span style="font-size: 0.9rem; color: #555;">Bitiş:</span>
                         <input type="date" id="cust-filter-end" style="flex: 1;" onclick="this.showPicker()">
                     </div>
-                    <button type="button" class="btn btn-filter" onclick="filterCustomers()"><i class="fas fa-filter"></i> Filtrele</button>
-                    <button type="button" class="btn btn-clear" onclick="clearCustomerFilter()" style="background: #e0e0e0; color: #333;"><i class="fas fa-times"></i> Temizle</button>
+                    <button type="button" class="btn btn-filter" onclick="filterCustomers()"><i
+                            class="fas fa-filter"></i> Filtrele</button>
+                    <button type="button" class="btn btn-clear" onclick="clearCustomerFilter()"
+                        style="background: #e0e0e0; color: #333;"><i class="fas fa-times"></i> Temizle</button>
                 </div>
             </div>
 
@@ -109,9 +125,11 @@
                 <tbody id="customers-tbody"></tbody>
             </table>
             <div class="pagination-controls" id="customers-pagination">
-                <button id="customers-prev-btn" class="pagination-btn" onclick="prevPage('customers')" disabled>&#8592; Önceki</button>
+                <button id="customers-prev-btn" class="pagination-btn" onclick="prevPage('customers')" disabled>&#8592;
+                    Önceki</button>
                 <span id="customers-page-info" class="pagination-info">Sayfa 1</span>
-                <button id="customers-next-btn" class="pagination-btn" onclick="nextPage('customers')" disabled>Sonraki &#8594;</button>
+                <button id="customers-next-btn" class="pagination-btn" onclick="nextPage('customers')" disabled>Sonraki
+                    &#8594;</button>
             </div>
         </section>
 
@@ -119,8 +137,11 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <h1 style="margin: 0;">Ürün Yönetimi</h1>
                 <div style="display: flex; gap: 0.8rem;">
-                    <button class="btn" onclick="openImportModal('products')" style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
-                    <button class="btn" onclick="openExportModal('products')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                    <button class="btn" onclick="openImportModal('products')"
+                        style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
+                    <button class="btn" onclick="openExportModal('products')"
+                        style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa
+                        Aktar</button>
                 </div>
             </div>
             <div class="form-container">
@@ -129,7 +150,8 @@
                     <div class="form-row">
                         <input type="text" id="prod-name" placeholder="Ürün Adı" required>
                         <input type="text" id="prod-desc" placeholder="Açıklama">
-                        <input type="number" id="prod-price" placeholder="Fiyat (örn: 49.90)" step="0.01" min="0.01" required>
+                        <input type="number" id="prod-price" placeholder="Fiyat (örn: 49.90)" step="0.01" min="0.01"
+                            required>
                         <button type="submit" class="btn"><i class="fas fa-plus"></i> Kaydet</button>
                     </div>
                 </form>
@@ -149,9 +171,11 @@
                 <tbody id="products-tbody"></tbody>
             </table>
             <div class="pagination-controls" id="products-pagination">
-                <button id="products-prev-btn" class="pagination-btn" onclick="prevPage('products')" disabled>&#8592; Önceki</button>
+                <button id="products-prev-btn" class="pagination-btn" onclick="prevPage('products')" disabled>&#8592;
+                    Önceki</button>
                 <span id="products-page-info" class="pagination-info">Sayfa 1</span>
-                <button id="products-next-btn" class="pagination-btn" onclick="nextPage('products')" disabled>Sonraki &#8594;</button>
+                <button id="products-next-btn" class="pagination-btn" onclick="nextPage('products')" disabled>Sonraki
+                    &#8594;</button>
             </div>
         </section>
 
@@ -159,8 +183,11 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <h1 style="margin: 0;">Ödeme Yönetimi</h1>
                 <div style="display: flex; gap: 0.8rem;">
-                    <button class="btn" onclick="openImportModal('payments')" style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
-                    <button class="btn" onclick="openExportModal('payments')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                    <button class="btn" onclick="openImportModal('payments')"
+                        style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
+                    <button class="btn" onclick="openExportModal('payments')"
+                        style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa
+                        Aktar</button>
                 </div>
             </div>
             <div class="form-container">
@@ -168,7 +195,8 @@
                 <form id="add-payment-form">
                     <div class="form-row">
                         <input type="text" id="pay-customer-id" placeholder="Müşteri ID (cus_...)" required>
-                        <input type="number" id="pay-amount" placeholder="Tutar (örn: 49.99)" step="0.01" min="0.01" required>
+                        <input type="number" id="pay-amount" placeholder="Tutar (örn: 49.99)" step="0.01" min="0.01"
+                            required>
                         <select id="pay-currency" class="form-select">
                             <option value="usd">USD</option>
                             <option value="eur">EUR</option>
@@ -196,9 +224,11 @@
                 <tbody id="payments-tbody"></tbody>
             </table>
             <div class="pagination-controls" id="payments-pagination">
-                <button id="payments-prev-btn" class="pagination-btn" onclick="prevPage('payments')" disabled>&#8592; Önceki</button>
+                <button id="payments-prev-btn" class="pagination-btn" onclick="prevPage('payments')" disabled>&#8592;
+                    Önceki</button>
                 <span id="payments-page-info" class="pagination-info">Sayfa 1</span>
-                <button id="payments-next-btn" class="pagination-btn" onclick="nextPage('payments')" disabled>Sonraki &#8594;</button>
+                <button id="payments-next-btn" class="pagination-btn" onclick="nextPage('payments')" disabled>Sonraki
+                    &#8594;</button>
             </div>
         </section>
 
@@ -216,9 +246,11 @@
                 <tbody id="refunds-tbody"></tbody>
             </table>
             <div class="pagination-controls" id="refunds-pagination">
-                <button id="refunds-prev-btn" class="pagination-btn" onclick="prevPage('refunds')" disabled>&#8592; Önceki</button>
+                <button id="refunds-prev-btn" class="pagination-btn" onclick="prevPage('refunds')" disabled>&#8592;
+                    Önceki</button>
                 <span id="refunds-page-info" class="pagination-info">Sayfa 1</span>
-                <button id="refunds-next-btn" class="pagination-btn" onclick="nextPage('refunds')" disabled>Sonraki &#8594;</button>
+                <button id="refunds-next-btn" class="pagination-btn" onclick="nextPage('refunds')" disabled>Sonraki
+                    &#8594;</button>
             </div>
         </section>
 
@@ -233,8 +265,7 @@
                 <h3><i class="fas fa-upload"></i> PDF Yükle</h3>
                 <form id="upload-dispute-form">
                     <div class="form-row">
-                        <input type="text" id="dispute-payment-id"
-                               placeholder="Ödeme ID (pi_...)" required>
+                        <input type="text" id="dispute-payment-id" placeholder="Ödeme ID (pi_...)" required>
                         <label class="file-label">
                             <i class="fas fa-file-pdf"></i> PDF Seç
                             <input type="file" id="dispute-file" accept=".pdf" required>
@@ -303,7 +334,8 @@
 
                 <!-- Veri kategorisi seçimi -->
                 <p class="section-desc" style="margin-top: 1.5rem;">Dışa aktarılacak verileri seçin:</p>
-                <select id="export-select" class="form-select" style="width: 100%; max-width: 300px; margin-bottom: 1rem; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                <select id="export-select" class="form-select"
+                    style="width: 100%; max-width: 300px; margin-bottom: 1rem; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
                     <option value="" disabled selected>Lütfen veri türü seçin</option>
                     <option value="customers">Müşteriler</option>
                     <option value="products">Ürünler</option>
@@ -321,23 +353,32 @@
             <!-- Import İşlemleri -->
             <div class="form-container" style="margin-top: 2rem;">
                 <h3><i class="fas fa-file-import"></i> Import İşlemleri</h3>
-                <p class="section-desc" style="margin-bottom: 1.5rem;">CSV veya JSON formatındaki verilerinizi sisteme toplu olarak aktarın. Sihirbaz üzerinden kolon eşleştirmesi yapabilirsiniz.</p>
-                <button type="button" class="btn" onclick="openImportModal(null)" style="background-color: var(--success);"><i class="fas fa-magic"></i> İçe Aktarma Sihirbazını Aç</button>
+                <p class="section-desc" style="margin-bottom: 1.5rem;">CSV veya JSON formatındaki verilerinizi sisteme
+                    toplu olarak aktarın. Sihirbaz üzerinden kolon eşleştirmesi yapabilirsiniz.</p>
+                <button type="button" class="btn" onclick="openImportModal(null)"
+                    style="background-color: var(--success);"><i class="fas fa-magic"></i> İçe Aktarma Sihirbazını
+                    Aç</button>
             </div>
         </section>
 
         <section id="invoices-sec" class="content-section" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <h1 style="margin: 0;"><i class="fas fa-file-invoice-dollar"></i> Fatura Yönetimi</h1>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button id="btn-invoice-create-view" class="btn" onclick="showInvoiceSubTab('create')" style="background: var(--accent-color); color: #fff; border: none; padding: 0.6rem 1.2rem; font-weight: 500;">
+                    <button id="btn-invoice-create-view" class="btn" onclick="showInvoiceSubTab('create')"
+                        style="background: var(--accent-color); color: #fff; border: none; padding: 0.6rem 1.2rem; font-weight: 500;">
                         <i class="fas fa-plus-circle"></i> Fatura Oluştur
                     </button>
-                    <button id="btn-invoice-list-view" class="btn" onclick="showInvoiceSubTab('list')" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); padding: 0.6rem 1.2rem; font-weight: 500;">
+                    <button id="btn-invoice-list-view" class="btn" onclick="showInvoiceSubTab('list')"
+                        style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); padding: 0.6rem 1.2rem; font-weight: 500;">
                         <i class="fas fa-list"></i> Faturaları Görüntüle
                     </button>
-                    <button class="btn" onclick="openImportModal('invoices')" style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
-                    <button class="btn" onclick="openExportModal('invoices')" style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa Aktar</button>
+                    <button class="btn" onclick="openImportModal('invoices')"
+                        style="background-color: var(--success);"><i class="fas fa-file-import"></i> İçe Aktar</button>
+                    <button class="btn" onclick="openExportModal('invoices')"
+                        style="background-color: var(--accent-color);"><i class="fas fa-file-export"></i> Dışa
+                        Aktar</button>
                 </div>
             </div>
 
@@ -349,12 +390,17 @@
                         <h3>1. Müşteri & Para Birimi Seçimi</h3>
                         <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem;">
                             <div>
-                                <label style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Müşteri:</label>
-                                <select id="invoice-customer-select" class="form-select" style="width: 100%;" onchange="onInvoiceInputChange()"></select>
+                                <label
+                                    style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Müşteri:</label>
+                                <select id="invoice-customer-select" class="form-select" style="width: 100%;"
+                                    onchange="onInvoiceInputChange()"></select>
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Para Birimi:</label>
-                                <select id="invoice-currency-select" class="form-select" style="width: 100%;" onchange="onInvoiceInputChange()">
+                                <label
+                                    style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Para
+                                    Birimi:</label>
+                                <select id="invoice-currency-select" class="form-select" style="width: 100%;"
+                                    onchange="onInvoiceInputChange()">
                                     <option value="usd">USD</option>
                                     <option value="eur">EUR</option>
                                     <option value="try">TRY</option>
@@ -368,14 +414,18 @@
                         <h3>2. Ürün Ekle</h3>
                         <div style="display: flex; gap: 0.8rem; margin-top: 1rem; align-items: flex-end;">
                             <div style="flex: 2;">
-                                <label style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Ürün:</label>
+                                <label
+                                    style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Ürün:</label>
                                 <select id="invoice-product-select" class="form-select" style="width: 100%;"></select>
                             </div>
                             <div style="flex: 1;">
-                                <label style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Adet:</label>
-                                <input type="number" id="invoice-product-qty" class="form-select" style="width: 100%;" value="1" min="1">
+                                <label
+                                    style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.3rem;">Adet:</label>
+                                <input type="number" id="invoice-product-qty" class="form-select" style="width: 100%;"
+                                    value="1" min="1">
                             </div>
-                            <button type="button" class="btn" onclick="addInvoiceItemToList()"><i class="fas fa-plus"></i> Ekle</button>
+                            <button type="button" class="btn" onclick="addInvoiceItemToList()"><i
+                                    class="fas fa-plus"></i> Ekle</button>
                         </div>
                     </div>
 
@@ -392,11 +442,17 @@
                             </thead>
                             <tbody id="invoice-cart-tbody"></tbody>
                         </table>
-                        <p id="invoice-cart-empty" style="text-align: center; color: var(--text-muted); padding: 1rem 0; margin: 0;">Henüz ürün eklenmedi.</p>
-                        
+                        <p id="invoice-cart-empty"
+                            style="text-align: center; color: var(--text-muted); padding: 1rem 0; margin: 0;">Henüz ürün
+                            eklenmedi.</p>
+
                         <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.8rem;">
-                            <button type="button" class="btn btn-clear" onclick="clearInvoiceCart()" style="background: #e0e0e0; color: #333;"><i class="fas fa-trash-alt"></i> Temizle</button>
-                            <button type="button" class="btn btn-export" onclick="submitFinalizeInvoice()" style="background-color: var(--success);"><i class="fas fa-check-circle"></i> Faturayı Kesinleştir</button>
+                            <button type="button" class="btn btn-clear" onclick="clearInvoiceCart()"
+                                style="background: #e0e0e0; color: #333;"><i class="fas fa-trash-alt"></i>
+                                Temizle</button>
+                            <button type="button" class="btn btn-export" onclick="submitFinalizeInvoice()"
+                                style="background-color: var(--success);"><i class="fas fa-check-circle"></i> Faturayı
+                                Kesinleştir</button>
                         </div>
                         <div id="invoice-action-msg" class="form-message" style="margin-top: 1rem;"></div>
                     </div>
@@ -411,49 +467,71 @@
                             <div class="invoice-header">
                                 <div class="invoice-brand">
                                     <i class="fab fa-stripe" style="font-size: 2.2rem; color: #635bff;"></i>
-                                    <span style="font-size: 1.2rem; font-weight: bold; margin-left: 0.5rem; color: #30313d;">REST API Manager</span>
+                                    <span
+                                        style="font-size: 1.2rem; font-weight: bold; margin-left: 0.5rem; color: #30313d;">REST
+                                        API Manager</span>
                                 </div>
                                 <div class="invoice-meta-info" style="text-align: right;">
-                                    <h2 style="margin: 0; color: #30313d; font-size: 1.5rem; text-transform: uppercase;">FATURA</h2>
-                                    <p style="margin: 5px 0 0; color: #687385; font-size: 0.85rem;">Tarih: <span id="preview-date">-</span></p>
-                                    <p style="margin: 3px 0 0; color: #687385; font-size: 0.85rem;">Fatura No: <span id="preview-invoice-no">TASLAK</span></p>
+                                    <h2
+                                        style="margin: 0; color: #30313d; font-size: 1.5rem; text-transform: uppercase;">
+                                        FATURA</h2>
+                                    <p style="margin: 5px 0 0; color: #687385; font-size: 0.85rem;">Tarih: <span
+                                            id="preview-date">-</span></p>
+                                    <p style="margin: 3px 0 0; color: #687385; font-size: 0.85rem;">Fatura No: <span
+                                            id="preview-invoice-no">TASLAK</span></p>
                                 </div>
                             </div>
-                            
+
                             <hr style="border: 0; border-top: 1px solid #e0e0e0; margin: 1.5rem 0;">
 
                             <div class="invoice-billing">
                                 <div>
-                                    <h4 style="margin: 0 0 5px; color: #687385; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Müşteri Bilgileri</h4>
-                                    <p id="preview-customer-name" style="margin: 0; font-weight: bold; color: #30313d; font-size: 0.95rem;">-</p>
-                                    <p id="preview-customer-email" style="margin: 2px 0 0; color: #687385; font-size: 0.85rem;">-</p>
-                                    <p id="preview-customer-id" style="margin: 2px 0 0; color: #687385; font-size: 0.8rem; font-family: monospace;">-</p>
+                                    <h4
+                                        style="margin: 0 0 5px; color: #687385; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        Müşteri Bilgileri</h4>
+                                    <p id="preview-customer-name"
+                                        style="margin: 0; font-weight: bold; color: #30313d; font-size: 0.95rem;">-</p>
+                                    <p id="preview-customer-email"
+                                        style="margin: 2px 0 0; color: #687385; font-size: 0.85rem;">-</p>
+                                    <p id="preview-customer-id"
+                                        style="margin: 2px 0 0; color: #687385; font-size: 0.8rem; font-family: monospace;">
+                                        -</p>
                                 </div>
                             </div>
 
-                            <table class="invoice-preview-table" style="margin-top: 1.5rem; width: 100%; border-collapse: collapse;">
+                            <table class="invoice-preview-table"
+                                style="margin-top: 1.5rem; width: 100%; border-collapse: collapse;">
                                 <thead>
                                     <tr style="border-bottom: 2px solid #e0e0e0; text-align: left;">
                                         <th style="padding: 10px 5px; color: #687385; font-size: 0.85rem;">Açıklama</th>
-                                        <th style="padding: 10px 5px; text-align: right; color: #687385; font-size: 0.85rem;">Birim Fiyat</th>
-                                        <th style="padding: 10px 5px; text-align: center; color: #687385; font-size: 0.85rem;">Adet</th>
-                                        <th style="padding: 10px 5px; text-align: right; color: #687385; font-size: 0.85rem;">Toplam</th>
+                                        <th
+                                            style="padding: 10px 5px; text-align: right; color: #687385; font-size: 0.85rem;">
+                                            Birim Fiyat</th>
+                                        <th
+                                            style="padding: 10px 5px; text-align: center; color: #687385; font-size: 0.85rem;">
+                                            Adet</th>
+                                        <th
+                                            style="padding: 10px 5px; text-align: right; color: #687385; font-size: 0.85rem;">
+                                            Toplam</th>
                                     </tr>
                                 </thead>
                                 <tbody id="preview-table-tbody">
                                     <tr>
-                                        <td colspan="4" style="text-align: center; padding: 2rem; color: #9ca3af;">Ürün eklenmedi.</td>
+                                        <td colspan="4" style="text-align: center; padding: 2rem; color: #9ca3af;">Ürün
+                                            eklenmedi.</td>
                                     </tr>
                                 </tbody>
                             </table>
 
                             <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
-                                <div style="width: 250px; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
+                                <div
+                                    style="width: 250px; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
                                     <div style="display: flex; justify-content: space-between; color: #687385;">
                                         <span>Ara Toplam:</span>
                                         <span id="preview-subtotal">$0.00</span>
                                     </div>
-                                    <div style="display: flex; justify-content: space-between; color: #687385;" id="preview-discount-row">
+                                    <div style="display: flex; justify-content: space-between; color: #687385;"
+                                        id="preview-discount-row">
                                         <span>İndirim:</span>
                                         <span id="preview-discount">-$0.00</span>
                                     </div>
@@ -462,14 +540,16 @@
                                         <span id="preview-tax">$0.00</span>
                                     </div>
                                     <hr style="border: 0; border-top: 1px solid #e0e0e0; margin: 5px 0;">
-                                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; color: #30313d;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; color: #30313d;">
                                         <span>Genel Toplam:</span>
                                         <span id="preview-total">$0.00</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div style="margin-top: 3rem; text-align: center; color: #9ca3af; font-size: 0.75rem; border-top: 1px solid #e0e0e0; padding-top: 1rem;">
+                            <div
+                                style="margin-top: 3rem; text-align: center; color: #9ca3af; font-size: 0.75rem; border-top: 1px solid #e0e0e0; padding-top: 1rem;">
                                 Bu fatura Stripe REST API Manager entegrasyonu ile otomatik hesaplanmıştır.
                             </div>
                         </div>
@@ -496,14 +576,18 @@
                     </thead>
                     <tbody id="invoices-tbody-list">
                         <tr>
-                            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">Yükleniyor...</td>
+                            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                Yükleniyor...</td>
                         </tr>
                     </tbody>
                 </table>
-                <div class="pagination-controls" style="margin-top: 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
-                    <button id="invoices-prev-btn" class="pagination-btn" onclick="prevPage('invoices')" disabled>&#8592; Önceki</button>
+                <div class="pagination-controls"
+                    style="margin-top: 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                    <button id="invoices-prev-btn" class="pagination-btn" onclick="prevPage('invoices')"
+                        disabled>&#8592; Önceki</button>
                     <span id="invoices-page-info" style="font-weight: 500;">Sayfa 1</span>
-                    <button id="invoices-next-btn" class="pagination-btn" onclick="nextPage('invoices')" disabled>Sonraki &#8594;</button>
+                    <button id="invoices-next-btn" class="pagination-btn" onclick="nextPage('invoices')"
+                        disabled>Sonraki &#8594;</button>
                 </div>
             </div>
         </section>
@@ -511,47 +595,74 @@
         <!-- ── KULLANICI PANELI (USER PORTAL) SEKSİYONU ─────────────────────────── -->
         <section id="user-portal-sec" class="content-section" style="display: none;">
             <div id="user-portal-auth-container">
-                <div class="form-container" style="max-width: 500px; margin: 2rem auto; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                <div class="form-container"
+                    style="max-width: 500px; margin: 2rem auto; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
                     <div style="text-align: center; margin-bottom: 2rem;">
-                        <h2 id="auth-title" style="margin-bottom: 0.5rem;"><i class="fas fa-lock" style="color: var(--accent-color);"></i> Giriş Yap</h2>
-                        <p id="auth-subtitle" style="color: var(--text-muted); font-size: 0.9rem;">Müşteri hesabınıza erişin</p>
+                        <h2 id="auth-title" style="margin-bottom: 0.5rem;"><i class="fas fa-lock"
+                                style="color: var(--accent-color);"></i> Giriş Yap</h2>
+                        <p id="auth-subtitle" style="color: var(--text-muted); font-size: 0.9rem;">Müşteri hesabınıza
+                            erişin</p>
                     </div>
 
                     <!-- Login Form -->
                     <form id="user-login-form">
                         <div style="margin-bottom: 1.2rem;">
-                            <label for="login-email" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">E-posta Adresi</label>
-                            <input type="email" id="login-email" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="ornek@email.com" required>
+                            <label for="login-email"
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">E-posta
+                                Adresi</label>
+                            <input type="email" id="login-email"
+                                style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;"
+                                placeholder="ornek@email.com" required>
                         </div>
                         <div style="margin-bottom: 1.5rem;">
-                            <label for="login-password" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Şifre</label>
-                            <input type="password" id="login-password" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="••••••••" required>
+                            <label for="login-password"
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Şifre</label>
+                            <input type="password" id="login-password"
+                                style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;"
+                                placeholder="••••••••" required>
                         </div>
-                        <button type="submit" class="btn" style="width: 100%; padding: 0.9rem; font-size: 1rem;"><i class="fas fa-sign-in-alt"></i> Giriş Yap</button>
+                        <button type="submit" class="btn" style="width: 100%; padding: 0.9rem; font-size: 1rem;"><i
+                                class="fas fa-sign-in-alt"></i> Giriş Yap</button>
                     </form>
 
                     <!-- Register Form (Initially Hidden) -->
                     <form id="user-register-form" style="display: none;">
                         <div style="margin-bottom: 1.2rem;">
-                            <label for="register-name" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Ad Soyad</label>
-                            <input type="text" id="register-name" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="Ahmet Yılmaz" required>
+                            <label for="register-name"
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Ad
+                                Soyad</label>
+                            <input type="text" id="register-name"
+                                style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;"
+                                placeholder="Ahmet Yılmaz" required>
                         </div>
                         <div style="margin-bottom: 1.2rem;">
-                            <label for="register-email" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">E-posta Adresi</label>
-                            <input type="email" id="register-email" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="ornek@email.com" required>
+                            <label for="register-email"
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">E-posta
+                                Adresi</label>
+                            <input type="email" id="register-email"
+                                style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;"
+                                placeholder="ornek@email.com" required>
                         </div>
                         <div style="margin-bottom: 1.5rem;">
-                            <label for="register-password" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Şifre</label>
-                            <input type="password" id="register-password" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;" placeholder="••••••••" required>
+                            <label for="register-password"
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Şifre</label>
+                            <input type="password" id="register-password"
+                                style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; background: rgba(0,0,0,0.2); color: #fff;"
+                                placeholder="••••••••" required>
                         </div>
-                        <button type="submit" class="btn" style="width: 100%; padding: 0.9rem; font-size: 1rem; background-color: var(--success);"><i class="fas fa-user-plus"></i> Kaydol</button>
+                        <button type="submit" class="btn"
+                            style="width: 100%; padding: 0.9rem; font-size: 1rem; background-color: var(--success);"><i
+                                class="fas fa-user-plus"></i> Kaydol</button>
                     </form>
 
                     <div id="auth-msg" class="form-message" style="margin-top: 1.2rem;"></div>
 
-                    <div style="text-align: center; margin-top: 1.8rem; border-top: 1px solid var(--border-color); padding-top: 1.2rem; font-size: 0.9rem;">
+                    <div
+                        style="text-align: center; margin-top: 1.8rem; border-top: 1px solid var(--border-color); padding-top: 1.2rem; font-size: 0.9rem;">
                         <span id="toggle-auth-text" style="color: var(--text-muted);">Hesabınız yok mu?</span>
-                        <a href="#" id="toggle-auth-link" style="color: var(--accent-color); font-weight: 600; text-decoration: none; margin-left: 0.3rem;" onclick="toggleAuth(event)">Kayıt Ol</a>
+                        <a href="#" id="toggle-auth-link"
+                            style="color: var(--accent-color); font-weight: 600; text-decoration: none; margin-left: 0.3rem;"
+                            onclick="toggleAuth(event)">Kayıt Ol</a>
                     </div>
                 </div>
             </div>
@@ -562,20 +673,29 @@
                     <div>
                         <h1 style="margin: 0;">Müşteri Portalı</h1>
                         <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.95rem;">
-                            Hoş geldiniz, <strong id="portal-user-name" style="color: #fff;">-</strong> | <span id="portal-user-email">-</span>
+                            Hoş geldiniz, <strong id="portal-user-name" style="color: #fff;">-</strong> | <span
+                                id="portal-user-email">-</span>
                         </p>
                     </div>
                     <div style="display: flex; gap: 0.8rem; align-items: center;">
-                        <span style="font-size: 0.85rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-family: monospace; color: var(--accent-color);" id="portal-user-stripe-id">-</span>
-                        <button class="btn" onclick="userLogout()" style="background-color: var(--warning);"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+                        <span
+                            style="font-size: 0.85rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-family: monospace; color: var(--accent-color);"
+                            id="portal-user-stripe-id">-</span>
+                        <button class="btn" onclick="userLogout()" style="background-color: var(--warning);"><i
+                                class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
                     </div>
                 </div>
 
                 <!-- Tabs -->
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-                    <button class="btn" id="btn-portal-payments" onclick="showPortalTab('payments')" style="background: var(--accent-color); color: #fff; font-weight: 600;">Ödemelerim</button>
-                    <button class="btn" id="btn-portal-invoices" onclick="showPortalTab('invoices')" style="background: transparent; color: var(--text-muted); font-weight: 600; box-shadow: none;">Faturalarım</button>
-                    <button class="btn" id="btn-portal-pay" onclick="showPortalTab('pay')" style="background: transparent; color: var(--text-muted); font-weight: 600; box-shadow: none;">Ödeme Yap</button>
+                <div
+                    style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                    <button class="btn" id="btn-portal-payments" onclick="showPortalTab('payments')"
+                        style="background: var(--accent-color); color: #fff; font-weight: 600;">Ödemelerim</button>
+                    <button class="btn" id="btn-portal-invoices" onclick="showPortalTab('invoices')"
+                        style="background: transparent; color: var(--text-muted); font-weight: 600; box-shadow: none;">Faturalarım</button>
+                    <button class="btn" id="btn-portal-pay" onclick="showPortalTab('pay')"
+                        style="background: transparent; color: var(--text-muted); font-weight: 600; box-shadow: none;">Ödeme
+                        Yap</button>
                 </div>
 
                 <!-- Tab 1: Payments -->
@@ -593,24 +713,31 @@
                             </tr>
                         </thead>
                         <tbody id="portal-payments-tbody">
-                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td></tr>
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--text-muted);">Yükleniyor...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Tab 2: Invoices -->
                 <div id="portal-invoices-tab" class="portal-tab-content" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <h3 style="margin: 0;">Faturalarım</h3>
                     </div>
 
                     <!-- Fatura Filtreleme / Getir Paneli -->
                     <div id="portal-invoice-filters-container" class="form-container" style="margin-bottom: 1.5rem;">
-                        <h4 style="margin: 0 0 1rem 0; font-size: 1rem; color: #fff;"><i class="fas fa-filter"></i> Tarih Filtresi & Fatura Getir</h4>
+                        <h4 style="margin: 0 0 1rem 0; font-size: 1rem; color: #fff;"><i class="fas fa-filter"></i>
+                            Tarih Filtresi & Fatura Getir</h4>
                         <div class="form-row" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
                             <div style="flex: 1; min-width: 160px;">
-                                <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Filtre Seçeneği:</label>
-                                <select id="portal-inv-filter-type" class="form-select" style="width: 100%;" onchange="onPortalInvoiceFilterTypeChange()">
+                                <label
+                                    style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Filtre
+                                    Seçeneği:</label>
+                                <select id="portal-inv-filter-type" class="form-select" style="width: 100%;"
+                                    onchange="onPortalInvoiceFilterTypeChange()">
                                     <option value="" selected>Lütfen tarih seçiniz</option>
                                     <option value="all">Tüm Tarihler</option>
                                     <option value="range">Tarih Aralığı (Başlangıç - Bitiş)</option>
@@ -620,21 +747,31 @@
                             </div>
 
                             <!-- Tarih Aralığı Girişi -->
-                            <div id="portal-inv-range-group" style="display: none; gap: 0.8rem; flex: 2; min-width: 250px;">
+                            <div id="portal-inv-range-group"
+                                style="display: none; gap: 0.8rem; flex: 2; min-width: 250px;">
                                 <div style="flex: 1;">
-                                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Başlangıç Tarihi:</label>
-                                    <input type="date" id="portal-inv-start-date" class="form-select" style="width: 100%;" onclick="this.showPicker()">
+                                    <label
+                                        style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Başlangıç
+                                        Tarihi:</label>
+                                    <input type="date" id="portal-inv-start-date" class="form-select"
+                                        style="width: 100%;" onclick="this.showPicker()">
                                 </div>
                                 <div style="flex: 1;">
-                                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Bitiş Tarihi:</label>
-                                    <input type="date" id="portal-inv-end-date" class="form-select" style="width: 100%;" onclick="this.showPicker()">
+                                    <label
+                                        style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Bitiş
+                                        Tarihi:</label>
+                                    <input type="date" id="portal-inv-end-date" class="form-select" style="width: 100%;"
+                                        onclick="this.showPicker()">
                                 </div>
                             </div>
 
                             <!-- Ay & Yıl Seçimi Girişi -->
-                            <div id="portal-inv-month-group" style="display: none; gap: 0.8rem; flex: 2; min-width: 250px;">
+                            <div id="portal-inv-month-group"
+                                style="display: none; gap: 0.8rem; flex: 2; min-width: 250px;">
                                 <div style="flex: 1;">
-                                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Ay Seçin:</label>
+                                    <label
+                                        style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Ay
+                                        Seçin:</label>
                                     <select id="portal-inv-month-select" class="form-select" style="width: 100%;">
                                         <option value="1">Ocak</option>
                                         <option value="2">Şubat</option>
@@ -651,21 +788,31 @@
                                     </select>
                                 </div>
                                 <div style="flex: 1;">
-                                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Yıl Seçin:</label>
-                                    <select id="portal-inv-year-select" class="form-select" style="width: 100%;"></select>
+                                    <label
+                                        style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Yıl
+                                        Seçin:</label>
+                                    <select id="portal-inv-year-select" class="form-select"
+                                        style="width: 100%;"></select>
                                 </div>
                             </div>
 
                             <!-- Sadece Yıl Seçimi Girişi -->
                             <div id="portal-inv-year-only-group" style="display: none; flex: 1; min-width: 150px;">
-                                <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Yıl Seçin:</label>
-                                <select id="portal-inv-only-year-select" class="form-select" style="width: 100%;"></select>
+                                <label
+                                    style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Yıl
+                                    Seçin:</label>
+                                <select id="portal-inv-only-year-select" class="form-select"
+                                    style="width: 100%;"></select>
                             </div>
 
                             <!-- İşlem Butonları -->
                             <div style="display: flex; gap: 0.5rem; margin-top: auto;">
-                                <button type="button" class="btn" onclick="applyPortalInvoiceFilter()" style="background-color: var(--success);"><i class="fas fa-search"></i> Faturaları Getir</button>
-                                <button type="button" class="btn" onclick="clearPortalInvoiceFilter()" style="background: #e0e0e0; color: #333;"><i class="fas fa-times"></i> Temizle</button>
+                                <button type="button" class="btn" onclick="applyPortalInvoiceFilter()"
+                                    style="background-color: var(--success);"><i class="fas fa-search"></i> Faturaları
+                                    Getir</button>
+                                <button type="button" class="btn" onclick="clearPortalInvoiceFilter()"
+                                    style="background: #e0e0e0; color: #333;"><i class="fas fa-times"></i>
+                                    Temizle</button>
                             </div>
                         </div>
                     </div>
@@ -682,14 +829,20 @@
                             </tr>
                         </thead>
                         <tbody id="portal-invoices-tbody">
-                            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Faturaları listelemek için "Faturaları Getir" butonuna tıklayınız.</td></tr>
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--text-muted);">Faturaları
+                                    listelemek için "Faturaları Getir" butonuna tıklayınız.</td>
+                            </tr>
                         </tbody>
                     </table>
-                    <div class="pagination-controls" style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <div class="pagination-controls"
+                        style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
-                            <button id="portalInvoices-prev-btn" class="pagination-btn" onclick="prevPage('portalInvoices')" disabled>&#8592; Önceki</button>
+                            <button id="portalInvoices-prev-btn" class="pagination-btn"
+                                onclick="prevPage('portalInvoices')" disabled>&#8592; Önceki</button>
                             <span id="portalInvoices-page-info" style="font-weight: 500;">Sayfa 1</span>
-                            <button id="portalInvoices-next-btn" class="pagination-btn" onclick="nextPage('portalInvoices')" disabled>Sonraki &#8594;</button>
+                            <button id="portalInvoices-next-btn" class="pagination-btn"
+                                onclick="nextPage('portalInvoices')" disabled>Sonraki &#8594;</button>
                         </div>
                     </div>
                     <div id="portal-invoices-save-msg" class="form-message" style="margin-top: 1rem;"></div>
@@ -701,22 +854,32 @@
                         <h3>Yeni Ödeme Oluştur</h3>
                         <form id="portal-pay-form">
                             <div style="margin-bottom: 1.2rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Tutar</label>
-                                <input type="number" id="portal-pay-amount" placeholder="Örn: 99.90" step="0.01" min="1" required style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff;">
+                                <label
+                                    style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Tutar</label>
+                                <input type="number" id="portal-pay-amount" placeholder="Örn: 99.90" step="0.01" min="1"
+                                    required
+                                    style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff;">
                             </div>
                             <div style="margin-bottom: 1.2rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Para Birimi</label>
-                                <select id="portal-pay-currency" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff;">
+                                <label
+                                    style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Para
+                                    Birimi</label>
+                                <select id="portal-pay-currency"
+                                    style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff;">
                                     <option value="usd">USD ($)</option>
                                     <option value="eur">EUR (€)</option>
                                     <option value="try">TRY (₺)</option>
                                 </select>
                             </div>
                             <div style="margin-bottom: 1.5rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Sipariş Açıklaması</label>
-                                <input type="text" id="portal-pay-order-id" placeholder="Örn: siparis_1002" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff;">
+                                <label
+                                    style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Sipariş
+                                    Açıklaması</label>
+                                <input type="text" id="portal-pay-order-id" placeholder="Örn: siparis_1002"
+                                    style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff;">
                             </div>
-                            <button type="submit" class="btn" style="width: auto; padding: 0.8rem 2rem;"><i class="fas fa-credit-card"></i> Ödeme Başlat</button>
+                            <button type="submit" class="btn" style="width: auto; padding: 0.8rem 2rem;"><i
+                                    class="fas fa-credit-card"></i> Ödeme Başlat</button>
                         </form>
                         <div id="portal-pay-msg" class="form-message" style="margin-top: 1rem;"></div>
                     </div>
@@ -763,8 +926,7 @@
                     border: none; border-radius: 8px;
                     font-size: 0.95rem; font-weight: 600;
                     cursor: pointer; transition: background 0.2s;
-                " onmouseover="this.style.background='#4f46e5'"
-                   onmouseout="this.style.background='#635bff'">
+                " onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#635bff'">
                     <i class="fas fa-sync-alt"></i> Evet, Yeniden Oluştur
                 </button>
                 <!-- Hayır -->
@@ -774,8 +936,7 @@
                     border: 1.5px solid #d1d5db; border-radius: 8px;
                     font-size: 0.95rem; font-weight: 600;
                     cursor: pointer; transition: background 0.2s;
-                " onmouseover="this.style.background='#e5e7eb'"
-                   onmouseout="this.style.background='#f3f4f6'">
+                " onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
                     <i class="fas fa-eye"></i> Hayır, Mevcut PDF'i Gör
                 </button>
             </div>
@@ -804,8 +965,10 @@
             border: 1px solid rgba(255,255,255,0.1);
         ">
             <!-- Başlık -->
-            <h3 id="export-modal-title" style="margin: 0 0 1.5rem; font-size: 1.3rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem;">
-                <i class="fas fa-file-export" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Veri Dışa Aktar
+            <h3 id="export-modal-title"
+                style="margin: 0 0 1.5rem; font-size: 1.3rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem;">
+                <i class="fas fa-file-export" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Veri Dışa
+                Aktar
             </h3>
 
             <!-- Dosya Formatı Seçimi -->
@@ -813,10 +976,12 @@
                 <h4 style="margin: 0 0 0.6rem; font-size: 0.95rem; color: var(--text-muted);">Dosya Formatı:</h4>
                 <div style="display: flex; gap: 1.5rem;">
                     <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
-                        <input type="radio" name="custom-export-format" value="json" checked style="accent-color: var(--accent-color); margin: 0;"> JSON
+                        <input type="radio" name="custom-export-format" value="json" checked
+                            style="accent-color: var(--accent-color); margin: 0;"> JSON
                     </label>
                     <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
-                        <input type="radio" name="custom-export-format" value="csv" style="accent-color: var(--accent-color); margin: 0;"> CSV
+                        <input type="radio" name="custom-export-format" value="csv"
+                            style="accent-color: var(--accent-color); margin: 0;"> CSV
                     </label>
                 </div>
             </div>
@@ -826,13 +991,19 @@
                 <h4 style="margin: 0 0 0.6rem; font-size: 0.95rem; color: var(--text-muted);">Kayıt Aralığı:</h4>
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
-                        <input type="radio" name="custom-export-limit" value="100" checked onchange="toggleExportDateRange(false)" style="accent-color: var(--accent-color); margin: 0;"> Son 100 Kayıt
+                        <input type="radio" name="custom-export-limit" value="100" checked
+                            onchange="toggleExportDateRange(false)"
+                            style="accent-color: var(--accent-color); margin: 0;"> Son 100 Kayıt
                     </label>
                     <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
-                        <input type="radio" name="custom-export-limit" value="all" onchange="toggleExportDateRange(false)" style="accent-color: var(--accent-color); margin: 0;"> Tüm Kayıtlar
+                        <input type="radio" name="custom-export-limit" value="all"
+                            onchange="toggleExportDateRange(false)"
+                            style="accent-color: var(--accent-color); margin: 0;"> Tüm Kayıtlar
                     </label>
                     <label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
-                        <input type="radio" name="custom-export-limit" value="date" onchange="toggleExportDateRange(true)" style="accent-color: var(--accent-color); margin: 0;"> Tarih Aralığı Seç
+                        <input type="radio" name="custom-export-limit" value="date"
+                            onchange="toggleExportDateRange(true)"
+                            style="accent-color: var(--accent-color); margin: 0;"> Tarih Aralığı Seç
                     </label>
                 </div>
 
@@ -840,11 +1011,15 @@
                 <div id="custom-export-date-inputs" style="display: none; gap: 0.8rem; margin-top: 0.8rem;">
                     <div style="flex: 1; display: flex; flex-direction: column; gap: 0.3rem;">
                         <span style="font-size: 0.8rem; color: var(--text-muted);">Başlangıç:</span>
-                        <input type="date" id="custom-export-start" style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 5px; border: 1px solid var(--accent-color); color: #fff; background: transparent;" onclick="this.showPicker()">
+                        <input type="date" id="custom-export-start"
+                            style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 5px; border: 1px solid var(--accent-color); color: #fff; background: transparent;"
+                            onclick="this.showPicker()">
                     </div>
                     <div style="flex: 1; display: flex; flex-direction: column; gap: 0.3rem;">
                         <span style="font-size: 0.8rem; color: var(--text-muted);">Bitiş:</span>
-                        <input type="date" id="custom-export-end" style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 5px; border: 1px solid var(--accent-color); color: #fff; background: transparent;" onclick="this.showPicker()">
+                        <input type="date" id="custom-export-end"
+                            style="width: 100%; font-size: 0.85rem; padding: 6px 10px; border-radius: 5px; border: 1px solid var(--accent-color); color: #fff; background: transparent;"
+                            onclick="this.showPicker()">
                     </div>
                 </div>
             </div>
@@ -853,15 +1028,19 @@
             <div style="margin-bottom: 2rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
                     <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">Dışa Aktarılacak Alanlar:</h4>
-                    <button type="button" onclick="toggleAllExportFields()" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-size: 0.8rem; font-weight: bold; text-decoration: underline; padding: 0;">Tümünü Seç/Temizle</button>
+                    <button type="button" onclick="toggleAllExportFields()"
+                        style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-size: 0.8rem; font-weight: bold; text-decoration: underline; padding: 0;">Tümünü
+                        Seç/Temizle</button>
                 </div>
-                <div id="custom-export-fields" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);">
+                <div id="custom-export-fields"
+                    style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);">
                     <!-- JS ile doldurulacak -->
                 </div>
             </div>
 
             <!-- İşlem Butonları -->
-            <div style="display: flex; gap: 0.8rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
+            <div
+                style="display: flex; gap: 0.8rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
                 <button type="button" onclick="closeExportModal()" style="
                     padding: 0.6rem 1.2rem;
                     background: transparent; color: #fff;
@@ -869,7 +1048,7 @@
                     font-size: 0.9rem; font-weight: bold;
                     cursor: pointer; transition: 0.2s;
                 " onmouseover="this.style.background='rgba(255,255,255,0.1)'"
-                   onmouseout="this.style.background='transparent'">
+                    onmouseout="this.style.background='transparent'">
                     İptal
                 </button>
                 <button type="button" id="custom-export-submit-btn" onclick="submitCustomExport()" style="
@@ -879,7 +1058,7 @@
                     font-size: 0.9rem; font-weight: bold;
                     cursor: pointer; transition: 0.2s;
                 " onmouseover="this.style.background='#4f51c7'"
-                   onmouseout="this.style.background='var(--accent-color)'">
+                    onmouseout="this.style.background='var(--accent-color)'">
                     <i class="fas fa-download"></i> Dışa Aktar
                 </button>
             </div>
@@ -909,36 +1088,54 @@
             border: 1px solid rgba(255,255,255,0.1);
         ">
             <!-- Modal Başlığı -->
-            <h3 id="import-modal-title" style="margin: 0 0 1.5rem; font-size: 1.3rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem;">
-                <i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> İçe Aktarma Sihirbazı
+            <h3 id="import-modal-title"
+                style="margin: 0 0 1.5rem; font-size: 1.3rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem;">
+                <i class="fas fa-magic" style="color: var(--accent-color); margin-right: 0.5rem;"></i> İçe Aktarma
+                Sihirbazı
             </h3>
-            
+
             <!-- Adım Göstergesi -->
-            <div style="display: flex; justify-content: space-between; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
-                <div id="wizard-badge-1" style="flex: 1; text-align: center; font-weight: bold; color: var(--accent-color); border-bottom: 3px solid var(--accent-color); padding-bottom: 0.5rem; font-size: 0.85rem;">
-                    <span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--accent-color); color:#fff; text-align:center; line-height:22px; margin-right:5px;">1</span> Dosya Yükleme
+            <div
+                style="display: flex; justify-content: space-between; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                <div id="wizard-badge-1"
+                    style="flex: 1; text-align: center; font-weight: bold; color: var(--accent-color); border-bottom: 3px solid var(--accent-color); padding-bottom: 0.5rem; font-size: 0.85rem;">
+                    <span
+                        style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--accent-color); color:#fff; text-align:center; line-height:22px; margin-right:5px;">1</span>
+                    Dosya Yükleme
                 </div>
-                <div id="wizard-badge-2" style="flex: 1; text-align: center; font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent; padding-bottom: 0.5rem; font-size: 0.85rem;">
-                    <span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--border-color); color:var(--text-muted); text-align:center; line-height:22px; margin-right:5px;">2</span> Alan Eşleştirme
+                <div id="wizard-badge-2"
+                    style="flex: 1; text-align: center; font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent; padding-bottom: 0.5rem; font-size: 0.85rem;">
+                    <span
+                        style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--border-color); color:var(--text-muted); text-align:center; line-height:22px; margin-right:5px;">2</span>
+                    Alan Eşleştirme
                 </div>
-                <div id="wizard-badge-3" style="flex: 1; text-align: center; font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent; padding-bottom: 0.5rem; font-size: 0.85rem;">
-                    <span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--border-color); color:var(--text-muted); text-align:center; line-height:22px; margin-right:5px;">3</span> Önizleme & Onay
+                <div id="wizard-badge-3"
+                    style="flex: 1; text-align: center; font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent; padding-bottom: 0.5rem; font-size: 0.85rem;">
+                    <span
+                        style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--border-color); color:var(--text-muted); text-align:center; line-height:22px; margin-right:5px;">3</span>
+                    Önizleme & Onay
                 </div>
-                <div id="wizard-badge-4" style="flex: 1; text-align: center; font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent; padding-bottom: 0.5rem; font-size: 0.85rem;">
-                    <span style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--border-color); color:var(--text-muted); text-align:center; line-height:22px; margin-right:5px;">4</span> Sonuç Raporu
+                <div id="wizard-badge-4"
+                    style="flex: 1; text-align: center; font-weight: bold; color: var(--text-muted); border-bottom: 3px solid transparent; padding-bottom: 0.5rem; font-size: 0.85rem;">
+                    <span
+                        style="display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--border-color); color:var(--text-muted); text-align:center; line-height:22px; margin-right:5px;">4</span>
+                    Sonuç Raporu
                 </div>
             </div>
 
             <!-- Adım 1: Dosya Türü Seçimi & Dosya Yükleme -->
             <div id="import-wizard-step-1">
-                <p class="section-desc" style="margin-bottom: 1.5rem; color: var(--text-muted);">Lütfen öncelikle içe aktarmak istediğiniz veri/dosya türünü seçin, ardından CSV veya JSON dosyanızı yükleyin.</p>
-                
+                <p class="section-desc" style="margin-bottom: 1.5rem; color: var(--text-muted);">Lütfen öncelikle içe
+                    aktarmak istediğiniz veri/dosya türünü seçin, ardından CSV veya JSON dosyanızı yükleyin.</p>
+
                 <!-- Veri Türü (Model) Seçimi -->
                 <div id="wizard-target-model-group" style="margin-bottom: 1.5rem;">
                     <label style="display: block; font-weight: bold; margin-bottom: 0.5rem; color: #fff;">
-                        <i class="fas fa-database" style="color: var(--accent-color); margin-right: 0.4rem;"></i> 1. Yüklenecek Veri Türü (Model) Seçin:
+                        <i class="fas fa-database" style="color: var(--accent-color); margin-right: 0.4rem;"></i> 1.
+                        Yüklenecek Veri Türü (Model) Seçin:
                     </label>
-                    <select id="wizard-target-model" class="form-select" style="width: 100%; max-width: 350px;" onchange="onWizardModelChanged()">
+                    <select id="wizard-target-model" class="form-select" style="width: 100%; max-width: 350px;"
+                        onchange="onWizardModelChanged()">
                         <option value="customers" selected>Müşteriler (Customers)</option>
                         <option value="products">Ürünler (Products)</option>
                         <option value="payments">Ödemeler (Payments)</option>
@@ -950,18 +1147,23 @@
                 <!-- Dosya Yükleme -->
                 <div style="margin-bottom: 1.5rem;">
                     <label style="display: block; font-weight: bold; margin-bottom: 0.5rem; color: #fff;">
-                        <i class="fas fa-file-upload" style="color: var(--accent-color); margin-right: 0.4rem;"></i> 2. Dosya Seçin (CSV veya JSON):
+                        <i class="fas fa-file-upload" style="color: var(--accent-color); margin-right: 0.4rem;"></i> 2.
+                        Dosya Seçin (CSV veya JSON):
                     </label>
-                    <div class="form-row" style="background: rgba(255,255,255,0.02); padding: 1.2rem 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div class="form-row"
+                        style="background: rgba(255,255,255,0.02); padding: 1.2rem 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
                         <label class="file-label" style="margin: 0; flex-grow: 1; justify-content: center;">
                             <i class="fas fa-file-alt"></i> Dosya Seç
                             <input type="file" id="wizard-file" accept=".json,.csv" onchange="onWizardFileSelected()">
                         </label>
-                        <span id="wizard-filename" class="file-name-display" style="color: var(--text-muted); font-weight: bold; min-width: 150px; text-align: center;">Dosya seçilmedi</span>
+                        <span id="wizard-filename" class="file-name-display"
+                            style="color: var(--text-muted); font-weight: bold; min-width: 150px; text-align: center;">Dosya
+                            seçilmedi</span>
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
+                <div
+                    style="display: flex; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
                     <button type="button" class="btn" onclick="wizardAnalyzeFile()" style="padding: 11px 24px;">
                         <i class="fas fa-search"></i> Analiz Et & Devam Et <i class="fas fa-arrow-right"></i>
                     </button>
@@ -971,26 +1173,35 @@
 
             <!-- Adım 2: Eşleştirme (Mapping) -->
             <div id="import-wizard-step-2" style="display: none;">
-                <div style="margin-bottom: 1.5rem; background: rgba(255,255,255,0.03); padding: 0.8rem 1.2rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <div
+                    style="margin-bottom: 1.5rem; background: rgba(255,255,255,0.03); padding: 0.8rem 1.2rem; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <span style="color: var(--text-muted); font-size: 0.82rem; display: block;">Seçilen Veri Türü:</span>
-                        <strong id="wizard-selected-model-title" style="font-size: 1.05rem; color: var(--accent-color);">Müşteriler (Customers)</strong>
+                        <span style="color: var(--text-muted); font-size: 0.82rem; display: block;">Seçilen Veri
+                            Türü:</span>
+                        <strong id="wizard-selected-model-title"
+                            style="font-size: 1.05rem; color: var(--accent-color);">Müşteriler (Customers)</strong>
                     </div>
-                    <button type="button" onclick="changeWizardStep(1)" style="background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                    <button type="button" onclick="changeWizardStep(1)"
+                        style="background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
                         <i class="fas fa-edit"></i> Türü Değiştir
                     </button>
                 </div>
 
                 <div style="margin-bottom: 2rem;">
-                    <h4 style="margin-bottom: 0.8rem; font-size: 0.95rem; color: var(--text-muted);">Alanları Eşleştirin:</h4>
-                    <p class="section-desc" style="margin-bottom: 1rem; color: var(--text-muted);">Soldaki sistem alanlarını, sağdaki dosya kolonlarıyla eşleştirin.</p>
-                    <div id="wizard-mapping-container" style="display: flex; flex-direction: column; gap: 1rem; max-height: 40vh; overflow-y: auto; padding-right: 0.5rem;">
+                    <h4 style="margin-bottom: 0.8rem; font-size: 0.95rem; color: var(--text-muted);">Alanları
+                        Eşleştirin:</h4>
+                    <p class="section-desc" style="margin-bottom: 1rem; color: var(--text-muted);">Soldaki sistem
+                        alanlarını, sağdaki dosya kolonlarıyla eşleştirin.</p>
+                    <div id="wizard-mapping-container"
+                        style="display: flex; flex-direction: column; gap: 1rem; max-height: 40vh; overflow-y: auto; padding-right: 0.5rem;">
                         <!-- Dinamik olarak JS ile üretilecek -->
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
-                    <button type="button" class="btn" onclick="changeWizardStep(1)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                <div
+                    style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
+                    <button type="button" class="btn" onclick="changeWizardStep(1)"
+                        style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff;">
                         <i class="fas fa-arrow-left"></i> Geri
                     </button>
                     <button type="button" class="btn" onclick="wizardPreviewMapping()">
@@ -1003,36 +1214,53 @@
             <!-- Adım 3: Önizleme & Onay -->
             <div id="import-wizard-step-3" style="display: none;">
                 <div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 150px; background: rgba(0,242,195,0.1); border-left: 4px solid var(--success); padding: 15px; border-radius: 4px;">
-                        <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Geçerli Kayıtlar</span>
-                        <span id="wizard-preview-valid-count" style="font-size: 1.8rem; font-weight: bold; color: var(--success);">0</span>
+                    <div
+                        style="flex: 1; min-width: 150px; background: rgba(0,242,195,0.1); border-left: 4px solid var(--success); padding: 15px; border-radius: 4px;">
+                        <span
+                            style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Geçerli
+                            Kayıtlar</span>
+                        <span id="wizard-preview-valid-count"
+                            style="font-size: 1.8rem; font-weight: bold; color: var(--success);">0</span>
                     </div>
-                    <div style="flex: 1; min-width: 150px; background: rgba(99,102,241,0.1); border-left: 4px solid var(--accent-color); padding: 15px; border-radius: 4px;">
-                        <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Mevcut Kayıtlar</span>
-                        <span id="wizard-preview-existing-count" style="font-size: 1.8rem; font-weight: bold; color: var(--accent-color);">0</span>
+                    <div
+                        style="flex: 1; min-width: 150px; background: rgba(99,102,241,0.1); border-left: 4px solid var(--accent-color); padding: 15px; border-radius: 4px;">
+                        <span
+                            style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Mevcut
+                            Kayıtlar</span>
+                        <span id="wizard-preview-existing-count"
+                            style="font-size: 1.8rem; font-weight: bold; color: var(--accent-color);">0</span>
                     </div>
-                    <div style="flex: 1; min-width: 150px; background: rgba(255,141,114,0.1); border-left: 4px solid var(--warning); padding: 15px; border-radius: 4px;">
-                        <span style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Hatalı/Eksik Kayıtlar</span>
-                        <span id="wizard-preview-invalid-count" style="font-size: 1.8rem; font-weight: bold; color: var(--warning);">0</span>
+                    <div
+                        style="flex: 1; min-width: 150px; background: rgba(255,141,114,0.1); border-left: 4px solid var(--warning); padding: 15px; border-radius: 4px;">
+                        <span
+                            style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Hatalı/Eksik
+                            Kayıtlar</span>
+                        <span id="wizard-preview-invalid-count"
+                            style="font-size: 1.8rem; font-weight: bold; color: var(--warning);">0</span>
                     </div>
                 </div>
 
                 <!-- Sekmeler / Preview lists -->
                 <div style="margin-bottom: 2rem;">
-                    <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
-                        <button type="button" id="wizard-tab-valid-btn" onclick="toggleWizardPreviewTab('valid')" style="background:none; border:none; color:var(--success); font-weight:bold; cursor:pointer; border-bottom:2px solid var(--success); padding:5px 10px;">
+                    <div
+                        style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                        <button type="button" id="wizard-tab-valid-btn" onclick="toggleWizardPreviewTab('valid')"
+                            style="background:none; border:none; color:var(--success); font-weight:bold; cursor:pointer; border-bottom:2px solid var(--success); padding:5px 10px;">
                             Aktarılacak Veriler (İlk 10 Kayıt)
                         </button>
-                        <button type="button" id="wizard-tab-existing-btn" onclick="toggleWizardPreviewTab('existing')" style="background:none; border:none; color:var(--text-muted); font-weight:bold; cursor:pointer; padding:5px 10px;">
+                        <button type="button" id="wizard-tab-existing-btn" onclick="toggleWizardPreviewTab('existing')"
+                            style="background:none; border:none; color:var(--text-muted); font-weight:bold; cursor:pointer; padding:5px 10px;">
                             Mevcut Kayıtlar (İlk 10 Kayıt)
                         </button>
-                        <button type="button" id="wizard-tab-invalid-btn" onclick="toggleWizardPreviewTab('invalid')" style="background:none; border:none; color:var(--text-muted); font-weight:bold; cursor:pointer; padding:5px 10px;">
+                        <button type="button" id="wizard-tab-invalid-btn" onclick="toggleWizardPreviewTab('invalid')"
+                            style="background:none; border:none; color:var(--text-muted); font-weight:bold; cursor:pointer; padding:5px 10px;">
                             Hatalı Kayıtlar (İlk 10 Kayıt)
                         </button>
                     </div>
 
                     <!-- Geçerli kayıtlar listesi -->
-                    <div id="wizard-preview-valid-container" style="overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 35vh; overflow-y: auto;">
+                    <div id="wizard-preview-valid-container"
+                        style="overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 35vh; overflow-y: auto;">
                         <table style="margin-top: 0; font-size: 0.85rem; box-shadow: none; border-radius: 0;">
                             <thead id="wizard-preview-valid-thead"></thead>
                             <tbody id="wizard-preview-valid-tbody"></tbody>
@@ -1040,7 +1268,8 @@
                     </div>
 
                     <!-- Mevcut kayıtlar listesi -->
-                    <div id="wizard-preview-existing-container" style="display: none; overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 35vh; overflow-y: auto;">
+                    <div id="wizard-preview-existing-container"
+                        style="display: none; overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 35vh; overflow-y: auto;">
                         <table style="margin-top: 0; font-size: 0.85rem; box-shadow: none; border-radius: 0;">
                             <thead id="wizard-preview-existing-thead"></thead>
                             <tbody id="wizard-preview-existing-tbody"></tbody>
@@ -1048,7 +1277,8 @@
                     </div>
 
                     <!-- Geçersiz kayıtlar listesi -->
-                    <div id="wizard-preview-invalid-container" style="display: none; overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 35vh; overflow-y: auto;">
+                    <div id="wizard-preview-invalid-container"
+                        style="display: none; overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 35vh; overflow-y: auto;">
                         <table style="margin-top: 0; font-size: 0.85rem; box-shadow: none; border-radius: 0;">
                             <thead>
                                 <tr>
@@ -1062,8 +1292,10 @@
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
-                    <button type="button" class="btn" onclick="changeWizardStep(2)" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                <div
+                    style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.2rem;">
+                    <button type="button" class="btn" onclick="changeWizardStep(2)"
+                        style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff;">
                         <i class="fas fa-arrow-left"></i> Geri
                     </button>
                     <button type="button" id="wizard-execute-btn" class="btn" onclick="wizardExecuteImport()">
@@ -1075,29 +1307,41 @@
 
             <!-- Adım 4: Sonuç Raporu -->
             <div id="import-wizard-step-4" style="display: none;">
-                <div style="text-align: center; margin-bottom: 2rem; padding: 2rem; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid var(--border-color);">
-                    <div style="width:60px; height:60px; border-radius:50%; background:rgba(0,242,195,0.15); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
+                <div
+                    style="text-align: center; margin-bottom: 2rem; padding: 2rem; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid var(--border-color);">
+                    <div
+                        style="width:60px; height:60px; border-radius:50%; background:rgba(0,242,195,0.15); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
                         <i class="fas fa-check-circle" style="font-size:2.5rem; color:var(--success);"></i>
                     </div>
                     <h3 style="font-size: 1.2rem;">Aktarım İşlemi Tamamlandı!</h3>
-                    <p class="section-desc" style="margin-top:0.5rem; color: var(--text-muted);">Veritabanı ve Stripe güncellemeleri başarıyla yapıldı.</p>
-                    
-                    <div style="display: flex; gap: 1.5rem; justify-content: center; margin-top: 1.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
-                        <div style="flex:1; background:rgba(0,242,195,0.08); padding:10px; border-radius:8px; border: 1px solid rgba(0,242,195,0.15);">
-                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom: 3px;">Başarılı</span>
-                            <span id="wizard-result-success" style="font-size:1.5rem; font-weight:bold; color:var(--success);">0</span>
+                    <p class="section-desc" style="margin-top:0.5rem; color: var(--text-muted);">Veritabanı ve Stripe
+                        güncellemeleri başarıyla yapıldı.</p>
+
+                    <div
+                        style="display: flex; gap: 1.5rem; justify-content: center; margin-top: 1.5rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                        <div
+                            style="flex:1; background:rgba(0,242,195,0.08); padding:10px; border-radius:8px; border: 1px solid rgba(0,242,195,0.15);">
+                            <span
+                                style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom: 3px;">Başarılı</span>
+                            <span id="wizard-result-success"
+                                style="font-size:1.5rem; font-weight:bold; color:var(--success);">0</span>
                         </div>
-                        <div style="flex:1; background:rgba(255,141,114,0.08); padding:10px; border-radius:8px; border: 1px solid rgba(255,141,114,0.15);">
-                            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom: 3px;">Başarısız</span>
-                            <span id="wizard-result-failed" style="font-size:1.5rem; font-weight:bold; color:var(--warning);">0</span>
+                        <div
+                            style="flex:1; background:rgba(255,141,114,0.08); padding:10px; border-radius:8px; border: 1px solid rgba(255,141,114,0.15);">
+                            <span
+                                style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom: 3px;">Başarısız</span>
+                            <span id="wizard-result-failed"
+                                style="font-size:1.5rem; font-weight:bold; color:var(--warning);">0</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Hata Listesi Tablosu -->
                 <div id="wizard-result-errors-section" style="display: none; margin-bottom: 2rem;">
-                    <h4 style="color: var(--warning); margin-bottom: 0.8rem; font-size: 0.95rem;"><i class="fas fa-exclamation-triangle"></i> Hata Alan Kayıtlar:</h4>
-                    <div style="overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 25vh; overflow-y: auto;">
+                    <h4 style="color: var(--warning); margin-bottom: 0.8rem; font-size: 0.95rem;"><i
+                            class="fas fa-exclamation-triangle"></i> Hata Alan Kayıtlar:</h4>
+                    <div
+                        style="overflow-x: auto; background: rgba(0,0,0,0.15); border-radius: 8px; padding: 1rem; max-height: 25vh; overflow-y: auto;">
                         <table style="margin-top: 0; font-size: 0.85rem; box-shadow: none; border-radius: 0;">
                             <thead>
                                 <tr>
@@ -1112,7 +1356,8 @@
                 </div>
 
                 <div style="display: flex; justify-content: flex-end;">
-                    <button type="button" class="btn" onclick="closeImportModal()" style="background-color: var(--accent-color);">
+                    <button type="button" class="btn" onclick="closeImportModal()"
+                        style="background-color: var(--accent-color);">
                         <i class="fas fa-times"></i> Kapat
                     </button>
                 </div>
@@ -1129,4 +1374,5 @@
 
     <script src="/static/js/dashboard.js"></script>
 </body>
+
 </html>

@@ -77,25 +77,66 @@ def _upsert_invoice_row(
     currency: str,
     status: str,
     pdf_path: str = "",
+    olusturma_tarihi: Optional[str] = None,
 ) -> None:
     """
     'invoices' tablosuna tek bir satırı ekler ya da mevcutsa günceller.
     sync/import akışlarındaki ayrı INSERT/UPDATE bloklarının yerini alır.
     """
-    sql = """
-        INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-            status = VALUES(status),
-            amount = VALUES(amount),
-            currency = VALUES(currency),
-            pdf_path = IF(VALUES(pdf_path) = '', pdf_path, VALUES(pdf_path))
-    """
-    with get_db() as cursor:
-        cursor.execute(
-            sql,
-            (invoice_id, customer_id, int(amount), currency.lower(), status.lower(), pdf_path),
+    olusturma_tarihi_val = None
+    if olusturma_tarihi:
+        olusturma_tarihi_str = str(olusturma_tarihi).strip()
+        if olusturma_tarihi_str:
+            if olusturma_tarihi_str.isdigit() and len(olusturma_tarihi_str) == 10:
+                try:
+                    ts = int(olusturma_tarihi_str)
+                    olusturma_tarihi_val = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+                except Exception:
+                    olusturma_tarihi_val = olusturma_tarihi_str
+            else:
+                olusturma_tarihi_val = olusturma_tarihi_str
+
+    if olusturma_tarihi_val:
+        sql = """
+            INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                status = VALUES(status),
+                amount = VALUES(amount),
+                currency = VALUES(currency),
+                pdf_path = IF(VALUES(pdf_path) = '', pdf_path, VALUES(pdf_path)),
+                olusturma_tarihi = VALUES(olusturma_tarihi)
+        """
+        params = (
+            invoice_id,
+            customer_id,
+            int(amount),
+            currency.lower(),
+            status.lower(),
+            pdf_path,
+            olusturma_tarihi_val,
         )
+    else:
+        sql = """
+            INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                status = VALUES(status),
+                amount = VALUES(amount),
+                currency = VALUES(currency),
+                pdf_path = IF(VALUES(pdf_path) = '', pdf_path, VALUES(pdf_path))
+        """
+        params = (
+            invoice_id,
+            customer_id,
+            int(amount),
+            currency.lower(),
+            status.lower(),
+            pdf_path,
+        )
+
+    with get_db() as cursor:
+        cursor.execute(sql, params)
 
 
 # ---------------------------------------------------------------------------
@@ -138,13 +179,21 @@ def create_local_imported_invoice(
     currency: str = "usd",
     status: str = "open",
     invoice_id: Optional[str] = None,
+    olusturma_tarihi: Optional[str] = None,
 ) -> dict:
     """
     İthal edilen bir faturayı Stripe API'ye istek atmadan doğrudan yerel MySQL 'invoices' tablosuna kaydeder.
     """
     invoice_id = invoice_id or f"inv_imp_{uuid.uuid4().hex[:14]}"
     try:
-        _upsert_invoice_row(invoice_id, customer_id, amount, currency, status)
+        _upsert_invoice_row(
+            invoice_id,
+            customer_id,
+            amount,
+            currency,
+            status,
+            olusturma_tarihi=olusturma_tarihi,
+        )
         print(f"✅ Fatura doğrudan MySQL veritabanına kaydedildi: {invoice_id}")
         return {"success": True, "id": invoice_id}
     except Exception as e:
