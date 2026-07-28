@@ -48,7 +48,12 @@ def parse_file(file_bytes: bytes, filename: str) -> list[dict]:
         df.columns = df.columns.str.strip()
 
         # Tüm string hücrelerdeki boşlukları temizle
-        df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
+        # Pandas 2.1.0 öncesi sürümler için map yerine applymap gerekebilir, 
+        # uyumluluk için try-except ile güvence altına alıyoruz.
+        try:
+            df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
+        except AttributeError:
+            df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
         return df.to_dict("records")
 
@@ -68,9 +73,6 @@ def infer_data_types(records: list) -> dict:
       - pd.to_numeric(errors="coerce")     → sayısal tip tespiti
       - pd.to_datetime(errors="coerce")    → tarih tespiti
       - Hiçbiri eşleşmezse "string"
-
-    try/except yerine errors="coerce" kullanılır; geçersiz değerler NaN'a
-    döner ve .notna().all() ile kontrol edilir.
     """
     if not records:
         return {}
@@ -120,9 +122,8 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
     Kullanıcının belirlediği sütun eşleştirmelerine göre kayıtları filtreler
     ve doğrular.
 
-    Pandas yalnızca sayısal dönüşümlerde kullanılır (pd.to_numeric).
-    Business logic (mapping, doğrulama, duplicate kontrolü, Stripe hazırlığı)
-    satır bazlı yürütülür.
+    Sayısal dönüşümler performans için (döngü içinde Pandas overhead'inden 
+    kaçınmak adına) standart Python try-except yapısı ile yönetilir.
     """
     valid_list: list = []
     invalid_list: list = []
@@ -144,7 +145,8 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
                 )
                 existing_emails = {row[0].strip().lower() for row in cursor.fetchall()}
         except Exception as e:
-            print(f"Error fetching existing customer emails: {e}")
+            import logging
+            logging.error(f"Error fetching existing customer emails: {e}")
 
     elif target_model == "products":
         try:
@@ -156,7 +158,8 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
                     row[0].strip().lower() for row in cursor.fetchall()
                 }
         except Exception as e:
-            print(f"Error fetching existing product names: {e}")
+            import logging
+            logging.error(f"Error fetching existing product names: {e}")
 
     elif target_model == "payments":
         try:
@@ -173,12 +176,12 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
                     for row in cursor.fetchall()
                 }
         except Exception as e:
-            print(f"Error fetching existing payments: {e}")
+            import logging
+            logging.error(f"Error fetching existing payments: {e}")
 
     elif target_model == "prices":
         try:
             from services.product_service import get_prices
-
             prices_list = get_prices() or []
             for p in prices_list:
                 p_prod = p.get("product")
@@ -187,24 +190,26 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
                 if p_prod and p_amount is not None and p_curr:
                     existing_prices.add((p_prod, int(p_amount), p_curr.strip().lower()))
         except Exception as e:
-            print(f"Error fetching existing prices: {e}")
+            import logging
+            logging.error(f"Error fetching existing prices: {e}")
 
     elif target_model == "invoices":
         try:
             with get_db() as cursor:
                 cursor.execute(
-                    "SELECT customer_stripe_id, amount, currency FROM invoices"
+                    "SELECT customer_stripe_id, amount, currency, olusturma_tarihi FROM invoices"
                 )
-                existing_invoices = {
-                    (
-                        row[0].strip() if row[0] else "",
-                        int(row[1]),
-                        row[2].strip().lower() if row[2] else "",
-                    )
-                    for row in cursor.fetchall()
-                }
+                existing_invoices = set()
+                for row in cursor.fetchall():
+                    c_id = row[0].strip() if row[0] else ""
+                    amt = int(row[1]) if row[1] is not None else 0
+                    curr = row[2].strip().lower() if row[2] else ""
+                    dt = row[3].strftime("%Y-%m-%d %H:%M:%S") if row[3] else ""
+                    existing_invoices.add((c_id, amt, curr, dt))
         except Exception as e:
-            print(f"Error fetching existing invoices: {e}")
+            import logging
+            logging.error(f"Error fetching existing invoices: {e}")
+
 
     for idx, record in enumerate(records, start=1):
         mapped: dict = {}
@@ -218,7 +223,7 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
             val = record.get(col_name)
             mapped[field] = str(val).strip() if val is not None else None
 
-        # 2. Modeline göre doğrulama — pd.to_numeric ile sayısal dönüşüm
+        # 2. Modeline göre doğrulama — Saf Python dönüşümleri ile (Hızlı)
         if target_model == "customers":
             name = mapped.get("name")
             email = mapped.get("email")
@@ -237,13 +242,14 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
             if not name:
                 errors.append("Ürün Adı (name) alanı boş olamaz.")
             if price_raw:
-                price_val = pd.to_numeric(price_raw, errors="coerce")
-                if pd.isna(price_val):
+                try:
+                    price_val = float(price_raw)
+                    if price_val <= 0:
+                        errors.append("Fiyat 0'dan büyük olmalıdır.")
+                    else:
+                        mapped["price"] = price_val
+                except ValueError:
                     errors.append("Fiyat geçerli bir sayı olmalıdır.")
-                elif price_val <= 0:
-                    errors.append("Fiyat 0'dan büyük olmalıdır.")
-                else:
-                    mapped["price"] = float(price_val)
             else:
                 mapped["price"] = None
 
@@ -256,13 +262,14 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
             if not amount_raw:
                 errors.append("Tutar (amount) boş olamaz.")
             else:
-                amount_val = pd.to_numeric(amount_raw, errors="coerce")
-                if pd.isna(amount_val):
+                try:
+                    amount_val = float(amount_raw)
+                    if amount_val <= 0:
+                        errors.append("Tutar 0'dan büyük olmalıdır.")
+                    else:
+                        mapped["amount"] = amount_val
+                except ValueError:
                     errors.append("Tutar geçerli bir sayı olmalıdır.")
-                elif amount_val <= 0:
-                    errors.append("Tutar 0'dan büyük olmalıdır.")
-                else:
-                    mapped["amount"] = float(amount_val)
 
             if not mapped.get("currency"):
                 mapped["currency"] = "usd"
@@ -276,13 +283,14 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
             if not amount_raw:
                 errors.append("Tutar (amount) boş olamaz.")
             else:
-                amount_val = pd.to_numeric(amount_raw, errors="coerce")
-                if pd.isna(amount_val):
+                try:
+                    amount_val = float(amount_raw)
+                    if amount_val <= 0:
+                        errors.append("Tutar 0'dan büyük olmalıdır.")
+                    else:
+                        mapped["amount"] = amount_val
+                except ValueError:
                     errors.append("Tutar geçerli bir sayı olmalıdır.")
-                elif amount_val <= 0:
-                    errors.append("Tutar 0'dan büyük olmalıdır.")
-                else:
-                    mapped["amount"] = float(amount_val)
 
             if not mapped.get("currency"):
                 mapped["currency"] = "usd"
@@ -296,13 +304,14 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
             if not amount_raw:
                 errors.append("Tutar (amount) boş olamaz.")
             else:
-                amount_val = pd.to_numeric(amount_raw, errors="coerce")
-                if pd.isna(amount_val):
+                try:
+                    amount_val = float(amount_raw)
+                    if amount_val <= 0:
+                        errors.append("Tutar 0'dan büyük olmalıdır.")
+                    else:
+                        mapped["amount"] = amount_val
+                except ValueError:
                     errors.append("Tutar geçerli bir sayı olmalıdır.")
-                elif amount_val <= 0:
-                    errors.append("Tutar 0'dan büyük olmalıdır.")
-                else:
-                    mapped["amount"] = float(amount_val)
 
             if not mapped.get("currency"):
                 mapped["currency"] = "usd"
@@ -337,26 +346,41 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
 
         elif target_model == "payments":
             cust_id = mapped.get("customer_id", "").strip()
-            amt_val = pd.to_numeric(mapped.get("amount"), errors="coerce")
+            amt_val = mapped.get("amount")
             curr = mapped.get("currency", "usd").strip().lower()
-            if not pd.isna(amt_val):
-                if (cust_id, int(float(amt_val) * 100), curr) in existing_payments:
+            if amt_val is not None:
+                # KRİTİK DÜZELTME: Kuruşa/cent'e çevirirken precision kaybını önlemek için round kullanıldı
+                amt_cents = int(round(amt_val * 100))
+                if (cust_id, amt_cents, curr) in existing_payments:
                     is_existing = True
 
         elif target_model == "prices":
             prod_id = mapped.get("product_id", "").strip()
-            amt_val = pd.to_numeric(mapped.get("amount"), errors="coerce")
+            amt_val = mapped.get("amount")
             curr = mapped.get("currency", "usd").strip().lower()
-            if not pd.isna(amt_val):
-                if (prod_id, int(float(amt_val) * 100), curr) in existing_prices:
+            if amt_val is not None:
+                amt_cents = int(round(amt_val * 100))
+                if (prod_id, amt_cents, curr) in existing_prices:
                     is_existing = True
 
         elif target_model == "invoices":
             cust_id = mapped.get("customer_stripe_id", "").strip()
-            amt_val = pd.to_numeric(mapped.get("amount"), errors="coerce")
+            amt_val = mapped.get("amount")
             curr = mapped.get("currency", "usd").strip().lower()
-            if not pd.isna(amt_val):
-                if (cust_id, int(float(amt_val) * 100), curr) in existing_invoices:
+            
+            # format the mapped date to ensure it matches the database string representation
+            dt_raw = mapped.get("olusturma_tarihi")
+            dt = ""
+            if dt_raw:
+                try:
+                    import pandas as pd
+                    dt = pd.to_datetime(dt_raw).strftime("%Y-%m-%d %H:%M:%S")
+                except:
+                    dt = str(dt_raw).strip()
+            
+            if amt_val is not None:
+                amt_cents = int(round(amt_val * 100))
+                if (cust_id, amt_cents, curr, dt) in existing_invoices:
                     is_existing = True
 
         if is_existing:
@@ -374,8 +398,7 @@ def validate_and_map_records(records: list, target_model: str, mapping: dict) ->
 def execute_import_record(target_model: str, mapped_data: dict) -> dict:
     """
     Tek bir geçerli kaydı ilgili modelin oluşturma fonksiyonunu çağırarak
-    Stripe ve DB'ye yazar. Bu fonksiyon orijinal import_service.py ile
-    birebir aynıdır; Pandas bu katmanda gerekmez.
+    Stripe ve DB'ye yazar. 
     """
     if target_model == "customers":
         cust = create_customer(name=mapped_data["name"], email=mapped_data["email"])
@@ -394,7 +417,8 @@ def execute_import_record(target_model: str, mapped_data: dict) -> dict:
         return {"success": False, "reason": "Stripe Ürün ID'si döndürmedi."}
 
     elif target_model == "payments":
-        amount_cents = int(float(mapped_data["amount"]) * 100)
+        # KRİTİK DÜZELTME: Yuvarlama hatasını önlemek için round eklendi
+        amount_cents = int(round(float(mapped_data["amount"]) * 100))
         pay = create_payment_intent(
             customer_id=mapped_data["customer_id"],
             amount=amount_cents,
@@ -406,7 +430,7 @@ def execute_import_record(target_model: str, mapped_data: dict) -> dict:
         return {"success": False, "reason": "Stripe Ödeme ID'si döndürmedi."}
 
     elif target_model == "prices":
-        amount_cents = int(float(mapped_data["amount"]) * 100)
+        amount_cents = int(round(float(mapped_data["amount"]) * 100))
         price_obj = create_price(
             product_id=mapped_data["product_id"],
             amount=amount_cents,
@@ -417,17 +441,17 @@ def execute_import_record(target_model: str, mapped_data: dict) -> dict:
         return {"success": False, "reason": "Stripe Fiyat ID'si döndürmedi."}
 
     elif target_model == "invoices":
-        amount_cents = int(float(mapped_data["amount"]) * 100)
-        from services.invoice_service import create_invoice_with_amount
+        amount_cents = int(round(float(mapped_data["amount"]) * 100))
+        from services.invoice_service import create_local_imported_invoice
 
-        inv = create_invoice_with_amount(
+        res = create_local_imported_invoice(
             customer_id=mapped_data["customer_stripe_id"],
             amount=amount_cents,
             currency=mapped_data["currency"],
             status=mapped_data.get("status", "open"),
+            invoice_id=mapped_data.get("stripe_invoice_id") or mapped_data.get("invoice_id"),
+            olusturma_tarihi=mapped_data.get("olusturma_tarihi") or mapped_data.get("created_at"),
         )
-        if inv and inv.get("id"):
-            return {"success": True, "id": inv["id"]}
-        return {"success": False, "reason": "Stripe Fatura ID'si döndürmedi."}
+        return res
 
     return {"success": False, "reason": f"Bilinmeyen model: {target_model}"}

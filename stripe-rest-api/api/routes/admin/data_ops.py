@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request, Response
 from core.stripe_client import RateLimitError
 from core.logger import logger
 from services.export_service import export_data
-from services.import_service import (
+from services.pandas_import_service import (
     parse_file,
     infer_data_types,
     validate_and_map_records,
