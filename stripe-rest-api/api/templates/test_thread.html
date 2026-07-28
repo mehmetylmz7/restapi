@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Thread - Performans Analizi</title>
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #10b981;
+            --secondary-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-seq { background-color: var(--primary); }
+        .btn-seq:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-2px); }
+        
+        .btn-thread { background-color: var(--secondary); }
+        .btn-thread:hover:not(:disabled) { background-color: var(--secondary-hover); transform: translateY(-2px); }
+        
+        .btn-delete { background-color: var(--danger); display: none; }
+        .btn-delete:hover:not(:disabled) { background-color: var(--danger-hover); transform: translateY(-2px); }
+
+        .stopwatch-container {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f1f5f9;
+            border-radius: 12px;
+            border: 2px dashed var(--border);
+        }
+
+        .stopwatch {
+            font-size: 3rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-main);
+        }
+
+        .status-text {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .results-container {
+            display: none;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-muted);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-error { background: #fee2e2; color: #991b1b; }
+
+        /* Spinner Animation */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .fa-spinner { animation: spin 1s linear infinite; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fa-solid fa-bolt"></i> Test Thread</h1>
+            <p>Performans Karşılaştırması: Thread vs Sıralı İşlem (30 Müşteri)</p>
+        </div>
+
+        <div class="card">
+            <div class="controls">
+                <button id="btnSeq" class="btn btn-seq" onclick="runTest('sequential')">
+                    <i class="fa-solid fa-hourglass-start"></i> Sıralı (Sequential) Başlat
+                </button>
+                <button id="btnThread" class="btn btn-thread" onclick="runTest('threaded')">
+                    <i class="fa-solid fa-meteor"></i> Eşzamanlı (Threaded) Başlat
+                </button>
+                <button id="btnDelete" class="btn btn-delete" onclick="deleteCustomers()">
+                    <i class="fa-solid fa-trash-can"></i> Eklenenleri Sil
+                </button>
+            </div>
+
+            <div class="stopwatch-container">
+                <div class="stopwatch" id="stopwatch">00.00s</div>
+                <div class="status-text" id="statusText">İşlem bekleniyor...</div>
+            </div>
+
+            <div class="results-container" id="resultsContainer">
+                <div class="results-header">
+                    <h3>Sonuçlar</h3>
+                    <span class="badge badge-success" id="resultSummary">0 Başarılı</span>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Stripe ID</th>
+                                <th>İsim</th>
+                                <th>Email</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                            <!-- Results will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timerInterval;
+        let startTime;
+        let activeCustomerIds = [];
+
+        const btnSeq = document.getElementById('btnSeq');
+        const btnThread = document.getElementById('btnThread');
+        const btnDelete = document.getElementById('btnDelete');
+        const stopwatchEl = document.getElementById('stopwatch');
+        const statusTextEl = document.getElementById('statusText');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsBody = document.getElementById('resultsBody');
+        const resultSummary = document.getElementById('resultSummary');
+
+        function formatTime(ms) {
+            return (ms / 1000).toFixed(2) + 's';
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            stopwatchEl.innerText = "00.00s";
+            stopwatchEl.style.color = "var(--text-main)";
+            
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                stopwatchEl.innerText = formatTime(elapsed);
+            }, 10);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function setButtonsState(disabled) {
+            btnSeq.disabled = disabled;
+            btnThread.disabled = disabled;
+            btnDelete.disabled = disabled;
+        }
+
+        async function runTest(mode) {
+            setButtonsState(true);
+            resultsContainer.style.display = 'none';
+            btnDelete.style.display = 'none';
+            activeCustomerIds = [];
+            resultsBody.innerHTML = '';
+            
+            const isThreaded = mode === 'threaded';
+            statusTextEl.innerHTML = `<i class="fa-solid fa-spinner"></i> 30 müşteri ${isThreaded ? 'eşzamanlı' : 'sıralı'} olarak oluşturuluyor...`;
+            
+            const originalIconSeq = btnSeq.innerHTML;
+            const originalIconThread = btnThread.innerHTML;
+            
+            if (isThreaded) btnThread.innerHTML = '<i class="fa-solid fa-spinner"></i> İşleniyor...';
+            else btnSeq.innerHTML = '<i class="fa-solid fa-spinner"></i> İşleniyor...';
+
+            startTimer();
+
+            try {
+                const endpoint = `/api/test-thread/run-${mode}`;
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                stopTimer();
+                
+                if (data.success) {
+                    // Update stopwatch to exact server-side elapsed time for accuracy
+                    stopwatchEl.innerText = data.elapsed_seconds.toFixed(2) + 's';
+                    stopwatchEl.style.color = isThreaded ? "var(--secondary)" : "var(--primary)";
+                    statusTextEl.innerHTML = `<i class="fa-solid fa-check-circle"></i> İşlem tamamlandı! Toplam süre: ${data.elapsed_seconds} saniye.`;
+                    
+                    renderResults(data.results);
+                } else {
+                    statusTextEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Bir hata oluştu.`;
+                }
+
+            } catch (error) {
+                stopTimer();
+                statusTextEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Ağ hatası: ${error.message}`;
+            } finally {
+                setButtonsState(false);
+                btnSeq.innerHTML = originalIconSeq;
+                btnThread.innerHTML = originalIconThread;
+            }
+        }
+
+        function renderResults(results) {
+            resultsBody.innerHTML = '';
+            let successCount = 0;
+
+            results.forEach((res, index) => {
+                const tr = document.createElement('tr');
+                const isSuccess = res && res.id;
+                
+                if (isSuccess) {
+                    successCount++;
+                    activeCustomerIds.push(res.id);
+                }
+
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${isSuccess ? res.id : '-'}</td>
+                    <td>${isSuccess ? res.name : '-'}</td>
+                    <td>${isSuccess ? res.email : '-'}</td>
+                    <td>
+                        <span class="badge ${isSuccess ? 'badge-success' : 'badge-error'}">
+                            ${isSuccess ? 'Başarılı' : 'Başarısız'}
+                        </span>
+                    </td>
+                `;
+                resultsBody.appendChild(tr);
+            });
+
+            resultSummary.innerText = `${successCount} Başarılı / ${results.length} Toplam`;
+            resultsContainer.style.display = 'block';
+            
+            if (activeCustomerIds.length > 0) {
+                btnDelete.style.display = 'flex';
+            }
+        }
+
+        async function deleteCustomers() {
+            if (activeCustomerIds.length === 0) return;
+            
+            if (!confirm(`Eklenen ${activeCustomerIds.length} müşteri silinecek. Emin misiniz?`)) return;
+
+            setButtonsState(true);
+            statusTextEl.innerHTML = `<i class="fa-solid fa-spinner"></i> Müşteriler siliniyor...`;
+            
+            const originalIcon = btnDelete.innerHTML;
+            btnDelete.innerHTML = '<i class="fa-solid fa-spinner"></i> Siliniyor...';
+
+            startTimer();
+
+            try {
+                const response = await fetch('/api/test-thread/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customer_ids: activeCustomerIds })
+                });
+                
+                const data = await response.json();
+                stopTimer();
+                
+                if (data.success) {
+                    statusTextEl.innerHTML = `<i class="fa-solid fa-check-circle"></i> Tüm müşteriler başarıyla silindi.`;
+                    stopwatchEl.style.color = "var(--danger)";
+                    activeCustomerIds = [];
+                    btnDelete.style.display = 'none';
+                    resultsContainer.style.display = 'none';
+                } else {
+                    statusTextEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Silme hatası.`;
+                }
+
+            } catch (error) {
+                stopTimer();
+                statusTextEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Ağ hatası: ${error.message}`;
+            } finally {
+                setButtonsState(false);
+                btnDelete.innerHTML = originalIcon;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -29,3 +29,5 @@ def test_mode(mode_id=1):
     if mode_id not in (1, 2, 3):
         mode_id = 1
     return render_template("test_mode.html", mode_id=mode_id)
+
+

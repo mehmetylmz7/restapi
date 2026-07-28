@@ -19,6 +19,8 @@ from api.routes.user.payments import user_payments_bp
 from api.routes.user.refunds import user_refunds_bp
 from api.routes.user.invoices import user_invoices_bp
 
+from tests.test_routes import test_bp
+
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 app.config["JWT_TOKEN_LOCATION"] = ["headers", "query_string"]
@@ -29,6 +31,9 @@ CORS(app)
 # Ana & Auth Rotaları
 app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp)
+
+# Test Rotaları (Sadece geliştirme aşaması için)
+app.register_blueprint(test_bp)
 
 # Admin / Genel API Rotaları
 app.register_blueprint(admin_customers_bp)

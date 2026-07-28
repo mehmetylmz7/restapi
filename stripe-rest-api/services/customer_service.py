@@ -71,4 +71,16 @@ def delete_customer(customer_id):
     if response is None:
         return None
 
-    return response.json()
+    res = response.json()
+    
+    # 2. Veritabanından sil
+    if res and not res.get("error"):
+        try:
+            sql = "DELETE FROM customers WHERE stripe_id = %s"
+            with get_db() as cursor:
+                cursor.execute(sql, (customer_id,))
+            print(f"✅ Customer {customer_id} veritabanından silindi.")
+        except Exception as e:
+            print(f"❌ Veritabanından silinirken hata oluştu: {e}")
+
+    return res
