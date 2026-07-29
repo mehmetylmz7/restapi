@@ -13,8 +13,11 @@ class RateLimitError(Exception):
 def _request(method: str, endpoint: str, **kwargs):
     try:
         logger.info(f"{method} isteği gönderiliyor: {endpoint}")
+        print(f"[STRIPE REQUEST] {method} {endpoint} params={kwargs.get('params')} data={kwargs.get('data')}")
 
         response = requests.request(method, endpoint, headers=headers, timeout=10, **kwargs)
+
+        print(f"[STRIPE RESPONSE] {method} {endpoint} status={response.status_code}")
 
         if response.status_code == 429:
             logger.warning(f"Rate limit aşıldı (429): {endpoint}")

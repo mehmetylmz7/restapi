@@ -4,9 +4,19 @@ from services.invoice_service import (
     get_combined_invoices,
     get_local_invoice_pdf,
     sync_stripe_invoices_to_db,
+    delete_invoice,
 )
 
 user_invoices_bp = Blueprint("user_invoices", __name__, url_prefix="/api/user/invoices")
+
+@user_invoices_bp.route("/<invoice_id>", methods=["DELETE"])
+@jwt_required()
+def api_user_delete_invoice(invoice_id):
+    customer_id = get_jwt_identity()
+    result = delete_invoice(invoice_id, customer_id=customer_id)
+    if not result.get("success"):
+        return jsonify(result), 400
+    return jsonify(result)
 
 
 @user_invoices_bp.route("", methods=["GET"])
@@ -17,12 +27,14 @@ def api_user_get_invoices():
     starting_after = request.args.get("starting_after")
     created_gte = request.args.get("created_gte")
     created_lte = request.args.get("created_lte")
+    status = request.args.get("status", "open")
     result = get_combined_invoices(
         customer_id=customer_id,
         limit=limit,
         starting_after=starting_after,
         created_gte=created_gte,
         created_lte=created_lte,
+        status=status,
     )
     return jsonify(result)
 

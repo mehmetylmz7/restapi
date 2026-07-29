@@ -1372,6 +1372,36 @@
         </div>
     </div>
 
+    <!-- Fatura Kalemleri Modalı -->
+    <div id="invoice-items-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background: var(--bg-color); width: 90%; max-width: 600px; border-radius: 12px; padding: 2rem; position: relative; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-height: 80vh; display: flex; flex-direction: column;">
+            <h3 style="margin-top: 0; color: var(--text-color); border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
+                <i class="fas fa-list"></i> Fatura Kalemleri (<span id="invoice-items-modal-title"></span>)
+            </h3>
+            
+            <div style="overflow-y: auto; flex: 1;">
+                <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <th style="padding: 10px; color: var(--text-muted);">Açıklama</th>
+                            <th style="padding: 10px; color: var(--text-muted);">Miktar</th>
+                            <th style="padding: 10px; color: var(--text-muted);">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoice-items-modal-tbody">
+                        <!-- Items will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 1.5rem; text-align: right; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <button type="button" class="btn" onclick="closeInvoiceItemsModal()" style="background-color: var(--accent-color);">Kapat</button>
+            </div>
+            
+            <button type="button" onclick="closeInvoiceItemsModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+        </div>
+    </div>
+
     <script src="/static/js/dashboard.js"></script>
 </body>
 

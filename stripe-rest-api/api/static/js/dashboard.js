@@ -1796,6 +1796,9 @@ function loadLocalInvoicesList() {
                             <a href="${API_BASE_URL}/invoices/${inv.stripe_invoice_id}/pdf" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">
                                 <i class="fas fa-file-pdf"></i> PDF Gör
                             </a>
+                            <button type="button" class="btn-sm" onclick="deleteInvoiceAdmin('${inv.stripe_invoice_id}')" style="background-color: var(--warning); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-left: 5px;" title="Sil / İptal Et">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -2168,6 +2171,7 @@ function loadPortalInvoices() {
         .then(result => {
             tbody.innerHTML = "";
             if (result && result.data && result.data.length > 0) {
+                window.portalInvoicesData = result.data;
                 if (saveBtn) {
                     saveBtn.style.display = isPortalInvoiceFilterApplied ? "inline-flex" : "none";
                 }
@@ -2186,7 +2190,12 @@ function loadPortalInvoices() {
 
                     tbody.innerHTML += `
                     <tr>
-                        <td>${inv.stripe_invoice_id}</td>
+                        <td style="display: flex; align-items: center; justify-content: space-between;">
+                            <span>${inv.stripe_invoice_id}</span>
+                            <button type="button" onclick="showInvoiceItems('${inv.stripe_invoice_id}')" style="background: none; border: none; color: var(--primary); cursor: pointer; padding: 4px; margin-left: 8px;" title="Ayrıntılar">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </td>
                         <td>${amountFormatted}</td>
                         <td style="text-transform: uppercase;">${inv.currency}</td>
                         <td><span class="status-badge ${statusClass(inv.status)}">${inv.status.toUpperCase()}</span></td>
@@ -2196,6 +2205,9 @@ function loadPortalInvoices() {
                             <a href="${API_BASE_URL}/user/invoices/${inv.stripe_invoice_id}/pdf?jwt=${token}" target="_blank" class="btn-sm btn-view" style="text-decoration:none;">
                                 <i class="fas fa-file-pdf"></i> PDF Görüntüle
                             </a>
+                            <button type="button" class="btn-sm" onclick="deleteInvoiceUser('${inv.stripe_invoice_id}')" style="background-color: var(--warning); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-left: 5px;" title="Sil / İptal Et">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -2418,3 +2430,91 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// Fatura Kalemleri Modalı Fonksiyonları
+function showInvoiceItems(invoiceId) {
+    const modal = document.getElementById('invoice-items-modal');
+    const tbody = document.getElementById('invoice-items-modal-tbody');
+    const title = document.getElementById('invoice-items-modal-title');
+    
+    if (!modal || !tbody || !title) return;
+    
+    title.textContent = invoiceId;
+    tbody.innerHTML = '';
+    
+    const invoice = (window.portalInvoicesData || []).find(inv => inv.stripe_invoice_id === invoiceId);
+    
+    if (invoice && invoice.lines && invoice.lines.length > 0) {
+        invoice.lines.forEach(item => {
+            const description = item.description || 'Fatura Kalemi';
+            const quantity = item.quantity || 1;
+            const amount = item.amount ? (item.amount / 100).toFixed(2) : '0.00';
+            const currency = item.currency ? item.currency.toUpperCase() : (invoice.currency || 'USD').toUpperCase();
+            
+            tbody.innerHTML += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 10px;">${description}</td>
+                    <td style="padding: 10px; text-align: center;">${quantity}</td>
+                    <td style="padding: 10px; font-weight: bold; color: var(--success);">${amount} ${currency}</td>
+                </tr>
+            `;
+        });
+    } else {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" style="padding: 20px; text-align: center; color: var(--text-muted);">
+                    Bu fatura için detay kalemi bulunamadı (veya CSV ile içe aktarılmış).
+                </td>
+            </tr>
+        `;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function closeInvoiceItemsModal() {
+    const modal = document.getElementById('invoice-items-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function deleteInvoiceAdmin(invoiceId) {
+    if (!confirm(`Faturayı silmek veya iptal etmek istediğinize emin misiniz? (${invoiceId})`)) return;
+    
+    fetch(`${API_BASE_URL}/invoices/${invoiceId}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("Fatura başarıyla silindi veya iptal edildi.");
+                loadLocalInvoicesList();
+            } else {
+                alert("Hata: " + data.error);
+            }
+        })
+        .catch(err => {
+            alert("İşlem sırasında hata oluştu: " + err.message);
+        });
+}
+
+function deleteInvoiceUser(invoiceId) {
+    if (!confirm(`Faturayı silmek veya iptal etmek istediğinize emin misiniz? (${invoiceId})`)) return;
+    
+    const token = localStorage.getItem("user_access_token");
+    fetch(`${API_BASE_URL}/user/invoices/${invoiceId}`, {
+        method: 'DELETE',
+        headers: { "Authorization": `Bearer ${token}` }
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("Fatura başarıyla silindi veya iptal edildi.");
+                loadPortalInvoices();
+            } else {
+                alert("Hata: " + data.error);
+            }
+        })
+        .catch(err => {
+            alert("İşlem sırasında hata oluştu: " + err.message);
+        });
+}

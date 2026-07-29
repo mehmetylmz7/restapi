@@ -6,7 +6,7 @@ from typing import Optional
 
 import requests
 
-from core.stripe_client import post, get
+from core.stripe_client import post, get, delete
 from core.config import BASE_URL
 from core.database import get_db
 
@@ -342,6 +342,7 @@ def _format_stripe_invoice(inv: dict, source: str) -> dict:
         "created": created_ts,
         "source": source,
         "is_imported": source == "CSV/JSON",
+        "lines": inv.get("lines", {}).get("data", [])
     }
 
 
@@ -351,15 +352,19 @@ def _fetch_local_only_invoices(
     seen_ids: set,
     created_gte: Optional[int],
     created_lte: Optional[int],
+    status: Optional[str] = None,
 ) -> list:
     """MySQL'de olup Stripe API sonucunda görülmemiş (yalnızca yerel) faturaları döner."""
     local_invoices = []
     try:
-        sql = "SELECT stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi FROM invoices"
+        sql = "SELECT stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi FROM invoices WHERE 1=1"
         params = []
         if customer_id:
-            sql += " WHERE customer_stripe_id = %s"
+            sql += " AND customer_stripe_id = %s"
             params.append(customer_id)
+        if status:
+            sql += " AND status = %s"
+            params.append(status)
         sql += " ORDER BY id DESC"
 
         with get_db() as cursor:
@@ -397,6 +402,7 @@ def _fetch_local_only_invoices(
                     "created": db_created_ts,
                     "source": "CSV/JSON",
                     "is_imported": True,
+                    "lines": [],
                 }
             )
             seen_ids.add(db_inv_id)
@@ -413,6 +419,7 @@ def get_combined_invoices(
     starting_after: Optional[str] = None,
     created_gte: Optional[int] = None,
     created_lte: Optional[int] = None,
+    status: Optional[str] = None,
 ) -> dict:
     """
     Stripe REST API'den canlı faturaları ve MySQL veritabanında saklanan yerel (ithal edilmiş) faturaları çeker.
@@ -430,6 +437,8 @@ def get_combined_invoices(
             params["created[gte]"] = int(created_gte)
         if created_lte:
             params["created[lte]"] = int(created_lte)
+        if status:
+            params["status"] = status
 
         response = get(f"{BASE_URL}/invoices", params=params)
         stripe_data, has_more = [], False
@@ -448,7 +457,7 @@ def get_combined_invoices(
             invoices.append(_format_stripe_invoice(inv, source))
             seen_ids.add(inv.get("id"))
 
-        invoices.extend(_fetch_local_only_invoices(customer_id, seen_ids, created_gte, created_lte))
+        invoices.extend(_fetch_local_only_invoices(customer_id, seen_ids, created_gte, created_lte, status))
         invoices.sort(key=lambda x: x.get("created") or 0, reverse=True)
 
         return {"data": invoices, "has_more": has_more}
@@ -639,3 +648,69 @@ def _row_exists(invoice_id: str) -> bool:
             "SELECT id FROM invoices WHERE stripe_invoice_id = %s LIMIT 1", (invoice_id,)
         )
         return cursor.fetchone() is not None
+
+
+def delete_invoice(invoice_id: str, customer_id: Optional[str] = None) -> dict:
+    """
+    Faturayı siler veya iptal eder (void).
+    - Stripe'ta draft ise DELETE edilir, open ise VOID edilir.
+    - Stripe faturası ise yerel veritabanında tamamen silinmez, status='void' (veya deleted) yapılır.
+    - Sadece yerel (CSV) fatura ise yerel veritabanından tamamen silinir.
+    """
+    try:
+        is_stripe = invoice_id.startswith("in_")
+        
+        if is_stripe:
+            # Stripe API'den faturayı çek
+            response = get(f"{BASE_URL}/invoices/{invoice_id}")
+            if response is None:
+                # Stripe'ta bulunamadıysa (örneğin daha önceden silinmişse)
+                pass
+            else:
+                inv = response.json()
+                
+                # Müşteri doğrulaması
+                if customer_id and inv.get("customer") != customer_id:
+                    return {"success": False, "error": "Bu faturayı silme yetkiniz yok."}
+                
+                status = inv.get("status")
+                
+                if status == "draft":
+                    # Stripe draft'ı silebiliriz
+                    delete(f"{BASE_URL}/invoices/{invoice_id}")
+                elif status in ["open", "uncollectible"]:
+                    # Void (İptal)
+                    post(f"{BASE_URL}/invoices/{invoice_id}/void", data={})
+                elif status == "void":
+                    # Zaten iptal edilmiş
+                    pass
+                else:
+                    # Paid faturalar void edilemez doğrudan refund edilebilir vs.
+                    # Eğer Stripe hata verirse catch bloğuna düşer.
+                    return {"success": False, "error": f"Stripe faturası bu durumda silinemez/iptal edilemez: {status}"}
+            
+            # DB'de status='void' olarak güncelle (silme yapma)
+            with get_db() as cursor:
+                cursor.execute(
+                    "UPDATE invoices SET status = 'void' WHERE stripe_invoice_id = %s",
+                    (invoice_id,)
+                )
+        else:
+            # Sadece yerel (CSV) fatura ise, yerel DB'den tamamen sil.
+            # Admin vs müşteri kontrolü yerel fatura için
+            with get_db() as cursor:
+                if customer_id:
+                    cursor.execute(
+                        "DELETE FROM invoices WHERE stripe_invoice_id = %s AND customer_stripe_id = %s",
+                        (invoice_id, customer_id)
+                    )
+                else:
+                    cursor.execute(
+                        "DELETE FROM invoices WHERE stripe_invoice_id = %s",
+                        (invoice_id,)
+                    )
+        
+        return {"success": True, "message": "Fatura başarıyla silindi veya iptal edildi."}
+    except Exception as e:
+        print(f"Delete invoice error: {e}")
+        return {"success": False, "error": str(e)}

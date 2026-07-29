@@ -4,9 +4,17 @@ from services.invoice_service import (
     create_and_finalize_invoice,
     get_combined_invoices,
     get_local_invoice_pdf,
+    delete_invoice,
 )
 
 admin_invoices_bp = Blueprint("admin_invoices", __name__, url_prefix="/api/invoices")
+
+@admin_invoices_bp.route("/<invoice_id>", methods=["DELETE"])
+def api_delete_invoice(invoice_id):
+    result = delete_invoice(invoice_id)
+    if not result.get("success"):
+        return jsonify(result), 400
+    return jsonify(result)
 
 
 @admin_invoices_bp.route("/preview", methods=["POST"])

@@ -11,7 +11,6 @@ def create_payment_intent(customer_id, amount, currency="usd", order_id=None):
         "amount": int(amount),
         "currency": currency.lower(),
         "automatic_payment_methods[enabled]": "true",
-        "metadata[order_id]": "ORD-1001",
         "metadata[source]": "staj-project",
     }
     if order_id:
@@ -46,24 +45,6 @@ def create_payment_intent(customer_id, amount, currency="usd", order_id=None):
 
     return payment
 
-
-def get_payment_intent(payment_intent_id, customer_id=None):
-    url = f"{BASE_URL}/payment_intents/{payment_intent_id}"
-
-    response = get(url)
-
-    if response is None:
-        return None
-
-    payment = response.json()
-    
-    # Eğer customer_id belirtilmişse ve Stripe'tan dönen müşteri eşleşmiyorsa erişimi engelle
-    if customer_id and payment.get("customer") != customer_id:
-        return None
-
-    return payment
-
-
 def get_payment_intents(
     limit=10, starting_after=None, created_gte=None, created_lte=None, customer_id=None
 ):
@@ -89,6 +70,24 @@ def get_payment_intents(
     return {"data": result["data"], "has_more": result.get("has_more", False)}
 
 
+def get_payment_intent(payment_intent_id, customer_id=None):
+    url = f"{BASE_URL}/payment_intents/{payment_intent_id}"
+
+    response = get(url)
+
+    if response is None:
+        return None
+
+    payment = response.json()
+    
+    # Eğer customer_id belirtilmişse ve Stripe'tan dönen müşteri eşleşmiyorsa erişimi engelle
+    if customer_id and payment.get("customer") != customer_id:
+        return None
+
+    return payment
+
+
+
 def cancel_payment_intent(payment_intent_id, cancellation_reason=None, customer_id=None):
     # İptal etmeden önce sahipliği doğrula
     payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
@@ -103,6 +102,8 @@ def cancel_payment_intent(payment_intent_id, cancellation_reason=None, customer_
         data["cancellation_reason"] = cancellation_reason
 
     response = post(url, data=data)
+    if response is None:
+        return None
 
     return response.json()
 
@@ -189,10 +190,10 @@ def create_payment_pdf(payment_intent_id: str, force: bool = False, customer_id:
         with get_tidb() as cursor:
             cursor.execute(sql, (payment_intent_id, pdf_bytes))
         print(f"✅ PDF TiDB'ye kaydedildi: {payment_intent_id}")
+        return pdf_bytes
     except Exception as e:
         print(f"❌ TiDB PDF kayıt hatası: {e}")
-
-    return pdf_bytes
+        return None
 
 
 def get_payment_pdf(payment_intent_id: str, customer_id: str = None) -> bytes | None:
