@@ -37,12 +37,12 @@ function showSection(sectionId) {
 // Her kaynak için cursor geçmişi tutulur (geri gidebilmek için)
 // =====================
 const paginationState = {
-    customers: { itemsCache: [], currentPage: 0, limit: 25, pageSize: 10, hasMoreAPI: false, lastCursor: null },
-    products: { cursorHistory: [null], currentPage: 0, limit: 10 },
-    payments: { cursorHistory: [null], currentPage: 0, limit: 10 },
-    refunds: { cursorHistory: [null], currentPage: 0, limit: 10 },
-    invoices: { cursorHistory: [null], currentPage: 0, limit: 10 },
-    portalInvoices: { cursorHistory: [null], currentPage: 0, limit: 10 }
+    customers: { itemsCache: [], currentPage: 0, limit: null, pageSize: 10, hasMoreAPI: false, lastCursor: null },
+    products: { cursorHistory: [null], currentPage: 0, limit: null },
+    payments: { cursorHistory: [null], currentPage: 0, limit: null },
+    refunds: { cursorHistory: [null], currentPage: 0, limit: null },
+    invoices: { cursorHistory: [null], currentPage: 0, limit: null },
+    portalInvoices: { cursorHistory: [null], currentPage: 0, limit: null }
 };
 
 function updatePaginationUI(resource, hasMore) {
@@ -84,19 +84,20 @@ async function loadCustomers() {
     const startDate = document.getElementById('cust-filter-start').value;
     const endDate = document.getElementById('cust-filter-end').value;
 
-    // Filtre veya ilk yükleme için gereken sayıda veri yoksa API'den limit=25 ile veri çek
+    // Filtre veya ilk yükleme için gereken sayıda veri yoksa API'den veri çek
     if (state.itemsCache.length < neededCount && (state.itemsCache.length === 0 || state.hasMoreAPI)) {
-        let url = `${API_BASE_URL}/customers?limit=${state.limit}`;
-        if (state.lastCursor) url += `&starting_after=${state.lastCursor}`;
-
+        const queryParams = [];
+        if (state.limit) queryParams.push(`limit=${state.limit}`);
+        if (state.lastCursor) queryParams.push(`starting_after=${state.lastCursor}`);
         if (startDate) {
             const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
-            url += `&created_gte=${startTimestamp}`;
+            queryParams.push(`created_gte=${startTimestamp}`);
         }
         if (endDate) {
             const endTimestamp = Math.floor(new Date(endDate + 'T23:59:59').getTime() / 1000);
-            url += `&created_lte=${endTimestamp}`;
+            queryParams.push(`created_lte=${endTimestamp}`);
         }
+        let url = `${API_BASE_URL}/customers` + (queryParams.length > 0 ? `?${queryParams.join('&')}` : '');
 
         try {
             const response = await fetch(url);
@@ -141,14 +142,14 @@ async function loadCustomers() {
 
 function filterCustomers() {
     // Filtre değişince ön bellek ve sayfalamayı sıfırlıyoruz
-    paginationState.customers = { itemsCache: [], currentPage: 0, limit: 25, pageSize: 10, hasMoreAPI: false, lastCursor: null };
+    paginationState.customers = { itemsCache: [], currentPage: 0, limit: null, pageSize: 10, hasMoreAPI: false, lastCursor: null };
     loadCustomers();
 }
 
 function clearCustomerFilter() {
     document.getElementById('cust-filter-start').value = '';
     document.getElementById('cust-filter-end').value = '';
-    paginationState.customers = { itemsCache: [], currentPage: 0, limit: 25, pageSize: 10, hasMoreAPI: false, lastCursor: null };
+    paginationState.customers = { itemsCache: [], currentPage: 0, limit: null, pageSize: 10, hasMoreAPI: false, lastCursor: null };
     loadCustomers();
 }
 
@@ -193,7 +194,7 @@ document.getElementById('add-customer-form').addEventListener('submit', function
             showMessage('customer-msg', `✅ Müşteri eklendi: ${data.id}`);
             document.getElementById('add-customer-form').reset();
             // Sıfırdan yükle (ilk sayfaya dön)
-            paginationState.customers = { itemsCache: [], currentPage: 0, limit: 25, pageSize: 10, hasMoreAPI: false, lastCursor: null };
+            paginationState.customers = { itemsCache: [], currentPage: 0, limit: null, pageSize: 10, hasMoreAPI: false, lastCursor: null };
             loadCustomers();
             loadDashboardStats();
         })
@@ -206,8 +207,10 @@ document.getElementById('add-customer-form').addEventListener('submit', function
 function loadProducts() {
     const state = paginationState.products;
     const cursor = state.cursorHistory[state.currentPage];
-    let url = `${API_BASE_URL}/products?limit=${state.limit}`;
-    if (cursor) url += `&starting_after=${cursor}`;
+    const queryParams = [];
+    if (state.limit) queryParams.push(`limit=${state.limit}`);
+    if (cursor) queryParams.push(`starting_after=${cursor}`);
+    let url = `${API_BASE_URL}/products` + (queryParams.length > 0 ? `?${queryParams.join('&')}` : '');
 
     fetch(url)
         .then(response => response.json())
@@ -270,7 +273,7 @@ document.getElementById('add-product-form').addEventListener('submit', function 
         .then(data => {
             showMessage('product-msg', `✅ Ürün eklendi: ${data.id}`);
             document.getElementById('add-product-form').reset();
-            paginationState.products = { cursorHistory: [null], currentPage: 0, limit: 10 };
+            paginationState.products = { cursorHistory: [null], currentPage: 0, limit: null };
             loadProducts();
         })
         .catch(() => showMessage('product-msg', '❌ Ürün eklenirken hata oluştu.', 'error'));
@@ -282,8 +285,10 @@ document.getElementById('add-product-form').addEventListener('submit', function 
 function loadPayments() {
     const state = paginationState.payments;
     const cursor = state.cursorHistory[state.currentPage];
-    let url = `${API_BASE_URL}/payments?limit=${state.limit}`;
-    if (cursor) url += `&starting_after=${cursor}`;
+    const queryParams = [];
+    if (state.limit) queryParams.push(`limit=${state.limit}`);
+    if (cursor) queryParams.push(`starting_after=${cursor}`);
+    let url = `${API_BASE_URL}/payments` + (queryParams.length > 0 ? `?${queryParams.join('&')}` : '');
 
     fetch(url)
         .then(response => response.json())
@@ -346,7 +351,7 @@ document.getElementById('add-payment-form').addEventListener('submit', function 
         .then(data => {
             showMessage('payment-msg', `✅ Ödeme oluşturuldu: ${data.id} — Durum: ${data.status}`);
             document.getElementById('add-payment-form').reset();
-            paginationState.payments = { cursorHistory: [null], currentPage: 0, limit: 10 };
+            paginationState.payments = { cursorHistory: [null], currentPage: 0, limit: null };
             loadPayments();
             loadDashboardStats();
         })
@@ -359,8 +364,10 @@ document.getElementById('add-payment-form').addEventListener('submit', function 
 function loadRefunds() {
     const state = paginationState.refunds;
     const cursor = state.cursorHistory[state.currentPage];
-    let url = `${API_BASE_URL}/refunds?limit=${state.limit}`;
-    if (cursor) url += `&starting_after=${cursor}`;
+    const queryParams = [];
+    if (state.limit) queryParams.push(`limit=${state.limit}`);
+    if (cursor) queryParams.push(`starting_after=${cursor}`);
+    let url = `${API_BASE_URL}/refunds` + (queryParams.length > 0 ? `?${queryParams.join('&')}` : '');
 
     fetch(url)
         .then(response => response.json())
@@ -1373,7 +1380,7 @@ function showInvoiceSubTab(subTab) {
         btnList.style.color = "#fff";
         btnList.style.border = "none";
 
-        paginationState.invoices = { cursorHistory: [null], currentPage: 0, limit: 10 };
+        paginationState.invoices = { cursorHistory: [null], currentPage: 0, limit: null };
         loadLocalInvoicesList();
     } else {
         createContainer.style.display = "flex";
@@ -1765,8 +1772,10 @@ function submitFinalizeInvoice() {
 function loadLocalInvoicesList() {
     const state = paginationState.invoices;
     const cursor = state.cursorHistory[state.currentPage];
-    let url = `${API_BASE_URL}/invoices?limit=${state.limit}`;
-    if (cursor) url += `&starting_after=${cursor}`;
+    const queryParams = [];
+    if (state.limit) queryParams.push(`limit=${state.limit}`);
+    if (cursor) queryParams.push(`starting_after=${cursor}`);
+    let url = `${API_BASE_URL}/invoices` + (queryParams.length > 0 ? `?${queryParams.join('&')}` : '');
 
     const tbody = document.getElementById("invoices-tbody-list");
     tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">Yükleniyor...</td></tr>';

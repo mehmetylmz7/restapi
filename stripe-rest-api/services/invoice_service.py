@@ -428,6 +428,8 @@ def get_combined_invoices(
     Sayfalama (pagination) ve tarih filtreleme destekler.
     """
     try:
+        if limit is None:
+            limit = 10
         params = {"limit": limit}
         if starting_after:
             params["starting_after"] = starting_after

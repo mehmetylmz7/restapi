@@ -56,6 +56,8 @@ def get_refund(refund_id):
 
 
 def get_refunds(payment_intent_id=None, limit=10, starting_after=None):
+    if limit is None:
+        limit = 10
 
     url = f"{BASE_URL}/refunds"
 

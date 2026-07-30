@@ -15,7 +15,8 @@ user_payments_bp = Blueprint("user_payments", __name__, url_prefix="/api/user/pa
 @jwt_required()
 def api_user_payments():
     customer_id = get_jwt_identity()
-    limit = int(request.args.get("limit", 10))
+    limit_arg = request.args.get("limit")
+    limit = int(limit_arg) if limit_arg is not None else None
     starting_after = request.args.get("starting_after", None)
     result = get_payment_intents(limit=limit, starting_after=starting_after, customer_id=customer_id)
     return jsonify(result)

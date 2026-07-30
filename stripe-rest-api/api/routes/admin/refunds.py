@@ -6,7 +6,8 @@ admin_refunds_bp = Blueprint("admin_refunds", __name__, url_prefix="/api/refunds
 
 @admin_refunds_bp.route("", methods=["GET"])
 def api_refunds():
-    limit = int(request.args.get("limit", 10))
+    limit_arg = request.args.get("limit")
+    limit = int(limit_arg) if limit_arg is not None else None
     starting_after = request.args.get("starting_after", None)
     payment_intent_id = request.args.get("payment_intent_id")
     result = get_refunds(payment_intent_id=payment_intent_id, limit=limit, starting_after=starting_after)

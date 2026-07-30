@@ -4,6 +4,7 @@ from core.database import get_db, get_tidb
 from services.pdf_service import generate_payment_pdf
 
 
+# Stripe üzerinden yeni bir payment intent oluşturur ve yerel veritabanına kaydeder
 def create_payment_intent(customer_id, amount, currency="usd", order_id=None):
 
     data = {
@@ -45,9 +46,12 @@ def create_payment_intent(customer_id, amount, currency="usd", order_id=None):
 
     return payment
 
+# Stripe API üzerinden payment intent listesini istek parametreleri ile getirir
 def get_payment_intents(
     limit=10, starting_after=None, created_gte=None, created_lte=None, customer_id=None
 ):
+    if limit is None:
+        limit = 10
 
     params = {"limit": limit}
     if starting_after:
@@ -70,6 +74,7 @@ def get_payment_intents(
     return {"data": result["data"], "has_more": result.get("has_more", False)}
 
 
+# Belirtilen payment intent detayını Stripe'tan getirir ve müşteri yardımcısı varsa eşleştirir
 def get_payment_intent(payment_intent_id, customer_id=None):
     url = f"{BASE_URL}/payment_intents/{payment_intent_id}"
 
@@ -88,6 +93,7 @@ def get_payment_intent(payment_intent_id, customer_id=None):
 
 
 
+# Stripe'daki bir payment intent'i iptal eder ve gerekiyorsa müşteri sahipliğini kontrol eder
 def cancel_payment_intent(payment_intent_id, cancellation_reason=None, customer_id=None):
     # İptal etmeden önce sahipliği doğrula
     payment = get_payment_intent(payment_intent_id, customer_id=customer_id)
@@ -108,6 +114,7 @@ def cancel_payment_intent(payment_intent_id, cancellation_reason=None, customer_
     return response.json()
 
 
+# Stripe'tan alınan payment intent bilgisini yerel payment_intents tablosuna kaydeder veya günceller
 def _sync_payment_intent_to_db(payment: dict):
     """
     Stripe'tan gelen payment intent nesnesini yerel payment_intents tablosuna kaydeder/günceller.
@@ -133,6 +140,7 @@ def _sync_payment_intent_to_db(payment: dict):
         print(f"❌ Payment intent DB senkronizasyon hatası: {e}")
 
 
+# Belirtilen payment intent için TiDB'de PDF kaydı olup olmadığını ve müşteri yetkisini kontrol eder
 def pdf_exists(payment_intent_id: str, customer_id: str = None) -> bool:
     """
     Verilen payment_intent_id için TiDB'de kayıtlı PDF olup olmadığını kontrol eder.
@@ -161,6 +169,7 @@ def pdf_exists(payment_intent_id: str, customer_id: str = None) -> bool:
         return False
 
 
+# Stripe'tan ödeme detayını çekip PDF üretir, TiDB Cloud payment_pdfs tablosuna kaydeder
 def create_payment_pdf(payment_intent_id: str, force: bool = False, customer_id: str = None) -> bytes | None:
     """
     Stripe'tan ödeme detayını çeker, tek sayfalık PDF üretir ve
@@ -196,6 +205,7 @@ def create_payment_pdf(payment_intent_id: str, force: bool = False, customer_id:
         return None
 
 
+# Daha önce oluşturulmuş PDF'i TiDB Cloud'dan okur ve müşteri yetkisini doğrular
 def get_payment_pdf(payment_intent_id: str, customer_id: str = None) -> bytes | None:
     """
     Daha önce oluşturulmuş PDF'i TiDB Cloud payment_pdfs tablosundan okur.

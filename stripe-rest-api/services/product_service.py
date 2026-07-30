@@ -4,6 +4,8 @@ from core.database import get_db
 
 
 def get_products(limit=10, starting_after=None):
+    if limit is None:
+        limit = 10
 
     params = {"limit": limit, "expand[]": "data.default_price"}
     if starting_after:

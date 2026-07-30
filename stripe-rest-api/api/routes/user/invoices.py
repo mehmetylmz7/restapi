@@ -23,7 +23,8 @@ def api_user_delete_invoice(invoice_id):
 @jwt_required()
 def api_user_get_invoices():
     customer_id = get_jwt_identity()
-    limit = int(request.args.get("limit", 10))
+    limit_arg = request.args.get("limit")
+    limit = int(limit_arg) if limit_arg is not None else None
     starting_after = request.args.get("starting_after")
     created_gte = request.args.get("created_gte")
     created_lte = request.args.get("created_lte")

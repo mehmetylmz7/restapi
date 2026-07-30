@@ -18,7 +18,8 @@ def api_user_refunds():
     if not payment:
         return jsonify({"error": "Yetkisiz işlem veya ödeme bulunamadı."}), 403
 
-    limit = int(request.args.get("limit", 10))
+    limit_arg = request.args.get("limit")
+    limit = int(limit_arg) if limit_arg is not None else None
     starting_after = request.args.get("starting_after", None)
     result = get_refunds(payment_intent_id=payment_intent_id, limit=limit, starting_after=starting_after)
     return jsonify(result)

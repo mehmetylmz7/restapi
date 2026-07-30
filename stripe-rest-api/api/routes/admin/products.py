@@ -6,7 +6,8 @@ admin_products_bp = Blueprint("admin_products", __name__, url_prefix="/api/produ
 
 @admin_products_bp.route("", methods=["GET"])
 def api_products():
-    limit = int(request.args.get("limit", 10))
+    limit_arg = request.args.get("limit")
+    limit = int(limit_arg) if limit_arg is not None else None
     starting_after = request.args.get("starting_after", None)
     result = get_products(limit=limit, starting_after=starting_after)
     return jsonify(result)
