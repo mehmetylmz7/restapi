@@ -47,6 +47,31 @@ services:
     volumes:
       - ./data:/app/data  # PDF ve CSV dosyaları kalıcı
       - ./logs:/app/logs
+      
+  # ── RabbitMQ ───────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: stripe-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management UI
+
+  # ── Celery Worker ───────────────────────────────────────────
+  celery-worker:
+    build: .
+    container_name: stripe-celery
+    restart: unless-stopped
+    command: celery -A core.celery_app.celery worker --loglevel=info
+    env_file:
+      - .env.docker
+    depends_on:
+      - rabbitmq
+      - mysql
+      - mongo
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
 
 volumes:
   mysql_data:

@@ -40,3 +40,18 @@ def api_sync_customers():
         created_lte=created_lte,
     )
     return jsonify(result)
+
+@admin_customers_bp.route("/async-sync", methods=["POST"])
+def api_async_sync_customers():
+    from tasks import background_sync_task
+    data = request.get_json(silent=True) or {}
+    created_gte = data.get("created_gte") or request.args.get("created_gte")
+    created_lte = data.get("created_lte") or request.args.get("created_lte")
+    
+    # Celery'ye görevi yolla (arka planda çalışsın)
+    task = background_sync_task.delay(created_gte=created_gte, created_lte=created_lte)
+    
+    return jsonify({
+        "message": "Senkronizasyon arka planda başlatıldı!",
+        "task_id": task.id
+    }), 202

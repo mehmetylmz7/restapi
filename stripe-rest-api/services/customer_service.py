@@ -67,9 +67,24 @@ def get_customers(limit=75, starting_after=None, created_gte=None, created_lte=N
     sync_stripe_customers_to_db(created_gte=created_gte, created_lte=created_lte)
 
     try:
-        sql = "SELECT id, stripe_id, name, email, created_at FROM customers ORDER BY id DESC"
+        query = "SELECT id, stripe_id, name, email, created_at FROM customers"
+        conditions = []
+        params = []
+        
+        if created_gte:
+            conditions.append("created_at >= FROM_UNIXTIME(%s)")
+            params.append(int(created_gte))
+        if created_lte:
+            conditions.append("created_at <= FROM_UNIXTIME(%s)")
+            params.append(int(created_lte))
+            
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+            
+        query += " ORDER BY id DESC"
+        
         with get_db() as cursor:
-            cursor.execute(sql)
+            cursor.execute(query, tuple(params))
             rows = cursor.fetchall()
 
         customers = []
