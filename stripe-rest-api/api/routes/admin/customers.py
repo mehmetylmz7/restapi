@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from services.customer_service import get_customers, create_customer
+from services.customer_service import get_customers, create_customer, sync_stripe_customers_to_db
 
 admin_customers_bp = Blueprint("admin_customers", __name__, url_prefix="/api/customers")
 
@@ -28,3 +28,15 @@ def api_create_customer():
         data["email"],
     )
     return jsonify(customer), 201
+
+
+@admin_customers_bp.route("/sync", methods=["POST"])
+def api_sync_customers():
+    data = request.get_json(silent=True) or {}
+    created_gte = data.get("created_gte") or request.args.get("created_gte")
+    created_lte = data.get("created_lte") or request.args.get("created_lte")
+    result = sync_stripe_customers_to_db(
+        created_gte=created_gte,
+        created_lte=created_lte,
+    )
+    return jsonify(result)
