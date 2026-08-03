@@ -4,7 +4,7 @@ from celery import Celery
 # Celery konfigürasyonu
 def make_celery(app_name=__name__):
     broker_url = os.getenv("CELERY_BROKER_URL", "amqp://guest:guest@localhost:5672//")
-    backend_url = os.getenv("CELERY_RESULT_BACKEND", None) # Gerekirse eklenebilir
+    backend_url = os.getenv("CELERY_RESULT_BACKEND", "rpc://")
     
     celery = Celery(
         app_name,

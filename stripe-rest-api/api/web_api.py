@@ -13,6 +13,7 @@ from api.routes.admin.refunds import admin_refunds_bp
 from api.routes.admin.invoices import admin_invoices_bp
 from api.routes.admin.files import admin_files_bp
 from api.routes.admin.data_ops import admin_data_ops_bp
+from api.routes.rabbitmq_demo import rabbitmq_demo_bp
 
 from api.routes.user.profile import user_profile_bp
 from api.routes.user.payments import user_payments_bp
@@ -31,6 +32,7 @@ CORS(app)
 # Ana & Auth Rotaları
 app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(rabbitmq_demo_bp)
 
 # Test Rotaları (Sadece geliştirme aşaması için)
 app.register_blueprint(test_bp)

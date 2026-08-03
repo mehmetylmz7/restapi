@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RabbitMQ & Celery Canlı Test & Eğitim Paneli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #0b0f19;
+            --bg-card: #131b2e;
+            --bg-card-hover: #1a253f;
+            --bg-card-subtle: #0f172a;
+            --accent-orange: #ff6600;
+            --accent-orange-hover: #e65c00;
+            --accent-orange-subtle: rgba(255, 102, 0, 0.12);
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #2563eb;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #1e293b;
+            --border-bright: #334155;
+            --shadow-glow: 0 0 25px -5px rgba(255, 102, 0, 0.25);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 1.75rem;
+            line-height: 1.5;
+        }
+
+        .layout-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* ── Header ─────────────────────────────────────────── */
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem 1.75rem;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .rmq-logo-badge {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-orange-subtle);
+            border: 1px solid rgba(255, 102, 0, 0.3);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: var(--accent-orange);
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand-text p {
+            font-size: 0.825rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .cluster-meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.2rem 0.6rem;
+            background: rgba(255, 102, 0, 0.15);
+            color: var(--accent-orange);
+            border-radius: 9999px;
+            font-size: 0.725rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.9rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--accent-green);
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse-dot 1.8s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            text-decoration: none;
+            outline: none;
+        }
+
+        .btn-rmq {
+            background: var(--accent-orange);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(255, 102, 0, 0.3);
+        }
+        .btn-rmq:hover {
+            background: var(--accent-orange-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(255, 102, 0, 0.45);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-bright);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--text-secondary);
+        }
+
+        /* ── Grid Layout ─────────────────────────────────────── */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1080px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── Cards & Panels ─────────────────────────────────── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-primary);
+        }
+
+        .card-title i {
+            color: var(--accent-orange);
+        }
+
+        /* ── Action Buttons in Sidebar ───────────────────────── */
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .action-card {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .action-card:hover {
+            border-color: var(--border-bright);
+            background: rgba(19, 27, 46, 0.8);
+        }
+
+        .action-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .action-card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-card-desc {
+            font-size: 0.775rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            font-size: 0.825rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-customers {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: #fff;
+        }
+        .btn-customers:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        .btn-invoices {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: #fff;
+        }
+        .btn-invoices:hover {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+        }
+
+        .btn-stress {
+            background: linear-gradient(135deg, #ff6600, #ea580c);
+            color: #fff;
+        }
+        .btn-stress:hover {
+            background: linear-gradient(135deg, #f97316, #c2410c);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 102, 0, 0.4);
+        }
+
+        /* ── Metric Badges ───────────────────────────────────── */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .metric-box {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .metric-box-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
+        }
+
+        .metric-box-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        /* ── RabbitMQ Tabs Guide Section ─────────────────────── */
+        .tabs-header {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            padding: 0.5rem 0.9rem;
+            border-radius: var(--radius-md);
+            font-size: 0.825rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-card-subtle);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-orange-subtle);
+            border-color: rgba(255, 102, 0, 0.3);
+            color: var(--accent-orange);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .guide-box {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .guide-box h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-orange);
+        }
+
+        .guide-box p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .guide-box ul {
+            padding-left: 1.25rem;
+            font-size: 0.825rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .guide-box li strong {
+            color: var(--text-primary);
+        }
+
+        .code-pill {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.775rem;
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        /* ── Visual Flow Diagram ─────────────────────────────── */
+        .flow-container {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .flow-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-bright);
+            padding: 0.6rem 0.9rem;
+            border-radius: var(--radius-md);
+            flex: 1;
+            min-width: 110px;
+            text-align: center;
+        }
+
+        .flow-node.active {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 15px rgba(255, 102, 0, 0.25);
+        }
+
+        .flow-node-icon {
+            font-size: 1.2rem;
+            color: var(--accent-orange);
+        }
+
+        .flow-node-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .flow-node-sub {
+            font-size: 0.675rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .flow-arrow {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ── Data Table & Results ────────────────────────────── */
+        .results-container {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .results-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-wrap {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.825rem;
+            text-align: left;
+        }
+
+        thead {
+            background: rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        th {
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.03em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+        }
+
+        .badge-id {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--accent-blue);
+            padding: 0.2rem 0.45rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .badge-status-paid {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--accent-green);
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        /* ── Event Console Log ───────────────────────────────── */
+        .terminal-box {
+            background: #060911;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #a5b4fc;
+            height: 160px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+        }
+
+        .log-tag-send { color: #f59e0b; }
+        .log-tag-recv { color: #06b6d4; }
+        .log-tag-done { color: #10b981; }
+        .log-tag-err  { color: #ef4444; }
+
+        /* ── Pagination Buttons ──────────────────────────────── */
+        .pagination-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.775rem;
+            color: var(--text-muted);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-page {
+            padding: 0.35rem 0.7rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-bright);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .btn-page:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .btn-page:hover:not(:disabled) {
+            background: var(--bg-card-hover);
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout-container">
+
+    <!-- ── Top Navbar ──────────────────────────────────────── -->
+    <header class="top-navbar">
+        <div class="brand-section">
+            <div class="rmq-logo-badge">
+                <i class="fa-solid fa-arrows-split-up-and-left"></i>
+            </div>
+            <div class="brand-text">
+                <h1>RabbitMQ & Celery Entegrasyon Laboratuvarı <span class="cluster-meta-pill"><i class="fa-solid fa-server"></i> RabbitMQ 3.13.7 | Erlang 26.2.5</span></h1>
+                <p>AMQP 0-9-1 Protokolü • Celery Task Kuyruğu • Stripe 10'arlı Asenkron Çekim</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <div class="status-pill" id="worker-status-badge">
+                <span class="status-dot"></span>
+                <span id="worker-status-text">Worker Çevrimiçi</span>
+            </div>
+            <a href="http://localhost:15672" target="_blank" class="btn btn-rmq">
+                <i class="fa-solid fa-gauge-high"></i> RabbitMQ Dashboard Aç (15672)
+            </a>
+            <a href="/" class="btn btn-secondary">
+                <i class="fa-solid fa-house"></i> Ana Sayfa
+            </a>
+        </div>
+    </header>
+
+    <!-- ── Visual Flow Diagram ─────────────────────────────── -->
+    <section class="flow-container">
+        <div class="flow-node" id="flow-node-web">
+            <i class="fa-solid fa-laptop-code flow-node-icon"></i>
+            <span class="flow-node-title">Flask REST API</span>
+            <span class="flow-node-sub">Publisher (Producer)</span>
+        </div>
+        <i class="fa-solid fa-chevron-right flow-arrow"></i>
+
+        <div class="flow-node" id="flow-node-exchange">
+            <i class="fa-solid fa-shuffle flow-node-icon"></i>
+            <span class="flow-node-title">Exchange (Direct)</span>
+            <span class="flow-node-sub">exchange: celery</span>
+        </div>
+        <i class="fa-solid fa-chevron-right flow-arrow"></i>
+
+        <div class="flow-node" id="flow-node-queue">
+            <i class="fa-solid fa-layer-group flow-node-icon"></i>
+            <span class="flow-node-title">RabbitMQ Queue</span>
+            <span class="flow-node-sub">queue: celery</span>
+        </div>
+        <i class="fa-solid fa-chevron-right flow-arrow"></i>
+
+        <div class="flow-node" id="flow-node-worker">
+            <i class="fa-solid fa-gears flow-node-icon"></i>
+            <span class="flow-node-title">Celery Worker</span>
+            <span class="flow-node-sub">Consumer (1 Node)</span>
+        </div>
+        <i class="fa-solid fa-chevron-right flow-arrow"></i>
+
+        <div class="flow-node" id="flow-node-stripe">
+            <i class="fa-brands fa-stripe-s flow-node-icon"></i>
+            <span class="flow-node-title">Stripe API</span>
+            <span class="flow-node-sub">10'arlı Pagination</span>
+        </div>
+    </section>
+
+    <!-- ── Main Grid ───────────────────────────────────────── -->
+    <div class="dashboard-grid">
+
+        <!-- ── Left: Task Dispatcher & Metrics ─────────────── -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-paper-plane"></i> Kuyruğa Görev Gönder</h3>
+                <span class="cluster-meta-pill" id="live-queue-tag">0 Bekleyen</span>
+            </div>
+
+            <!-- Metrics -->
+            <div class="metrics-row">
+                <div class="metric-box">
+                    <span class="metric-box-title">Aktif Görev (Running)</span>
+                    <span class="metric-box-val" id="metric-active-count">0</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-box-title">Kuyrukta (Ready)</span>
+                    <span class="metric-box-val" id="metric-reserved-count">0</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-group">
+                <!-- Customers Action -->
+                <div class="action-card">
+                    <div class="action-card-header">
+                        <span class="action-card-title"><i class="fa-solid fa-users" style="color: var(--accent-blue);"></i> Müşterileri 10'arlı Çek</span>
+                        <span class="code-pill">fetch_customers_task</span>
+                    </div>
+                    <p class="action-card-desc">Stripe API'den 10 müşteri çeker. Görev RabbitMQ kuyruğuna atılır, Celery worker arka planda işler.</p>
+                    <button class="btn-action btn-customers" id="btn-fetch-customers" onclick="dispatchTask('customers')">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> 10 Müşteri Çek (RabbitMQ)
+                    </button>
+                </div>
+
+                <!-- Invoices Action -->
+                <div class="action-card">
+                    <div class="action-card-header">
+                        <span class="action-card-title"><i class="fa-solid fa-file-invoice-dollar" style="color: var(--accent-purple);"></i> Faturaları 10'arlı Çek</span>
+                        <span class="code-pill">fetch_invoices_task</span>
+                    </div>
+                    <p class="action-card-desc">Stripe API'den 10 fatura çeker. Kuyrukta bekleyip worker tarafından teslim alınışını canlı görün.</p>
+                    <button class="btn-action btn-invoices" id="btn-fetch-invoices" onclick="dispatchTask('invoices')">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> 10 Fatura Çek (RabbitMQ)
+                    </button>
+                </div>
+
+                <!-- Stress Test Action -->
+                <div class="action-card">
+                    <div class="action-card-header">
+                        <span class="action-card-title"><i class="fa-solid fa-bolt" style="color: var(--accent-orange);"></i> Kuyruk Yükleme (Stress Test)</span>
+                        <span class="code-pill">5x Task Batch</span>
+                    </div>
+                    <p class="action-card-desc">Kuyruğa anında 5 görev ardışık basar. RabbitMQ Dashboard'da <strong>Ready Messages: 5 → 4 → 3</strong> düşüşünü izleyin.</p>
+                    <button class="btn-action btn-stress" id="btn-stress-test" onclick="runStressTest()">
+                        <i class="fa-solid fa-rocket"></i> 5 Görevi Kuyruğa Yığ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Terminal Log -->
+            <div class="card-header" style="margin-top: 0.5rem;">
+                <h3 class="card-title" style="font-size: 0.85rem;"><i class="fa-solid fa-terminal"></i> AMQP Olay Günlüğü</h3>
+                <button class="btn-page" onclick="clearLogs()" style="padding: 0.2rem 0.5rem;">Temizle</button>
+            </div>
+            <div class="terminal-box" id="event-logs">
+                <div class="log-entry">
+                    <span class="log-time">[00:00:00]</span>
+                    <span class="log-tag-done">[SİSTEM]</span>
+                    <span>RabbitMQ & Celery paneli hazır.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Right: RabbitMQ Tabs & Results ──────────────── -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+            <!-- ── Results Table Card ──────────────────────── -->
+            <div class="card">
+                <div class="results-header">
+                    <div class="results-title">
+                        <i class="fa-solid fa-database" style="color: var(--accent-cyan);"></i>
+                        <span id="results-headline">Sonuçlar (Bekleniyor)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="badge-id" id="task-id-badge">Task: Yok</span>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table id="data-table">
+                        <thead>
+                            <tr id="table-head-row">
+                                <th>#</th>
+                                <th>Stripe ID</th>
+                                <th>Ad / Müşteri</th>
+                                <th>E-Posta / Tutar</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                                    <i class="fa-solid fa-inbox" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                                    Sol taraftan <strong>"10 Müşteri Çek"</strong> veya <strong>"10 Fatura Çek"</strong> butonuna basarak kuyruğa görev gönderin.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="pagination-row">
+                    <span id="page-indicator">Toplam: 0 Kayıt</span>
+                    <div class="pagination-controls">
+                        <button class="btn-page" id="btn-prev-page" disabled onclick="prevPage()"><i class="fa-solid fa-chevron-left"></i> Önceki 10</button>
+                        <button class="btn-page" id="btn-next-page" disabled onclick="nextPage()">Sonraki 10 <i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── RabbitMQ Dashboard Tabs Guide Card ──────── -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fa-solid fa-book-open"></i> RabbitMQ Dashboard (15672) Sekmelerinin Anlamı</h3>
+                    <span class="cluster-meta-pill">guest / guest</span>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchTab('tab-overview')"><i class="fa-solid fa-chart-line"></i> Overview</button>
+                    <button class="tab-btn" onclick="switchTab('tab-connections')"><i class="fa-solid fa-network-wired"></i> Connections</button>
+                    <button class="tab-btn" onclick="switchTab('tab-channels')"><i class="fa-solid fa-tower-broadcast"></i> Channels</button>
+                    <button class="tab-btn" onclick="switchTab('tab-exchanges')"><i class="fa-solid fa-shuffle"></i> Exchanges</button>
+                    <button class="tab-btn" onclick="switchTab('tab-queues')"><i class="fa-solid fa-layer-group"></i> Queues & Streams</button>
+                    <button class="tab-btn" onclick="switchTab('tab-admin')"><i class="fa-solid fa-user-shield"></i> Admin</button>
+                </div>
+
+                <!-- Tab: Overview -->
+                <div class="tab-content active" id="tab-overview">
+                    <div class="guide-box">
+                        <h4><i class="fa-solid fa-chart-line"></i> Overview (Genel Bakış) Sekmesinde Neler Görünür?</h4>
+                        <p>RabbitMQ sunucusunun tüm sağlık ve performans metriklerinin toplandığı ana kontrol panelidir.</p>
+                        <ul>
+                            <li><strong>Queued Messages Grafiği:</strong> <code>Ready</code> (kuyrukta bekleyen), <code>Unacknowledged</code> (worker tarafından alınmış ama henüz bitmemiş) ve <code>Total</code> mesaj sayılarının anlık değişimini gösterir.</li>
+                            <li><strong>Message Rates:</strong> Saniyede kaç mesaj üretildiği (Publish) ve kaç mesaj tüketildiği (Consumer ACK) hız eğrisi.</li>
+                            <li><strong>Node Resource Usage:</strong> Erlang bellek tüketimi (Memory watermark), disk alanı (Free disk space alarm) ve çalışan Erlang proces sayısı.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tab: Connections -->
+                <div class="tab-content" id="tab-connections">
+                    <div class="guide-box">
+                        <h4><i class="fa-solid fa-network-wired"></i> Connections (TCP Bağlantıları) Sekmesi</h4>
+                        <p>RabbitMQ broker'ına bağlanan istemcilerin (Producer & Consumer) açık TCP/IP soketleridir.</p>
+                        <ul>
+                            <li>Projemizde iki ana bağlantı görürsünüz: <strong>Flask API (stripe-api)</strong> mesaj gönderirken bağlanır; <strong>Celery Worker (stripe-celery)</strong> ise sürekli açık bir TCP soketi tutarak mesaj dinler.</li>
+                            <li>Bağlantıların SSL durumu, istemci IP adresi, portu ve veri transfer hızı (Octets sent/received) burada listelenir.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tab: Channels -->
+                <div class="tab-content" id="tab-channels">
+                    <div class="guide-box">
+                        <h4><i class="fa-solid fa-tower-broadcast"></i> Channels (Sanal Kanallar)</h4>
+                        <p>TCP bağlantısı kurmak maliyetli olduğu için, tek bir TCP bağlantısı içerisinde yüzlerce bağımsız <strong>Sanal Kanal (Multiplexing)</strong> açılır.</p>
+                        <ul>
+                            <li>Celery worker'ın her iş parçacığı (concurrency thread/process) kendine ait bir Channel açarak aynı TCP üzerinden bağımsız mesaj alır.</li>
+                            <li>Burada kanalların <code>Prefetch Count</code> (worker'a bir kerede en fazla kaç mesaj verileceği) değerini görebilirsiniz.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tab: Exchanges -->
+                <div class="tab-content" id="tab-exchanges">
+                    <div class="guide-box">
+                        <h4><i class="fa-solid fa-shuffle"></i> Exchanges (Mesaj Yönlendiriciler)</h4>
+                        <p>Producer (Flask API) mesajı doğrudan kuyruğa atmaz; önce bir <strong>Exchange</strong>'e gönderir. Exchange, routing key'e göre mesajı doğru kuyruğa iletir.</p>
+                        <ul>
+                            <li><code>celery (direct)</code>: Celery'nin varsayılan exchange'idir. Görevin adını routing key olarak kullanarak doğrudan eşleşen kuyruğa yollar.</li>
+                            <li><code>amq.direct / amq.topic / amq.fanout</code>: RabbitMQ'nun standart yönlendiricileridir (Örn: Fanout = Broadcast, tüm kuyruklara kopyalar).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tab: Queues -->
+                <div class="tab-content" id="tab-queues">
+                    <div class="guide-box">
+                        <h4><i class="fa-solid fa-layer-group"></i> Queues and Streams (Kuyruklar) — En Önemli Sekme!</h4>
+                        <p>Mesajların fiziksel olarak depolandığı ve worker'ların tükettiği FIFO kuyruklarıdır.</p>
+                        <ul>
+                            <li><code>celery</code>: Projemizin ana görev kuyruğu. Butona bastığınızda <strong>Ready: +1</strong> olur, worker mesajı alınca <strong>Unacked: 1</strong> olur, işlem tamamlanıp ACK verilince <strong>Total: 0</strong>'a düşer.</li>
+                            <li><strong>Get Messages:</strong> Bu sekmeden kuyruğa tıklayıp içerideki JSON payload'unu (task parametrelerini) doğrudan okuyabilirsiniz.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tab: Admin -->
+                <div class="tab-content" id="tab-admin">
+                    <div class="guide-box">
+                        <h4><i class="fa-solid fa-user-shield"></i> Admin (Yönetim & Yetkilendirme)</h4>
+                        <p>Kullanıcı hesapları, sanal ortamlar (Virtual Hosts) ve küme (cluster) ayarları yönetilir.</p>
+                        <ul>
+                            <li><strong>Users:</strong> Giriş yaptığınız <code>guest</code> kullanıcısı ve <code>administrator</code> rolü.</li>
+                            <li><strong>Virtual Hosts (VHosts):</strong> Çok kiracılı (multi-tenant) sistemler için izolasyon alanı (Varsayılan: <code>/</code>).</li>
+                            <li><strong>Policies:</strong> Kuyruklar için TTL (yaşam süresi), Dead-Letter-Exchange (DLX) ve max-length kuralları belirlenir.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ── JavaScript Logic ──────────────────────────────────── -->
+<script>
+let currentTaskType = "customers";
+let lastSeenId = null;
+let historyCursors = [];
+let pollingInterval = null;
+
+// Tab Switching
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    event.currentTarget.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+}
+
+// Log Appender
+function logEvent(type, message) {
+    const box = document.getElementById('event-logs');
+    const now = new Date().toTimeString().split(' ')[0];
+    
+    let tagClass = 'log-tag-done';
+    let tagText = '[BİLGİ]';
+    if (type === 'send') { tagClass = 'log-tag-send'; tagText = '[AMQP-SEND]'; }
+    else if (type === 'recv') { tagClass = 'log-tag-recv'; tagText = '[WORKER]'; }
+    else if (type === 'done') { tagClass = 'log-tag-done'; tagText = '[STRIPE-OK]'; }
+    else if (type === 'err')  { tagClass = 'log-tag-err';  tagText = '[HATA]'; }
+
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span class="log-time">[${now}]</span><span class="${tagClass}">${tagText}</span><span>${message}</span>`;
+    box.appendChild(entry);
+    box.scrollTop = box.scrollHeight;
+}
+
+function clearLogs() {
+    document.getElementById('event-logs').innerHTML = '';
+}
+
+// Visual Flow Indicator
+function setFlowActive(step) {
+    ['web', 'exchange', 'queue', 'worker', 'stripe'].forEach(k => {
+        const el = document.getElementById(`flow-node-${k}`);
+        if (el) el.classList.remove('active');
+    });
+    if (step) {
+        const el = document.getElementById(`flow-node-${step}`);
+        if (el) el.classList.add('active');
+    }
+}
+
+// Dispatch Celery Task via RabbitMQ
+async function dispatchTask(taskType, startingAfter = null) {
+    currentTaskType = taskType;
+    setFlowActive('web');
+    logEvent('send', `"${taskType}" görevi oluşturuldu. RabbitMQ Exchange (celery) hedefleniyor...`);
+
+    const btn = taskType === 'customers' ? document.getElementById('btn-fetch-customers') : document.getElementById('btn-fetch-invoices');
+    if (btn) btn.disabled = true;
+
+    try {
+        setFlowActive('exchange');
+        const res = await fetch('/api/rabbitmq/send-task', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_type: taskType, limit: 10, starting_after: startingAfter })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'İstek başarısız');
+
+        setFlowActive('queue');
+        logEvent('send', `Mesaj Kuyrukta! Task ID: ${data.task_id.substring(0, 16)}...`);
+        document.getElementById('task-id-badge').textContent = `Task: ${data.task_id.substring(0, 12)}...`;
+
+        // Start polling task result
+        pollTaskResult(data.task_id, taskType);
+
+    } catch (err) {
+        logEvent('err', `Görev gönderilemedi: ${err.message}`);
+        setFlowActive(null);
+        if (btn) btn.disabled = false;
+    }
+}
+
+// Poll Task Result
+async function pollTaskResult(taskId, taskType) {
+    setFlowActive('worker');
+    logEvent('recv', `Celery Worker mesajı tüketiyor (Prefetch -> Execute)...`);
+
+    let attempts = 0;
+    const maxAttempts = 30;
+
+    const check = async () => {
+        attempts++;
+        try {
+            const res = await fetch(`/api/rabbitmq/task-result/${taskId}`);
+            const data = await res.json();
+
+            if (data.status === 'SUCCESS' && data.result) {
+                setFlowActive('stripe');
+                logEvent('done', `Stripe API'den ${data.result.count} ${data.result.type} başarıyla çekildi! (Celery RPC ACK)`);
+                renderResults(data.result);
+                setFlowActive(null);
+                enableButtons();
+                return;
+            } else if (data.status === 'FAILURE') {
+                logEvent('err', `Görev başarısız oldu: ${data.error}`);
+                setFlowActive(null);
+                enableButtons();
+                return;
+            }
+
+            if (attempts < maxAttempts) {
+                setTimeout(check, 800);
+            } else {
+                logEvent('err', `Zaman aşımı: Sonuç 25sn içinde gelmedi.`);
+                setFlowActive(null);
+                enableButtons();
+            }
+        } catch (e) {
+            if (attempts < maxAttempts) setTimeout(check, 800);
+            else enableButtons();
+        }
+    };
+
+    check();
+}
+
+function enableButtons() {
+    document.getElementById('btn-fetch-customers').disabled = false;
+    document.getElementById('btn-fetch-invoices').disabled = false;
+    document.getElementById('btn-stress-test').disabled = false;
+}
+
+// Render Results Table
+function renderResults(result) {
+    const thead = document.getElementById('table-head-row');
+    const tbody = document.getElementById('table-body');
+    const headline = document.getElementById('results-headline');
+    const nextBtn = document.getElementById('btn-next-page');
+
+    tbody.innerHTML = '';
+
+    if (result.type === 'customers') {
+        headline.textContent = `Müşteriler (10 Kayıt — Stripe Canlı)`;
+        thead.innerHTML = `
+            <th>#</th>
+            <th>Müşteri ID</th>
+            <th>İsim / Ünvan</th>
+            <th>E-Posta</th>
+            <th>Kayıt Tarihi</th>
+        `;
+
+        result.data.forEach((c, idx) => {
+            const dateStr = c.created ? new Date(c.created * 1000).toLocaleDateString('tr-TR') : '-';
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="color: var(--text-muted); font-family: monospace;">${idx + 1}</td>
+                <td><span class="badge-id">${c.id}</span></td>
+                <td style="font-weight: 600; color: var(--text-primary);">${c.name}</td>
+                <td>${c.email || '<span style="color: var(--text-muted);">(Yok)</span>'}</td>
+                <td>${dateStr}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        if (result.data.length > 0) {
+            lastSeenId = result.data[result.data.length - 1].id;
+        }
+
+    } else if (result.type === 'invoices') {
+        headline.textContent = `Faturalar (10 Kayıt — Stripe Canlı)`;
+        thead.innerHTML = `
+            <th>#</th>
+            <th>Fatura ID</th>
+            <th>Müşteri ID</th>
+            <th>Tutar</th>
+            <th>Durum</th>
+        `;
+
+        result.data.forEach((inv, idx) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="color: var(--text-muted); font-family: monospace;">${idx + 1}</td>
+                <td><span class="badge-id" style="color: var(--accent-purple); background: rgba(139, 92, 246, 0.12);">${inv.id}</span></td>
+                <td><span class="badge-id">${inv.customer || '-'}</span></td>
+                <td style="font-weight: 700; color: var(--text-primary);">${inv.amount_due.toFixed(2)} ${inv.currency}</td>
+                <td><span class="badge-status-paid">${inv.status}</span></td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        if (result.data.length > 0) {
+            lastSeenId = result.data[result.data.length - 1].id;
+        }
+    }
+
+    document.getElementById('page-indicator').textContent = `Gösterilen: ${result.count} Kayıt | has_more: ${result.has_more ? 'Evet' : 'Hayır'}`;
+    nextBtn.disabled = !result.has_more;
+}
+
+// Next Page (Pagination via starting_after cursor)
+function nextPage() {
+    if (!lastSeenId) return;
+    historyCursors.push(lastSeenId);
+    document.getElementById('btn-prev-page').disabled = false;
+    dispatchTask(currentTaskType, lastSeenId);
+}
+
+function prevPage() {
+    historyCursors.pop();
+    const prevCursor = historyCursors[historyCursors.length - 1] || null;
+    if (!prevCursor) document.getElementById('btn-prev-page').disabled = true;
+    dispatchTask(currentTaskType, prevCursor);
+}
+
+// Stress Test: Send 5 tasks sequentially
+async function runStressTest() {
+    const btn = document.getElementById('btn-stress-test');
+    btn.disabled = true;
+
+    logEvent('send', '🔥 STRESS TEST: 5 görev kuyruğa ardışık basılıyor...');
+    
+    for (let i = 1; i <= 5; i++) {
+        const type = i % 2 === 0 ? 'invoices' : 'customers';
+        try {
+            const res = await fetch('/api/rabbitmq/send-task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task_type: type, limit: 10 })
+            });
+            const data = await res.json();
+            logEvent('send', `[#${i}/5] ${type.toUpperCase()} kuyrukta -> ID: ${data.task_id.substring(0, 12)}...`);
+        } catch (e) {
+            logEvent('err', `Stress test #${i} hatası: ${e.message}`);
+        }
+    }
+
+    logEvent('recv', 'Tüm görevler RabbitMQ kuyruğuna gönderildi. Dashboard "Queues" sekmesinde azalışı izleyin!');
+    setTimeout(() => { btn.disabled = false; }, 3000);
+}
+
+// Queue Monitor Poller
+async function updateQueueStatus() {
+    try {
+        const res = await fetch('/api/rabbitmq/queue-status');
+        const data = await res.json();
+
+        const badge = document.getElementById('worker-status-badge');
+        const text = document.getElementById('worker-status-text');
+        const activeCount = document.getElementById('metric-active-count');
+        const reservedCount = document.getElementById('metric-reserved-count');
+        const queueTag = document.getElementById('live-queue-tag');
+
+        if (data.online) {
+            badge.style.background = 'rgba(16, 185, 129, 0.1)';
+            badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+            badge.style.color = 'var(--accent-green)';
+            text.textContent = `Worker: ${data.workers.length} Aktif Node`;
+        } else {
+            badge.style.background = 'rgba(239, 68, 68, 0.1)';
+            badge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            badge.style.color = '#ef4444';
+            text.textContent = `Worker Kapalı / Bulunamadı`;
+        }
+
+        activeCount.textContent = data.active_count || 0;
+        reservedCount.textContent = data.reserved_count || 0;
+        queueTag.textContent = `${(data.active_count || 0) + (data.reserved_count || 0)} Görev Kuyrukta`;
+
+    } catch (e) {
+        // Polling fail silent
+    }
+}
+
+// Start Periodic Polling every 2.5s
+document.addEventListener('DOMContentLoaded', () => {
+    updateQueueStatus();
+    pollingInterval = setInterval(updateQueueStatus, 2500);
+});
+</script>
+
+</body>
+</html>

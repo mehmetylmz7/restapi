@@ -56,12 +56,38 @@ def get_connection():
     Pool'dan hazır bir bağlantı kiralar.
     Artık her çağrıda yeni TCP bağlantısı açılmaz.
     conn.close() çağrıldığında bağlantı kapatılmaz — pool'a iade edilir.
+
+    Celery worker gibi init_pool() çağırmamış süreçler için,
+    pool bulunamazsa doğrudan (poolsuz) bağlantı açılır.
     """
     try:
         return mysql.connector.connect(pool_name=_POOL_NAME)
+    except mysql.connector.errors.PoolError as err:
+        # Pool doldu veya henüz başlatılmadı — doğrudan bağlantı aç
+        print(f"⚠️  Pool bağlantısı alınamadı ({err}), doğrudan bağlantı açılıyor...")
+        try:
+            return mysql.connector.connect(
+                host=DB_HOST,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                database=DB_NAME,
+            )
+        except mysql.connector.Error as direct_err:
+            print(f"❌ Doğrudan bağlantı da kurulamadı: {direct_err}")
+            return None
     except mysql.connector.Error as err:
         print(f"❌ Pool'dan bağlantı alınamadı: {err}")
-        return None
+        # Pool hiç başlatılmamışsa da doğrudan bağlan
+        try:
+            return mysql.connector.connect(
+                host=DB_HOST,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                database=DB_NAME,
+            )
+        except mysql.connector.Error as direct_err:
+            print(f"❌ Doğrudan bağlantı da kurulamadı: {direct_err}")
+            return None
 
 
 def _get_tidb_connection():
