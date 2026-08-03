@@ -52,6 +52,28 @@ def test_soft_delete_and_filtering():
     print(f"   Fatura listede bulundu mu? {found_after}")
     assert found_after is False, "Invoice should NOT be listed when is_deleted=1"
 
+    print("5. Yeniden faturaları getir (upsert) çağrılıyor...")
+    _upsert_invoice_row(
+        invoice_id=test_inv_id,
+        customer_id=test_cust_id,
+        amount=5000,
+        currency="usd",
+        status="open"
+    )
+
+    with get_db() as cursor:
+        cursor.execute("SELECT id, is_deleted FROM invoices WHERE stripe_invoice_id = %s ORDER BY id ASC", (test_inv_id,))
+        rows = cursor.fetchall()
+        print(f"   Veritabanındaki tüm satırlar: {rows}")
+        assert len(rows) == 2, f"2 satır bekleniyordu (1 silinmiş geçmiş kaydı, 1 yeni aktif kayıt), bulunan: {len(rows)}"
+        assert rows[0][1] == 1, "İlk (eski) satırın is_deleted değeri 1 olarak KALMALI (güncellenmemeli)."
+        assert rows[1][1] == 0, "İkinci (yeni) satırın is_deleted değeri 0 olarak EKLENMELİ."
+
+    res_restored = get_combined_invoices(customer_id=test_cust_id)
+    found_restored = any(inv.get("id") == test_inv_id for inv in res_restored.get("data", []))
+    print(f"   Yeniden getirme sonrası fatura listede bulundu mu? {found_restored}")
+    assert found_restored is True, "Invoice SHOULD be listed again when active is_deleted=0 row exists"
+
     # Temizlik
     with get_db() as cursor:
         cursor.execute("DELETE FROM invoices WHERE stripe_invoice_id = %s", (test_inv_id,))

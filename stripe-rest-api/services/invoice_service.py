@@ -80,9 +80,17 @@ def _upsert_invoice_row(
     olusturma_tarihi: Optional[str] = None,
 ) -> None:
     """
-    'invoices' tablosuna tek bir satırı ekler ya da mevcutsa günceller.
-    sync/import akışlarındaki ayrı INSERT/UPDATE bloklarının yerini alır.
+    Eğer is_deleted = 0 olan aktif bir fatura kaydı varsa onu günceller.
+    Eğer aktif fatura kaydı yoksa (daha önce silinmiş (is_deleted = 1) satır olsa bile),
+    var olan silinmiş satırın is_deleted değerini değiştirmeden is_deleted = 0 olan YENİ bir satır ekler.
     """
+    with get_db() as cursor:
+        cursor.execute(
+            "SELECT id FROM invoices WHERE stripe_invoice_id = %s AND (is_deleted = 0 OR is_deleted IS NULL) ORDER BY id DESC LIMIT 1",
+            (invoice_id,)
+        )
+        active_row = cursor.fetchone()
+
     olusturma_tarihi_val = None
     if olusturma_tarihi:
         olusturma_tarihi_str = str(olusturma_tarihi).strip()
@@ -96,44 +104,37 @@ def _upsert_invoice_row(
             else:
                 olusturma_tarihi_val = olusturma_tarihi_str
 
-    if olusturma_tarihi_val:
-        sql = """
-            INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-                status = VALUES(status),
-                amount = VALUES(amount),
-                currency = VALUES(currency),
-                pdf_path = IF(VALUES(pdf_path) = '', pdf_path, VALUES(pdf_path)),
-                olusturma_tarihi = VALUES(olusturma_tarihi)
-        """
-        params = (
-            invoice_id,
-            customer_id,
-            int(amount),
-            currency.lower(),
-            status.lower(),
-            pdf_path,
-            olusturma_tarihi_val,
-        )
+    if active_row:
+        active_id = active_row[0]
+        if olusturma_tarihi_val:
+            sql = """
+                UPDATE invoices 
+                SET customer_stripe_id = %s, amount = %s, currency = %s, status = %s, 
+                    pdf_path = IF(%s = '', pdf_path, %s), olusturma_tarihi = %s
+                WHERE id = %s
+            """
+            params = (customer_id, int(amount), currency.lower(), status.lower(), pdf_path, pdf_path, olusturma_tarihi_val, active_id)
+        else:
+            sql = """
+                UPDATE invoices 
+                SET customer_stripe_id = %s, amount = %s, currency = %s, status = %s, 
+                    pdf_path = IF(%s = '', pdf_path, %s)
+                WHERE id = %s
+            """
+            params = (customer_id, int(amount), currency.lower(), status.lower(), pdf_path, pdf_path, active_id)
     else:
-        sql = """
-            INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-                status = VALUES(status),
-                amount = VALUES(amount),
-                currency = VALUES(currency),
-                pdf_path = IF(VALUES(pdf_path) = '', pdf_path, VALUES(pdf_path))
-        """
-        params = (
-            invoice_id,
-            customer_id,
-            int(amount),
-            currency.lower(),
-            status.lower(),
-            pdf_path,
-        )
+        if olusturma_tarihi_val:
+            sql = """
+                INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, olusturma_tarihi, is_deleted)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, 0)
+            """
+            params = (invoice_id, customer_id, int(amount), currency.lower(), status.lower(), pdf_path, olusturma_tarihi_val)
+        else:
+            sql = """
+                INSERT INTO invoices (stripe_invoice_id, customer_stripe_id, amount, currency, status, pdf_path, is_deleted)
+                VALUES (%s, %s, %s, %s, %s, %s, 0)
+            """
+            params = (invoice_id, customer_id, int(amount), currency.lower(), status.lower(), pdf_path)
 
     with get_db() as cursor:
         cursor.execute(sql, params)
@@ -346,12 +347,19 @@ def _format_stripe_invoice(inv: dict, source: str) -> dict:
     }
 
 
-# Veritabanında is_deleted = 1 olarak işaretlenmiş fatura ID'lerini getirir
+# Veritabanında is_deleted = 1 olarak işaretlenmiş ve aktif (is_deleted = 0) kaydı bulunmayan fatura ID'lerini getirir
 def _fetch_deleted_invoice_ids() -> set:
-    """MySQL veritabanında is_deleted = 1 olan tüm stripe_invoice_id değerlerini döner."""
+    """MySQL veritabanında is_deleted = 1 olan ancak aktif (is_deleted = 0) karşılığı bulunmayan stripe_invoice_id değerlerini döner."""
     try:
+        sql = """
+            SELECT stripe_invoice_id FROM invoices 
+            WHERE is_deleted = 1 
+            AND stripe_invoice_id NOT IN (
+                SELECT stripe_invoice_id FROM invoices WHERE (is_deleted = 0 OR is_deleted IS NULL)
+            )
+        """
         with get_db() as cursor:
-            cursor.execute("SELECT stripe_invoice_id FROM invoices WHERE is_deleted = 1")
+            cursor.execute(sql)
             rows = cursor.fetchall()
             return {r[0] for r in rows if r[0]}
     except Exception as e:

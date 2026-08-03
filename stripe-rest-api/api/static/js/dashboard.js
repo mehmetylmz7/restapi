@@ -2107,7 +2107,7 @@ function clearPortalInvoiceFilter() {
     updatePaginationUI('portalInvoices', false);
 }
 
-function loadPortalInvoices() {
+function loadPortalInvoices(skipSave = false) {
     const token = localStorage.getItem("user_access_token");
     const state = paginationState.portalInvoices;
     const cursor = state.cursorHistory[state.currentPage];
@@ -2230,7 +2230,7 @@ function loadPortalInvoices() {
                 }
 
                 // Faturalar geldikten sonra otomatik veritabanına kaydetmeyi tetikle
-                if (isPortalInvoiceFilterApplied) {
+                if (isPortalInvoiceFilterApplied && !skipSave) {
                     const saveMsgEl = document.getElementById("portal-invoices-save-msg");
                     if (saveMsgEl) {
                         saveMsgEl.textContent = "⏳ Tüm faturalar getirildi şimdi veritabanına kaydediliyor...";
@@ -2313,6 +2313,7 @@ function savePortalInvoicesToDb() {
             } else {
                 const successMsg = data ? (data.message || "Faturalar başarıyla kaydedildi.") : "İşlem tamamlandı.";
                 showMessage("portal-invoices-save-msg", `✅ ${successMsg}`, "success");
+                loadPortalInvoices(true);
             }
         })
         .catch(err => {
@@ -2496,7 +2497,12 @@ function deleteInvoiceAdmin(invoiceId) {
         .then(data => {
             if (data.success) {
                 alert("Fatura başarıyla silindi veya iptal edildi.");
-                loadLocalInvoicesList();
+                const trs = document.querySelectorAll("#invoices-tbody tr, #local-invoices-tbody tr");
+                trs.forEach(tr => {
+                    if (tr.textContent.includes(invoiceId)) {
+                        tr.remove();
+                    }
+                });
             } else {
                 alert("Hata: " + data.error);
             }
@@ -2518,7 +2524,21 @@ function deleteInvoiceUser(invoiceId) {
         .then(data => {
             if (data.success) {
                 alert("Fatura başarıyla silindi veya iptal edildi.");
-                loadPortalInvoices();
+                if (window.portalInvoicesData) {
+                    window.portalInvoicesData = window.portalInvoicesData.filter(inv => inv.stripe_invoice_id !== invoiceId && inv.id !== invoiceId);
+                }
+                const tbody = document.getElementById("portal-invoices-tbody");
+                if (tbody) {
+                    const trs = tbody.querySelectorAll("tr");
+                    trs.forEach(tr => {
+                        if (tr.textContent.includes(invoiceId)) {
+                            tr.remove();
+                        }
+                    });
+                    if (tbody.children.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Fatura kaydınız bulunmuyor.</td></tr>';
+                    }
+                }
             } else {
                 alert("Hata: " + data.error);
             }

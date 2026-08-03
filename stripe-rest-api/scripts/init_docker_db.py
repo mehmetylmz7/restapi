@@ -22,14 +22,15 @@ def create_tables():
     invoices_sql = """
     CREATE TABLE IF NOT EXISTS invoices (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        stripe_invoice_id VARCHAR(255) UNIQUE NOT NULL,
+        stripe_invoice_id VARCHAR(255) NOT NULL,
         customer_stripe_id VARCHAR(255),
         amount INT,
         currency VARCHAR(10),
         status VARCHAR(50),
         pdf_path VARCHAR(500),
         olusturma_tarihi DATETIME,
-        is_deleted TINYINT(1) NOT NULL DEFAULT 0
+        is_deleted TINYINT(1) NOT NULL DEFAULT 0,
+        KEY idx_stripe_inv (stripe_invoice_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     """
 
