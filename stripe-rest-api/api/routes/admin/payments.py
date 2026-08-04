@@ -19,6 +19,7 @@ def api_payments():
     result = get_payment_intents(limit=limit, starting_after=starting_after)
     return jsonify(result)
 
+# Ödeme oluşturma: Dakikada maksimum 20 istek
 
 @admin_payments_bp.route("", methods=["POST"])
 @limiter.limit("20 per minute")

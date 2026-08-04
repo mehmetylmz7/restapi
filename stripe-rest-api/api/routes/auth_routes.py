@@ -9,6 +9,7 @@ from services.customer_service import create_customer
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
+# Giriş ve kayıt: IP başına dakikada maksimum 5 istek
 
 @auth_bp.route("/register", methods=["POST"])
 @limiter.limit("5 per minute")

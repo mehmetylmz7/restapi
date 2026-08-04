@@ -19,8 +19,8 @@ def get_redis_pool():
                 port=REDIS_PORT,
                 db=REDIS_DB,
                 decode_responses=True,
-                socket_timeout=2.0,
-                socket_connect_timeout=2.0,
+                socket_timeout=0.5,
+                socket_connect_timeout=0.5,
             )
         except Exception as e:
             logger.error(f"❌ Redis ConnectionPool oluşturulamadı: {e}")

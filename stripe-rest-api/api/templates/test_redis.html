@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis Canlı Test & İnteraktif Simülasyon Laboratuvarı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #0b0f19;
+            --bg-card: #131b2e;
+            --bg-card-hover: #1a253f;
+            --bg-card-subtle: #0f172a;
+            --accent-red: #ef4444;
+            --accent-red-hover: #dc2626;
+            --accent-red-subtle: rgba(239, 68, 68, 0.15);
+            --accent-emerald: #10b981;
+            --accent-emerald-subtle: rgba(16, 185, 129, 0.15);
+            --accent-amber: #f59e0b;
+            --accent-amber-subtle: rgba(245, 158, 11, 0.15);
+            --accent-blue: #3b82f6;
+            --accent-blue-subtle: rgba(59, 130, 246, 0.15);
+            --accent-purple: #8b5cf6;
+            --accent-purple-subtle: rgba(139, 92, 246, 0.15);
+            --accent-cyan: #06b6d4;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #1e293b;
+            --border-bright: #334155;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .layout-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* ── Top Navbar ──────────────────────────────────────── */
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem 1.75rem;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .redis-logo-badge {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-red-subtle);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: var(--accent-red);
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand-text p {
+            font-size: 0.825rem;
+            color: var(--text-secondary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--border-bright);
+        }
+
+        .btn-red {
+            background: var(--accent-red);
+            color: #ffffff;
+        }
+
+        .btn-red:hover {
+            background: var(--accent-red-hover);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-emerald {
+            background: var(--accent-emerald);
+            color: #ffffff;
+        }
+
+        .btn-emerald:hover {
+            background: #059669;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-amber {
+            background: var(--accent-amber);
+            color: #000000;
+            font-weight: 700;
+        }
+
+        .btn-amber:hover {
+            background: #d97706;
+            color: #ffffff;
+        }
+
+        .btn-purple {
+            background: var(--accent-purple);
+            color: #ffffff;
+        }
+
+        .btn-purple:hover {
+            background: #7c3aed;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        /* ── Server Info Header Card ─────────────────────────── */
+        .server-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-bright);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .stat-info h4 {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-info .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ── Main Demo Sections Grid ─────────────────────────── */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .demo-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.85rem;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-green {
+            background: var(--accent-emerald-subtle);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-red {
+            background: var(--accent-red-subtle);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-amber {
+            background: var(--accent-amber-subtle);
+            color: var(--accent-amber);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-blue {
+            background: var(--accent-blue-subtle);
+            color: var(--accent-blue);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-purple {
+            background: var(--accent-purple-subtle);
+            color: var(--accent-purple);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .demo-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .interactive-box {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* ── Progress & Meters ───────────────────────────────── */
+        .ttl-meter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .meter-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .meter-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .meter-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-emerald), var(--accent-cyan));
+            transition: width 0.4s ease;
+        }
+
+        /* ── Rate Limit Simulator Counter ────────────────────── */
+        .rate-limit-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .counter-box .num {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .counter-box .lbl {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        /* ── Console / Terminal Logs ─────────────────────────── */
+        .log-console {
+            background: #060911;
+            border: 1px solid #1a2333;
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .log-success { color: var(--accent-emerald); }
+        .log-error { color: var(--accent-red); }
+        .log-warn { color: var(--accent-amber); }
+        .log-info { color: var(--accent-cyan); }
+
+        /* ── Lock Visualizer ─────────────────────────────────── */
+        .lock-status-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+        }
+
+        .lock-icon-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .lock-unlocked {
+            background: var(--accent-emerald-subtle);
+            color: var(--accent-emerald);
+            border: 2px solid var(--accent-emerald);
+        }
+
+        .lock-locked {
+            background: var(--accent-red-subtle);
+            color: var(--accent-red);
+            border: 2px solid var(--accent-red);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .json-preview {
+            background: #060911;
+            padding: 0.6rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #a5b4fc;
+            overflow-x: auto;
+            max-height: 120px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout-container">
+
+    <!-- ── 1. Üst Başlık & Navigasyon ────────────────────────── -->
+    <header class="top-navbar">
+        <div class="brand-section">
+            <div class="redis-logo-badge">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="brand-text">
+                <h1>Redis Canlı Test & Simülasyon Laboratuvarı</h1>
+                <p>Caching, Rate Limiting, JWT Blacklist ve Dağıtık Kilit Canlı Gösterimi</p>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <a href="/" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Ana Dashboard</a>
+            <a href="/test-rabbitmq" class="btn btn-outline" style="color: #ff6600;"><i class="fas fa-arrows-split-up-and-left"></i> RabbitMQ Lab</a>
+            <button onclick="fetchServerInfo()" class="btn btn-red btn-sm"><i class="fas fa-sync-alt"></i> Yenile</button>
+        </div>
+    </header>
+
+    <!-- ── 2. Redis Sunucu Sağlık Metrikleri ──────────────────── -->
+    <section class="server-stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--accent-red-subtle); color: var(--accent-red);">
+                <i class="fas fa-server"></i>
+            </div>
+            <div class="stat-info">
+                <h4>Sunucu Durumu</h4>
+                <div class="value" id="srv-status"><span class="badge badge-amber">Bağlanıyor...</span></div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--accent-emerald-subtle); color: var(--accent-emerald);">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div class="stat-info">
+                <h4>Ping Gecikmesi</h4>
+                <div class="value" id="srv-latency">0 ms</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--accent-blue-subtle); color: var(--accent-blue);">
+                <i class="fas fa-key"></i>
+            </div>
+            <div class="stat-info">
+                <h4>Aktif Anahtarlar (Keys)</h4>
+                <div class="value" id="srv-keys">0</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--accent-purple-subtle); color: var(--accent-purple);">
+                <i class="fas fa-memory"></i>
+            </div>
+            <div class="stat-info">
+                <h4>RAM Bellek Kullanımı</h4>
+                <div class="value" id="srv-memory">0 MB</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: var(--accent-amber-subtle); color: var(--accent-amber);">
+                <i class="fas fa-code-branch"></i>
+            </div>
+            <div class="stat-info">
+                <h4>Redis Versiyonu</h4>
+                <div class="value" id="srv-version">-</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── 3. İnteraktif Demo Kartları Grid ───────────────────── -->
+    <div class="demo-grid">
+
+        <!-- KART 1: CACHING & PERFORMANCE (TTL SİMÜLATÖRÜ) -->
+        <div class="demo-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-bolt" style="color: var(--accent-emerald);"></i>
+                    1. Önbellekleme & Hız (Caching Demo)
+                </div>
+                <span class="badge badge-green" id="cache-badge">Cache-Aside</span>
+            </div>
+            <p class="demo-description">
+                İlk istek veritabanını simüle eder (350 ms). Sonraki istekler 30 saniye boyunca Redis RAM belleğinden <strong>~1 ms</strong> içinde getirilir.
+            </p>
+
+            <div class="interactive-box">
+                <div class="btn-group">
+                    <button onclick="testCacheFetch()" id="btn-cache-fetch" class="btn btn-emerald">
+                        <i class="fas fa-download"></i> Veri İsteği Gönder (Fetch)
+                    </button>
+                    <button onclick="clearCache()" class="btn btn-outline btn-sm">
+                        <i class="fas fa-trash-alt"></i> Önbelleği Temizle (Purge)
+                    </button>
+                </div>
+
+                <div class="ttl-meter-container">
+                    <div class="meter-label-row">
+                        <span id="cache-source-lbl">Kaynak: Bekleniyor...</span>
+                        <span id="cache-ttl-lbl" style="font-family: 'JetBrains Mono'; font-weight: 700;">TTL: 0s / 30s</span>
+                    </div>
+                    <div class="meter-bar-bg">
+                        <div class="meter-bar-fill" id="cache-meter-bar"></div>
+                    </div>
+                </div>
+
+                <div class="rate-limit-display">
+                    <div class="counter-box">
+                        <div class="num" id="cache-elapsed" style="color: var(--accent-emerald);">0.0 ms</div>
+                        <div class="lbl">Yanıt Süresi</div>
+                    </div>
+                    <div class="counter-box">
+                        <div class="num" id="cache-saved" style="color: var(--accent-cyan);">0 ms</div>
+                        <div class="lbl">Kazanılan Zaman</div>
+                    </div>
+                </div>
+
+                <div class="json-preview" id="cache-json-preview">// Gelen JSON verisi burada görüntülenecektir...</div>
+            </div>
+        </div>
+
+        <!-- KART 2: RATE LIMITING SİMÜLATÖRÜ -->
+        <div class="demo-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-shield-alt" style="color: var(--accent-red);"></i>
+                    2. API Güvenliği (Rate Limiting)
+                </div>
+                <span class="badge badge-red">5 İstek / 15 Saniye</span>
+            </div>
+            <p class="demo-description">
+                Butona peş peşe 5 kez hızlıca tıklayın. 6. istekte Redis anında devreye girerek <strong>HTTP 429 Too Many Requests</strong> ile spam saldırısını engeller.
+            </p>
+
+            <div class="interactive-box">
+                <div class="btn-group">
+                    <button onclick="testRateLimit()" id="btn-spam" class="btn btn-red">
+                        <i class="fas fa-fire"></i> Hızlı İstek Gönder (Spam Testi)
+                    </button>
+                    <button onclick="resetRateLimitUI()" class="btn btn-outline btn-sm">
+                        <i class="fas fa-undo"></i> Sayacı Sıfırla
+                    </button>
+                </div>
+
+                <div class="rate-limit-display">
+                    <div class="counter-box">
+                        <div class="num" id="rl-count" style="color: var(--accent-red);">0 / 5</div>
+                        <div class="lbl">Kullanılan Kota</div>
+                    </div>
+                    <div class="counter-box">
+                        <div class="num" id="rl-status-text" style="color: var(--accent-emerald); font-size: 1.3rem; line-height: 2.2rem;">KABUL EDİLİYOR</div>
+                        <div class="lbl">API Durumu</div>
+                    </div>
+                </div>
+
+                <div class="log-console" id="rl-console">
+                    <div class="log-entry log-info"><span class="log-time">[Hazır]</span> Butona basarak istek gönderebilirsiniz.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KART 3: DAĞITIK KİLİT (DISTRIBUTED LOCK) -->
+        <div class="demo-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-lock" style="color: var(--accent-amber);"></i>
+                    3. Dağıtık Kilit (Distributed Lock)
+                </div>
+                <span class="badge badge-amber">Race Condition Koruması</span>
+            </div>
+            <p class="demo-description">
+                Worker-A ile kilidi alın. Kilit tutulurken (5 sn) Worker-B ile işlem yapmayı deneyin. Redis eşzamanlı çakışmayı anında engeller.
+            </p>
+
+            <div class="interactive-box">
+                <div class="lock-status-wrapper">
+                    <div class="lock-icon-circle lock-unlocked" id="lock-icon">
+                        <i class="fas fa-lock-open"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.1rem; font-weight: 700;" id="lock-holder-text">KİLİT BOŞTA (Unlocked)</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);" id="lock-detail-text">Herhangi bir worker işlem başlatabilir.</div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button onclick="acquireLock('Worker-A')" class="btn btn-amber">
+                        <i class="fas fa-robot"></i> Worker-A ile Kilitle (5s)
+                    </button>
+                    <button onclick="acquireLock('Worker-B')" class="btn btn-outline" style="border-color: var(--accent-amber); color: var(--accent-amber);">
+                        <i class="fas fa-robot"></i> Worker-B ile Kilitle (5s)
+                    </button>
+                </div>
+
+                <div class="log-console" id="lock-console">
+                    <div class="log-entry log-info"><span class="log-time">[Hazır]</span> Kilit yarışını başlatabilirsiniz.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KART 4: JWT TOKEN BLACKLIST (LOGOUT) -->
+        <div class="demo-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-user-shield" style="color: var(--accent-purple);"></i>
+                    4. JWT Kara Liste (Logout & İptal)
+                </div>
+                <span class="badge badge-purple">Token Revocation</span>
+            </div>
+            <p class="demo-description">
+                JWT stateless olmasına rağmen, "Çıkış Yap" dendiğinde token JTI değeri Redis kara listesine eklenir ve anında geçersiz kılınır.
+            </p>
+
+            <div class="interactive-box">
+                <div class="btn-group">
+                    <button onclick="generateDemoJWT()" class="btn btn-purple">
+                        <i class="fas fa-key"></i> 1. Token Üret (Login)
+                    </button>
+                    <button onclick="testProtectedJWT()" class="btn btn-outline btn-sm">
+                        <i class="fas fa-check-circle"></i> 2. Korumalı İsteği Dene
+                    </button>
+                    <button onclick="revokeDemoJWT()" class="btn btn-red btn-sm">
+                        <i class="fas fa-sign-out-alt"></i> 3. Çıkış Yap (Revoke)
+                    </button>
+                </div>
+
+                <div class="rate-limit-display">
+                    <div class="counter-box" style="flex: 1; text-align: left;">
+                        <div class="lbl">Aktif Token (JTI):</div>
+                        <div id="jwt-jti-text" style="font-family: 'JetBrains Mono'; font-size: 0.85rem; color: #c4b5fd; word-break: break-all;">Token üretilmedi</div>
+                    </div>
+                    <div class="counter-box">
+                        <div class="num" id="jwt-badge-status" style="font-size: 1rem; color: var(--text-muted);">YOK</div>
+                        <div class="lbl">Token Durumu</div>
+                    </div>
+                </div>
+
+                <div class="log-console" id="jwt-console">
+                    <div class="log-entry log-info"><span class="log-time">[Hazır]</span> Adım 1'den başlayarak test ediniz.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    let activeToken = null;
+    let ttlInterval = null;
+    let currentTtl = 0;
+    let totalTtl = 30;
+    let rateLimitClicks = 0;
+
+    // ── 1. Sunucu Bilgilerini Çek ──────────────────────────────
+    async function fetchServerInfo() {
+        try {
+            const res = await fetch('/api/redis/server-info');
+            const data = await res.json();
+
+            const statusEl = document.getElementById('srv-status');
+            if (data.connected) {
+                statusEl.innerHTML = '<span class="badge badge-green"><i class="fas fa-check-circle"></i> Online</span>';
+                document.getElementById('srv-latency').textContent = data.latency_ms + ' ms';
+                document.getElementById('srv-keys').textContent = data.keys_count;
+                document.getElementById('srv-memory').textContent = data.used_memory_human;
+                document.getElementById('srv-version').textContent = 'v' + data.version;
+            } else {
+                statusEl.innerHTML = '<span class="badge badge-red"><i class="fas fa-times-circle"></i> Offline</span>';
+                document.getElementById('srv-latency').textContent = data.latency_ms + ' ms';
+                document.getElementById('srv-keys').textContent = '0';
+                document.getElementById('srv-memory').textContent = '0B';
+            }
+        } catch (e) {
+            console.error('Server info error:', e);
+        }
+    }
+
+    // ── 2. Caching Test ────────────────────────────────────────
+    async function testCacheFetch() {
+        const btn = document.getElementById('btn-cache-fetch');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Çekiliyor...';
+
+        try {
+            const res = await fetch('/api/redis/cache-demo');
+            const data = await res.json();
+
+            document.getElementById('cache-elapsed').textContent = data.elapsed_ms + ' ms';
+            document.getElementById('cache-saved').textContent = '+' + data.saved_time_ms + ' ms';
+            document.getElementById('cache-source-lbl').innerHTML = data.is_cached 
+                ? '<span style="color: var(--accent-emerald); font-weight:700;"><i class="fas fa-bolt"></i> ' + data.source + '</span>'
+                : '<span style="color: var(--accent-amber); font-weight:700;"><i class="fas fa-database"></i> ' + data.source + '</span>';
+
+            document.getElementById('cache-json-preview').textContent = JSON.stringify(data.data, null, 2);
+
+            // TTL Barını başlat
+            currentTtl = data.ttl_remaining;
+            totalTtl = data.ttl_total;
+            startTtlCountdown();
+
+            fetchServerInfo();
+        } catch (e) {
+            alert('Hata oluştu: ' + e);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-download"></i> Veri İsteği Gönder (Fetch)';
+        }
+    }
+
+    function startTtlCountdown() {
+        if (ttlInterval) clearInterval(ttlInterval);
+        updateTtlBar();
+
+        ttlInterval = setInterval(() => {
+            currentTtl--;
+            if (currentTtl <= 0) {
+                currentTtl = 0;
+                clearInterval(ttlInterval);
+                document.getElementById('cache-source-lbl').innerHTML = '<span style="color: var(--text-secondary);">Önbellek süresi doldu (Expired).</span>';
+            }
+            updateTtlBar();
+        }, 1000);
+    }
+
+    function updateTtlBar() {
+        const pct = (currentTtl / totalTtl) * 100;
+        document.getElementById('cache-meter-bar').style.width = pct + '%';
+        document.getElementById('cache-ttl-lbl').textContent = 'TTL: ' + currentTtl + 's / ' + totalTtl + 's';
+    }
+
+    async function clearCache() {
+        await fetch('/api/redis/cache-clear', { method: 'POST' });
+        currentTtl = 0;
+        updateTtlBar();
+        document.getElementById('cache-source-lbl').textContent = 'Önbellek temizlendi! Sonraki istek DB\'den gelecek.';
+        document.getElementById('cache-elapsed').textContent = '0.0 ms';
+        document.getElementById('cache-saved').textContent = '0 ms';
+        document.getElementById('cache-json-preview').textContent = '// Önbellek temizlendi.';
+        fetchServerInfo();
+    }
+
+    // ── 3. Rate Limit Test ─────────────────────────────────────
+    async function testRateLimit() {
+        rateLimitClicks++;
+        document.getElementById('rl-count').textContent = rateLimitClicks + ' / 5';
+
+        const consoleEl = document.getElementById('rl-console');
+        const now = new Date().toLocaleTimeString();
+
+        try {
+            const res = await fetch('/api/redis/rate-limit-demo', { method: 'POST' });
+            const data = await res.json();
+
+            if (res.status === 429) {
+                document.getElementById('rl-status-text').textContent = '⛔ 429 ENGELLENDİ';
+                document.getElementById('rl-status-text').style.color = 'var(--accent-red)';
+                
+                const entry = document.createElement('div');
+                entry.className = 'log-entry log-error';
+                entry.innerHTML = `<span class="log-time">[${now}]</span> <strong>HTTP 429:</strong> Rate limit aşıldı! İstek Redis tarafından engellendi.`;
+                consoleEl.prepend(entry);
+            } else {
+                document.getElementById('rl-status-text').textContent = 'KABUL EDİLDİ ✅';
+                document.getElementById('rl-status-text').style.color = 'var(--accent-emerald)';
+
+                const entry = document.createElement('div');
+                entry.className = 'log-entry log-success';
+                entry.innerHTML = `<span class="log-time">[${now}]</span> <strong>HTTP 200:</strong> İstek #${rateLimitClicks} kabul edildi.`;
+                consoleEl.prepend(entry);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function resetRateLimitUI() {
+        rateLimitClicks = 0;
+        document.getElementById('rl-count').textContent = '0 / 5';
+        document.getElementById('rl-status-text').textContent = 'KABUL EDİLİYOR';
+        document.getElementById('rl-status-text').style.color = 'var(--accent-emerald)';
+        document.getElementById('rl-console').innerHTML = '<div class="log-entry log-info"><span class="log-time">[Sıfırlandı]</span> Sayaç sıfırlandı.</div>';
+    }
+
+    // ── 4. Dağıtık Kilit (Lock) Test ───────────────────────────
+    async function acquireLock(workerName) {
+        const consoleEl = document.getElementById('lock-console');
+        const now = new Date().toLocaleTimeString();
+
+        try {
+            const res = await fetch('/api/redis/lock-demo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ worker_name: workerName, hold_seconds: 5 })
+            });
+            const data = await res.json();
+
+            const iconEl = document.getElementById('lock-icon');
+            const holderText = document.getElementById('lock-holder-text');
+            const detailText = document.getElementById('lock-detail-text');
+
+            if (data.acquired) {
+                iconEl.className = 'lock-icon-circle lock-locked';
+                iconEl.innerHTML = '<i class="fas fa-lock"></i>';
+                holderText.textContent = '🔒 KİLİTLİ: ' + workerName;
+                holderText.style.color = 'var(--accent-amber)';
+                detailText.textContent = '5 saniye boyunca rezerve edildi...';
+
+                const entry = document.createElement('div');
+                entry.className = 'log-entry log-warn';
+                entry.innerHTML = `<span class="log-time">[${now}]</span> <strong>${workerName}</strong> kilidi 5 saniyeliğine ALDI.`;
+                consoleEl.prepend(entry);
+
+                // 5 saniye sonra UI serbest bırak
+                setTimeout(() => {
+                    checkLockStatus();
+                }, 5100);
+
+            } else {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry log-error';
+                entry.innerHTML = `<span class="log-time">[${now}]</span> <strong>${workerName}</strong> kilit ALAMADI! (${data.holder} işlem yapıyor). Race Condition önlendi.`;
+                consoleEl.prepend(entry);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function checkLockStatus() {
+        const res = await fetch('/api/redis/lock-status');
+        const data = await res.json();
+
+        const iconEl = document.getElementById('lock-icon');
+        const holderText = document.getElementById('lock-holder-text');
+        const detailText = document.getElementById('lock-detail-text');
+        const consoleEl = document.getElementById('lock-console');
+
+        if (data.locked) {
+            iconEl.className = 'lock-icon-circle lock-locked';
+            iconEl.innerHTML = '<i class="fas fa-lock"></i>';
+            holderText.textContent = '🔒 KİLİTLİ: ' + data.holder;
+        } else {
+            iconEl.className = 'lock-icon-circle lock-unlocked';
+            iconEl.innerHTML = '<i class="fas fa-lock-open"></i>';
+            holderText.textContent = 'KİLİT BOŞTA (Unlocked)';
+            holderText.style.color = 'var(--text-primary)';
+            detailText.textContent = 'Herhangi bir worker işlem başlatabilir.';
+
+            const entry = document.createElement('div');
+            entry.className = 'log-entry log-info';
+            entry.innerHTML = `<span class="log-time">[${new Date().toLocaleTimeString()}]</span> 🔓 Kilit otomatik serbest bırakıldı.`;
+            consoleEl.prepend(entry);
+        }
+    }
+
+    // ── 5. JWT Blacklist Test ──────────────────────────────────
+    async function generateDemoJWT() {
+        const res = await fetch('/api/redis/jwt-demo/generate', { method: 'POST' });
+        const data = await res.json();
+        activeToken = data.token;
+
+        document.getElementById('jwt-jti-text').textContent = 'JTI: ' + data.jti;
+        document.getElementById('jwt-badge-status').textContent = 'GEÇERLİ 🟢';
+        document.getElementById('jwt-badge-status').style.color = 'var(--accent-emerald)';
+
+        const entry = document.createElement('div');
+        entry.className = 'log-entry log-success';
+        entry.innerHTML = `<span class="log-time">[${new Date().toLocaleTimeString()}]</span> 🔑 Yeni Token Üretildi (JTI: ${data.jti.slice(0, 10)}...).`;
+        document.getElementById('jwt-console').prepend(entry);
+    }
+
+    async function testProtectedJWT() {
+        if (!activeToken) {
+            alert('Lütfen önce 1. adımdan bir token üretin!');
+            return;
+        }
+
+        const now = new Date().toLocaleTimeString();
+        try {
+            const res = await fetch('/api/redis/jwt-demo/protected', {
+                headers: { 'Authorization': 'Bearer ' + activeToken }
+            });
+            const data = await res.json();
+
+            if (res.status === 200) {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry log-success';
+                entry.innerHTML = `<span class="log-time">[${now}]</span> <strong>HTTP 200:</strong> Korumalı rotaya erişim ONAYLANDI (Token aktif).`;
+                document.getElementById('jwt-console').prepend(entry);
+            } else if (res.status === 401) {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry log-error';
+                entry.innerHTML = `<span class="log-time">[${now}]</span> <strong>HTTP 401:</strong> Erişim REDDEDİLDİ! Token Redis kara listesinde.`;
+                document.getElementById('jwt-console').prepend(entry);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function revokeDemoJWT() {
+        if (!activeToken) {
+            alert('Lütfen önce bir token üretin!');
+            return;
+        }
+
+        const now = new Date().toLocaleTimeString();
+        const res = await fetch('/api/redis/jwt-demo/revoke', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: activeToken })
+        });
+        const data = await res.json();
+
+        document.getElementById('jwt-badge-status').textContent = 'İPTAL EDİLDİ 🔴';
+        document.getElementById('jwt-badge-status').style.color = 'var(--accent-red)';
+
+        const entry = document.createElement('div');
+        entry.className = 'log-entry log-warn';
+        entry.innerHTML = `<span class="log-time">[${now}]</span> 🚫 Token Redis Kara Listesine Eklendi (Logout yapıldı). Artık kullanılamaz!`;
+        document.getElementById('jwt-console').prepend(entry);
+
+        fetchServerInfo();
+    }
+
+    // İlk yüklemede sunucu durumunu kontrol et
+    fetchServerInfo();
+    setInterval(fetchServerInfo, 8000);
+</script>
+
+</body>
+</html>

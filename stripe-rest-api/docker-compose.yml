@@ -44,6 +44,8 @@ services:
         condition: service_healthy
       mongo:
         condition: service_started
+      redis:
+        condition: service_started
     volumes:
       - ./data:/app/data  # PDF ve CSV dosyaları kalıcı
       - ./logs:/app/logs
@@ -69,6 +71,7 @@ services:
       - rabbitmq
       - mysql
       - mongo
+      - redis
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
