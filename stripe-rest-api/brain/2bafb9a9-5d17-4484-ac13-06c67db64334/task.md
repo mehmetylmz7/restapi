@@ -1,0 +1,22 @@
+# Redis Entegrasyon Görevleri (0 + 2 + 3 + 4 + 5)
+
+- [x] 0. Temel Altyapı Kurulumu <!-- id: 0 -->
+    - [x] `docker-compose.yml` içine `redis` servisi ve volume tanımı ekleme <!-- id: 0.1 -->
+    - [x] `.env` ve `.env.docker` dosyalarına Redis konfigürasyon değişkenleri ekleme <!-- id: 0.2 -->
+    - [x] `requirements.txt` dosyasına `redis` ve `flask-limiter` paketlerini ekleme <!-- id: 0.3 -->
+    - [x] `core/config.py` içine Redis ayarlarını ekleme <!-- id: 0.4 -->
+    - [x] `core/redis_client.py` modülünü oluşturma (Bağlantı havuzu, cache, lock ve blacklist yardımcıları) <!-- id: 0.5 -->
+- [x] 2. Dashboard İstatistikleri & Stripe API Önbellekleme (Caching) <!-- id: 1 -->
+    - [x] `api/routes/main_routes.py` `/api/stats` endpoint'ine Redis önbellekleme (TTL 60s) entegre etme <!-- id: 1.1 -->
+    - [x] Önbellek temizleme (invalidation) mekanizmasını kurma <!-- id: 1.2 -->
+- [x] 3. API Güvenliği & Hız Sınırlama (Rate Limiting) <!-- id: 2 -->
+    - [x] `api/web_api.py` içine `Flask-Limiter` kurulumunu Redis storage ile bağlama <!-- id: 2.1 -->
+    - [x] `/api/auth/login` ve `/api/auth/register` rotalarına Brute-force koruması ekleme <!-- id: 2.2 -->
+    - [x] `/api/payments` rotasına istek sınırlama ekleme <!-- id: 2.3 -->
+- [x] 4. JWT Token Blacklist (Güvenli Logout & Oturum İptali) <!-- id: 3 -->
+    - [x] `api/web_api.py` içine `@jwt.token_in_blocklist_loader` ekleme <!-- id: 3.1 -->
+    - [x] `api/routes/auth_routes.py` içine `POST /api/auth/logout` rotası ekleme <!-- id: 3.2 -->
+- [x] 5. Dağıtık Kilit (Distributed Locking - Race Condition Koruması) <!-- id: 4 -->
+    - [x] `tasks.py` içindeki `background_sync_task` senkronizasyonuna Redis kilidi uygulama <!-- id: 4.1 -->
+- [x] Doğrulama ve Kod Anlatımı <!-- id: 5 -->
+    - [x] Tüm modüllerin detaylı kod açıklamasını ve kullanım rehberini sunma <!-- id: 5.1 -->

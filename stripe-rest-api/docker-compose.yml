@@ -73,6 +73,18 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
 
+  # ── Redis (Cache & State) ──────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: stripe-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
 volumes:
   mysql_data:
   mongo_data:
+  redis_data:

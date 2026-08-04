@@ -29,3 +29,10 @@ MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "logs")
 MONGO_IMPORT_COLLECTION = os.getenv("MONGO_IMPORT_COLLECTION", "import_invoice_logs")
 
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fallback-secret-jwt-key")
+ 
+# Redis ayarları
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_DB = int(os.getenv("REDIS_DB", 0))
+REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+

@@ -1,13 +1,17 @@
+from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt
 from core.database import get_db
+from core.limiter import limiter
+from core.redis_client import add_token_to_blacklist
 from services.customer_service import create_customer
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 
 @auth_bp.route("/register", methods=["POST"])
+@limiter.limit("5 per minute")
 def api_register():
     data = request.get_json()
     if not data or "email" not in data or "password" not in data:
@@ -49,6 +53,7 @@ def api_register():
 
 
 @auth_bp.route("/login", methods=["POST"])
+@limiter.limit("5 per minute")
 def api_login():
     data = request.get_json()
     if not data or "email" not in data or "password" not in data:
@@ -80,3 +85,31 @@ def api_login():
 
     except Exception as e:
         return jsonify({"error": f"Giriş hatası: {str(e)}"}), 500
+
+
+@auth_bp.route("/logout", methods=["POST"])
+@jwt_required()
+def api_logout():
+    """
+    Kullanıcının aktif JWT token'ını Redis kara listesine ekleyerek oturumu sonlandırır.
+    """
+    try:
+        jwt_payload = get_jwt()
+        jti = jwt_payload.get("jti")
+        exp_timestamp = jwt_payload.get("exp")
+
+        if not jti or not exp_timestamp:
+            return jsonify({"error": "Geçersiz token yapısı."}), 400
+
+        # Token'ın kalan süresini hesapla
+        now = datetime.now(timezone.utc).timestamp()
+        remaining_seconds = int(exp_timestamp - now)
+
+        if remaining_seconds > 0:
+            add_token_to_blacklist(jti, remaining_seconds)
+
+        return jsonify({"message": "Başarıyla çıkış yapıldı. Token iptal edildi."}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Çıkış yapılırken hata oluştu: {str(e)}"}), 500
+

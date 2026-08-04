@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, Response
+from core.limiter import limiter
 from services.payment_service import (
     create_payment_intent,
     get_payment_intents,
@@ -20,6 +21,7 @@ def api_payments():
 
 
 @admin_payments_bp.route("", methods=["POST"])
+@limiter.limit("20 per minute")
 def api_create_payment():
     data = request.get_json()
     payment = create_payment_intent(

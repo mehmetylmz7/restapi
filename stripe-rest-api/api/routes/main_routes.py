@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, render_template
 from core.database import get_db
 from core.stripe_client import get
 from core.config import BASE_URL
+from core.redis_client import get_cached_json, set_cached_json
 
 main_bp = Blueprint("main", __name__)
 
@@ -10,12 +11,17 @@ main_bp = Blueprint("main", __name__)
 def api_stats():
     """
     Dashboard istatistiklerini döndürür.
-    - customers : yerel MySQL'den COUNT (Stripe çağrısı yok)
-    - invoices  : yerel MySQL'den COUNT, is_deleted=0 olanlar
-    - payments  : Stripe'a limit=1 ile tek istek → total_count
-    - products  : Stripe'a limit=1 ile tek istek → total_count
+    Redis Önbellekleme (TTL: 60 saniye):
+    - Önce Redis'te 'dashboard:stats' anahtarı kontrol edilir (1 ms altı yanıt).
+    - Cache yoksa MySQL COUNT ve Stripe API'den hesaplanır ve Redis'e yazılır.
     """
-    stats = {"customers": 0, "payments": 0, "refunds": 0, "products": 0}
+    cache_key = "dashboard:stats"
+    cached_stats = get_cached_json(cache_key)
+    if cached_stats is not None:
+        cached_stats["_cached"] = True
+        return jsonify(cached_stats)
+
+    stats = {"customers": 0, "payments": 0, "refunds": 0, "products": 0, "_cached": False}
 
     # ── customers: DB'den direkt say ─────────────────────────
     try:
@@ -40,7 +46,6 @@ def api_stats():
         res = get(f"{BASE_URL}/refunds", params={"limit": 1})
         if res:
             data = res.json()
-            # Stripe total_count döndürmez; has_more varsa en az 1 var demek
             stats["refunds"] = 1 if data.get("data") else 0
     except Exception as e:
         print(f"Stats refunds error: {e}")
@@ -53,6 +58,9 @@ def api_stats():
             stats["products"] = 1 if data.get("data") else 0
     except Exception as e:
         print(f"Stats products error: {e}")
+
+    # Hesaplanan istatistikleri 60 saniye boyunca Redis'e önbelleğe al
+    set_cached_json(cache_key, stats, ttl=60)
 
     return jsonify(stats)
 

@@ -2,6 +2,8 @@ from typing import Optional
 from core.stripe_client import get, post, delete
 from core.config import BASE_URL
 from core.database import get_db
+from core.redis_client import delete_cache
+
 
 
 def sync_stripe_customers_to_db(created_gte: Optional[int] = None, created_lte: Optional[int] = None) -> dict:
@@ -150,6 +152,7 @@ def create_customer(name, email):
         with get_db() as cursor:
             cursor.execute(sql, values)
         print(f"✅ Customer {customer['id']} veritabanına kaydedildi.")
+        delete_cache("dashboard:stats")
 
     except Exception as e:
         print(f"❌ Veritabanına kaydedilirken hata oluştu: {e}")
@@ -182,6 +185,7 @@ def delete_customer(customer_id):
             with get_db() as cursor:
                 cursor.execute(sql, (customer_id,))
             print(f"✅ Customer {customer_id} veritabanından silindi.")
+            delete_cache("dashboard:stats")
         except Exception as e:
             print(f"❌ Veritabanından silinirken hata oluştu: {e}")
 

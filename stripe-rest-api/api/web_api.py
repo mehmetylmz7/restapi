@@ -1,7 +1,9 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from core.config import JWT_SECRET_KEY
+from core.limiter import limiter
+from core.redis_client import is_token_blacklisted
 
 # Rota Blueprint'lerinin içe aktarılması
 from api.routes.main_routes import main_bp
@@ -27,6 +29,37 @@ app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 app.config["JWT_TOKEN_LOCATION"] = ["headers", "query_string"]
 jwt = JWTManager(app)
 CORS(app)
+
+# Redis tabanlı Rate Limiter'ı uygulamaya bağla
+limiter.init_app(app)
+
+
+# ── JWT Token Blacklist (Oturum İptal Kontrolü) ──────────────────────────────
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+    """Her korumalı istekte JWT kimliğinin (jti) Redis kara listesinde olup olmadığını denetler."""
+    jti = jwt_payload.get("jti")
+    if not jti:
+        return False
+    return is_token_blacklisted(jti)
+
+
+@jwt.revoked_token_loader
+def revoked_token_callback(jwt_header, jwt_payload: dict):
+    """Kara listedeki (çıkış yapılmış) bir token kullanıldığında dönecek yanıt."""
+    return jsonify({
+        "error": "Bu token iptal edilmiştir (oturum sonlandırıldı). Lütfen tekrar giriş yapın."
+    }), 401
+
+
+# ── 429 Rate Limit Aşıldı Hata Yakalayıcı ─────────────────────────────────────
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({
+        "error": "Çok fazla istek gönderildi (Rate Limit aşıldı). Lütfen bir süre sonra tekrar deneyin.",
+        "details": str(e.description)
+    }), 429
+
 
 # ── Blueprint Kayıtları (Register) ──────────────────────────────────────────
 # Ana & Auth Rotaları

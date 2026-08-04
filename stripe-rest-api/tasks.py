@@ -1,18 +1,35 @@
 import time
 from core.celery_app import celery
+from core.redis_client import redis_lock, delete_cache
 from services.customer_service import sync_stripe_customers_to_db
 
 
 @celery.task(bind=True, name="background_sync_task")
 def background_sync_task(self, created_gte=None, created_lte=None):
-    print("Arka plan senkronizasyonu basladi...")
-    try:
-        result = sync_stripe_customers_to_db(created_gte=created_gte, created_lte=created_lte)
-        print(f"Arka plan senkronizasyonu tamamlandi: {result}")
-        return result
-    except Exception as e:
-        print(f"Arka plan senkronizasyonu hatasi: {e}")
-        raise e
+    """
+    Stripe müşterilerini arka planda veritabanına senkronize eder.
+    Redis Dağıtık Kilit (Distributed Lock):
+    - Aynı anda birden fazla worker'ın veya isteğin aynı senkronizasyonu
+      çalıştırmasını engeller (Race Condition koruması).
+    """
+    print("Arka plan senkronizasyonu başlatılıyor...")
+    
+    with redis_lock("customer_sync_task", timeout=60, blocking=False) as acquired:
+        if not acquired:
+            msg = "⚠️ Başka bir senkronizasyon görevi zaten devam ediyor. Çakışma önlendi."
+            print(msg)
+            return {"success": False, "skipped": True, "message": msg}
+
+        try:
+            result = sync_stripe_customers_to_db(created_gte=created_gte, created_lte=created_lte)
+            # Senkronizasyon sonrası dashboard istatistik önbelleğini temizle
+            delete_cache("dashboard:stats")
+            print(f"Arka plan senkronizasyonu tamamlandı: {result}")
+            return result
+        except Exception as e:
+            print(f"Arka plan senkronizasyonu hatası: {e}")
+            raise e
+
 
 
 @celery.task(bind=True, name="fetch_customers_task")
